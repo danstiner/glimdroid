@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_following"
+        android:icon="@drawable/ic_baseline_favorite_24"
+        android:title="@string/title_following" />
+
+    <item
+        android:id="@+id/navigation_featured"
+        android:icon="@drawable/ic_local_offer_black_24dp"
+        android:title="@string/title_featured" />
+
+    <item
+        android:id="@+id/navigation_categories"
+        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:title="@string/title_categories" />
+
+</menu>
