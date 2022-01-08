@@ -1,6 +1,8 @@
 package tv.glimesh.ui.login
 
 import android.app.Activity
+import android.app.PendingIntent
+import android.content.Intent
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
@@ -12,6 +14,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
+import tv.glimesh.MainActivity
 import tv.glimesh.databinding.ActivityLoginBinding
 
 import tv.glimesh.R
@@ -32,7 +35,13 @@ class LoginActivity : AppCompatActivity() {
         val login = binding.login
         val loading = binding.loading
 
-        loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
+        loginViewModel = ViewModelProvider(
+            this,
+            LoginViewModelFactory(
+                applicationContext,
+                PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
+            )
+        )
             .get(LoginViewModel::class.java)
 
         loginViewModel.loginFormState.observe(this@LoginActivity, Observer {
