@@ -3,15 +3,43 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_1.xml" value="0.559375" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_16.xml" value="0.559375" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_5.xml" value="0.559375" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_6.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.4401041666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/side_nav_bar.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w1240dp/activity_login.xml" value="0.1703125" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w1240dp/activity_stream2.xml" value="0.3514056224899598" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w1240dp/content_stream.xml" value="0.3514056224899598" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/activity_stream2.xml" value="0.46296296296296297" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/content_stream.xml" value="0.46296296296296297" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w936dp/activity_login.xml" value="0.36441256830601093" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_entry.xml" value="0.1890625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_login.xml" value="0.19746376811594202" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_main.xml" value="0.2662037037037037" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_stream.xml" value="0.4271186440677966" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_stream2.xml" value="0.546875" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/content_entry.xml" value="0.4832427536231884" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/content_stream.xml" value="0.1693840579710145" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/content_stream2.xml" value="0.546875" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_categories.xml" value="0.27445652173913043" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_dashboard.xml" value="0.27445652173913043" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_featured.xml" value="0.4832427536231884" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_first.xml" value="0.1693840579710145" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_first2.xml" value="0.1693840579710145" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_following.xml" value="0.4832427536231884" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_home.xml" value="0.27445652173913043" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_reflow.xml" value="0.4832427536231884" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_second.xml" value="0.4832427536231884" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_second2.xml" value="0.48143115942028986" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_settings.xml" value="0.4832427536231884" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_stream_video.xml" value="0.48143115942028986" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/nav_header_stream2.xml" value="0.4832427536231884" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_nav_menu.xml" value="0.46770833333333334" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_navigation.xml" value="0.5432291666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/navigation_drawer.xml" value="0.5432291666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/overflow.xml" value="0.5432291666666667" />
       </map>
     </option>
   </component>
