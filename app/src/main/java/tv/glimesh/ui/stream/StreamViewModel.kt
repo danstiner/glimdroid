@@ -152,6 +152,12 @@ class StreamViewModel(
                                             answer.description,
                                             arrayOf()
                                         )
+
+                                        while (true) {
+                                            delay(30_000)
+                                            val events = janus.longPollSession(session)
+                                            // TODO do something with events
+                                        }
                                     }
                                     peerConnection!!.setLocalDescription(object : SdpObserver {
                                         override fun onCreateSuccess(description: SessionDescription) {

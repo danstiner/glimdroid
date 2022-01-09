@@ -38,14 +38,53 @@ data class CreateResponse(
     val error: JanusError? = null
 )
 
+/*
+Examples:
+[
+    {
+          "janus": "event",
+          "session_id": 7415323739446857,
+          "sender": 4830019477610560,
+          "plugindata": {
+             "plugin": "janus.plugin.ftl",
+             "data": {
+                "streaming": "event",
+                "result": {
+                   "status": "preparing"
+                }
+             }
+          },
+          "jsep": {
+             "type": "offer",
+             "sdp": "v=0\r\no=- 1641772499772226 1 IN IP4 104.131.103.240\r\ns=Channel 10552\r\nt=0 0\r\na=group:BUNDLE audio video\r\na=msid-semantic: WMS janus\r\nm=audio 9 UDP/TLS/RTP/SAVPF 97\r\nc=IN IP4 104.131.103.240\r\na=sendonly\r\na=mid:audio\r\na=rtcp-mux\r\na=ice-ufrag:WWOA\r\na=ice-pwd:gLNRMGY9vXZ7oYlgb9QlBN\r\na=ice-options:trickle\r\na=fingerprint:sha-256 47:91:B2:76:9A:15:8E:A2:78:BB:64:39:31:41:BF:C9:6B:91:B4:B9:FD:0C:B2:3E:6F:5D:96:BB:0F:07:DB:09\r\na=setup:actpass\r\na=rtpmap:97 opus/48000/2\r\na=extmap:1 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=msid:janus janusa0\r\na=ssrc:3424953280 cname:janus\r\na=ssrc:3424953280 msid:janus janusa0\r\na=ssrc:3424953280 mslabel:janus\r\na=ssrc:3424953280 label:janusa0\r\na=candidate:1 1 udp 2015363327 104.131.103.240 52932 typ host\r\na=candidate:2 1 udp 2015363583 10.17.0.7 42154 typ host\r\na=candidate:3 1 udp 2015363839 10.108.0.4 34552 typ host\r\na=end-of-candidates\r\nm=video 9 UDP/TLS/RTP/SAVPF 96 97\r\nc=IN IP4 104.131.103.240\r\na=sendonly\r\na=mid:video\r\na=rtcp-mux\r\na=ice-ufrag:WWOA\r\na=ice-pwd:gLNRMGY9vXZ7oYlgb9QlBN\r\na=ice-options:trickle\r\na=fingerprint:sha-256 47:91:B2:76:9A:15:8E:A2:78:BB:64:39:31:41:BF:C9:6B:91:B4:B9:FD:0C:B2:3E:6F:5D:96:BB:0F:07:DB:09\r\na=setup:actpass\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 profile-level-id=42e01f;packetization-mode=1;\r\na=rtcp-fb:96 nack\r\na=rtcp-fb:96 nack pli\r\na=extmap:1 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=rtpmap:97 rtx/90000\r\na=fmtp:97 apt=96\r\na=ssrc-group:FID 44610768 2245469848\r\na=msid:janus janusv0\r\na=ssrc:44610768 cname:janus\r\na=ssrc:44610768 msid:janus janusv0\r\na=ssrc:44610768 mslabel:janus\r\na=ssrc:44610768 label:janusv0\r\na=ssrc:2245469848 cname:janus\r\na=ssrc:2245469848 msid:janus janusv0\r\na=ssrc:2245469848 mslabel:janus\r\na=ssrc:2245469848 label:janusv0\r\na=candidate:1 1 udp 2015363327 104.131.103.240 52932 typ host\r\na=candidate:2 1 udp 2015363583 10.17.0.7 42154 typ host\r\na=candidate:3 1 udp 2015363839 10.108.0.4 34552 typ host\r\na=end-of-candidates\r\n"
+          }
+       },
+       {
+          "janus": "webrtcup",
+          "session_id": 7415323739446857,
+          "sender": 4830019477610560
+       },
+       {
+          "janus": "slowlink",
+          "session_id": 7415323739446857,
+          "sender": 4830019477610560,
+          "media": "video",
+          "uplink": true,
+          "lost": 6
+       }
+]
+ */
 @Serializable
 data class SessionEvent(
-    val plugindata: SessionEventPluginData,
+    val plugindata: SessionEventPluginData? = null,
     val jsep: Jsep? = null,
     val janus: String,
     val sender: Long,
     val transaction: String? = null,
     val session_id: Long? = null,
+    val media: String? = null,
+    val uplink: Boolean? = null,
+    val lost: Int? = null
 )
 
 @Serializable
