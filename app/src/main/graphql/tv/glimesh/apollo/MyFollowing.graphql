@@ -1,0 +1,34 @@
+query MyFollowing {
+  myself {
+    id,
+    countFollowing,
+    followingLiveChannels {
+      count,
+      edges {
+        cursor,
+        node {
+          id
+          category {
+            name
+          },
+          language,
+          matureContent,
+          status,
+          stream {
+            countViewers,
+            peakViewers,
+            startedAt,
+            thumbnailUrl
+          },
+          subcategory {
+            name
+          },
+          tags {
+            name
+          },
+          title
+        }
+      }
+    }
+  }
+}
