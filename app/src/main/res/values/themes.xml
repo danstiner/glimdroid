@@ -19,6 +19,12 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="Theme.Glimesh.NoStatusBar" parent="Theme.Glimesh.NoActionBar">
+        <item name="android:statusBarColor">
+            @android:color/transparent
+        </item>
+    </style>
+
     <style name="Theme.Glimesh.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.Glimesh.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
@@ -57,6 +63,12 @@
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.NoStatusBar" parent="AppTheme.NoActionBar">
+        <item name="android:statusBarColor">
+            @android:color/transparent
+        </item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
