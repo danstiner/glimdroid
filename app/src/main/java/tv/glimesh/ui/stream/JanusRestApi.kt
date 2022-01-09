@@ -25,13 +25,28 @@ data class JanusError(val code: Int, val reason: String)
 data class IceCandidate(val candidate: String, val sdpMid: String, val sdpMLineIndex: Int)
 
 @Serializable
-data class CreateRequest(@Required val janus: String = "create", val transaction: String = transactionId())
+data class CreateRequest(
+    @Required val janus: String = "create",
+    val transaction: String = transactionId()
+)
 
 @Serializable
-data class CreateResponse(val data: SessionId, val janus: String, val transaction: String, val error: JanusError? = null)
+data class CreateResponse(
+    val data: SessionId,
+    val janus: String,
+    val transaction: String,
+    val error: JanusError? = null
+)
 
 @Serializable
-data class SessionEvent(val plugindata: SessionEventPluginData, val jsep: Jsep? = null, val janus: String, val sender: Long, val transaction: String? = null, val session_id: Long? = null,)
+data class SessionEvent(
+    val plugindata: SessionEventPluginData,
+    val jsep: Jsep? = null,
+    val janus: String,
+    val sender: Long,
+    val transaction: String? = null,
+    val session_id: Long? = null,
+)
 
 @Serializable
 data class SessionEventPluginData(val plugin: String, val data: JsonObject)
@@ -40,28 +55,56 @@ data class SessionEventPluginData(val plugin: String, val data: JsonObject)
 data class Jsep(val type: String, val sdp: String)
 
 @Serializable
-data class AttachRequest(val plugin: String, @Required val janus: String = "attach", val transaction: String = transactionId())
+data class AttachRequest(
+    val plugin: String,
+    @Required val janus: String = "attach",
+    val transaction: String = transactionId()
+)
 
 @Serializable
-data class AttachResponse(val data: PluginId? = null, val janus: String, val transaction: String, val session_id: Long? = null, val error: JanusError? = null)
+data class AttachResponse(
+    val data: PluginId? = null,
+    val janus: String,
+    val transaction: String,
+    val session_id: Long? = null,
+    val error: JanusError? = null
+)
 
 @Serializable
-data class MessageRequest(val body: Map<String, String>, @Required val janus: String = "message", val transaction: String = transactionId())
+data class MessageRequest(
+    val body: Map<String, String>,
+    @Required val janus: String = "message",
+    val transaction: String = transactionId()
+)
 
 @Serializable
 data class MessageResponse(val janus: String, val transaction: String, val session_id: Long)
 
 @Serializable
-data class FtlWatchRequest(val body: FtlWatchRequestBody, @Required val janus: String = "message", val transaction: String = transactionId())
+data class FtlWatchRequest(
+    val body: FtlWatchRequestBody,
+    @Required val janus: String = "message",
+    val transaction: String = transactionId()
+)
 
 @Serializable
 data class FtlWatchRequestBody(val channelId: Long, @Required val request: String = "watch")
 
 @Serializable
-data class WatchResponse(val janus: String, val transaction: String? = null, val session_id: Long? = null, val error: JanusError? = null)
+data class WatchResponse(
+    val janus: String,
+    val transaction: String? = null,
+    val session_id: Long? = null,
+    val error: JanusError? = null
+)
 
 @Serializable
-data class FtlStartRequest(val jsep: Jsep, @Required val body: FtlStartRequestBody = FtlStartRequestBody(), @Required val janus: String = "message", val transaction: String = transactionId())
+data class FtlStartRequest(
+    val jsep: Jsep,
+    @Required val body: FtlStartRequestBody = FtlStartRequestBody(),
+    @Required val janus: String = "message",
+    val transaction: String = transactionId()
+)
 
 @Serializable
 data class FtlStartRequestBody(@Required val request: String = "start")
@@ -70,7 +113,11 @@ data class FtlStartRequestBody(@Required val request: String = "start")
 data class FtlStartResponse(val janus: String, val transaction: String, val session_id: Long)
 
 @Serializable
-data class TrickleRequest(val candidate: IceCandidate, @Required val janus: String = "trickle", val transaction: String = transactionId())
+data class TrickleRequest(
+    val candidate: IceCandidate,
+    @Required val janus: String = "trickle",
+    val transaction: String = transactionId()
+)
 
 @Serializable
 data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
@@ -164,7 +211,8 @@ class JanusRestApi(private val serverRoot: Uri) {
 
     suspend fun longPollSession(session: SessionId): Array<SessionEvent> {
         val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
-        val uri = sessionUri.buildUpon().appendQueryParameter("maxev", "10").appendQueryParameter("rid", "${System.currentTimeMillis()}").build()
+        val uri = sessionUri.buildUpon().appendQueryParameter("maxev", "10")
+            .appendQueryParameter("rid", "${System.currentTimeMillis()}").build()
         return get(uri)
     }
 
@@ -196,13 +244,14 @@ class JanusRestApi(private val serverRoot: Uri) {
             }
         }
     }
+
     private suspend inline fun <reified T, reified R> post(uri: Uri, bodyJson: T): R {
         return withContext(Dispatchers.IO) {
             val urlConnection = URL("$uri").openConnection() as HttpURLConnection
             try {
                 urlConnection.requestMethod = "POST"
-                urlConnection.doOutput = true;
-                urlConnection.setChunkedStreamingMode(0);
+                urlConnection.doOutput = true
+                urlConnection.setChunkedStreamingMode(0)
 
                 Log.d("Janus POST Request", "$uri: ${Json.encodeToString(bodyJson)}")
 

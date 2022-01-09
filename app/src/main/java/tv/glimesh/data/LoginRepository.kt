@@ -7,7 +7,10 @@ import tv.glimesh.data.model.LoggedInUser
  * maintains an in-memory cache of login status and user credentials information.
  */
 
-class LoginRepository(val dataSource: LoginDataSource, val authStateDataSource: AuthStateDataSource) {
+class LoginRepository(
+    val dataSource: LoginDataSource,
+    val authStateDataSource: AuthStateDataSource
+) {
 
     val isLoggedIn: Boolean
         get() = authStateDataSource.getCurrent().isAuthorized

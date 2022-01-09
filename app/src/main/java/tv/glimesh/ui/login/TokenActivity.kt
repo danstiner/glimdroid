@@ -58,10 +58,10 @@ class TokenActivity : AppCompatActivity() {
                 exchangeAuthorizationCode(response)
             }
             ex != null -> {
-    //            displayNotAuthorized("Authorization flow failed: " + ex.message)
+                //            displayNotAuthorized("Authorization flow failed: " + ex.message)
             }
             else -> {
-    //            displayNotAuthorized("No authorization state retained - reauthorization required")
+                //            displayNotAuthorized("No authorization state retained - reauthorization required")
             }
         }
     }
@@ -182,7 +182,7 @@ class TokenActivity : AppCompatActivity() {
     ) {
         val clientAuthentication: ClientAuthentication
         clientAuthentication = try {
-            mStateManager.getCurrent().getClientAuthentication()
+            mStateManager.getCurrent().clientAuthentication
         } catch (ex: UnsupportedAuthenticationMethod) {
             Log.d(
                 TAG, "Token request cannot be made, client authentication for the token "
@@ -213,7 +213,7 @@ class TokenActivity : AppCompatActivity() {
         @Nullable authException: AuthorizationException?
     ) {
         mStateManager.updateAfterTokenResponse(tokenResponse, authException)
-        if (!mStateManager.getCurrent().isAuthorized()) {
+        if (!mStateManager.getCurrent().isAuthorized) {
             val message = ("Authorization Code exchange failed"
                     + if (authException != null) authException.error else "")
 
@@ -236,7 +236,11 @@ class TokenActivity : AppCompatActivity() {
     }
 
     @MainThread
-    private fun fetchUserInfo2(accessToken: String?, idToken: String?, ex: AuthorizationException?) {
+    private fun fetchUserInfo2(
+        accessToken: String?,
+        idToken: String?,
+        ex: AuthorizationException?
+    ) {
         if (ex != null) {
             Log.e(TAG, "Token refresh failed when fetching user info")
 //            mUserInfoJson.set(null)

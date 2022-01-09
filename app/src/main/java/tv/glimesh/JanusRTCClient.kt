@@ -1,4 +1,3 @@
 package tv.glimesh
 
-class JanusRTCClient {
-}
+class JanusRTCClient

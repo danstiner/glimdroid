@@ -9,13 +9,16 @@ import net.openid.appauth.ResponseTypeValues
 import tv.glimesh.data.model.LoggedInUser
 import java.io.IOException
 
-const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632";
+const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632"
 val REDIRECT_URI: Uri = Uri.parse("https://glimesh.tv/oauth/redirect")
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.
  */
-class LoginDataSource(private val authService: AuthorizationService, private val completionIntent: PendingIntent) {
+class LoginDataSource(
+    private val authService: AuthorizationService,
+    private val completionIntent: PendingIntent
+) {
 
     fun login(): Result<LoggedInUser> {
         try {

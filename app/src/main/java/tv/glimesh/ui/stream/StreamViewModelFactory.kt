@@ -16,7 +16,10 @@ import java.util.concurrent.Executors
  * ViewModel provider factory to instantiates StreamViewModel.
  * Required given StreamViewModel has a non-empty constructor
  */
-class StreamViewModelFactory(private val applicationContext: Context, private val eglContext: EglBase.Context) : ViewModelProvider.Factory {
+class StreamViewModelFactory(
+    private val applicationContext: Context,
+    private val eglContext: EglBase.Context
+) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

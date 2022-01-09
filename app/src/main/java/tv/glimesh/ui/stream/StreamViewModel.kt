@@ -37,7 +37,8 @@ class StreamViewModel(
             val rtcConfiguration = PeerConnection.RTCConfiguration(iceServers).apply {
                 tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED
 
-                continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
+                continualGatheringPolicy =
+                    PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
                 enableDtlsSrtp = true
                 sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
                 rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
@@ -154,7 +155,10 @@ class StreamViewModel(
                                     }
                                     peerConnection!!.setLocalDescription(object : SdpObserver {
                                         override fun onCreateSuccess(description: SessionDescription) {
-                                            Log.d(TAG, "setLocalDescription:onCreateSuccess: $description")
+                                            Log.d(
+                                                TAG,
+                                                "setLocalDescription:onCreateSuccess: $description"
+                                            )
                                         }
 
                                         override fun onSetSuccess() {

@@ -13,7 +13,8 @@ import tv.glimesh.data.LoginRepository
  * ViewModel provider factory to instantiate LoginViewModel.
  * Required given LoginViewModel has a non-empty constructor
  */
-class LoginViewModelFactory(val context: Context, private val completionIntent: PendingIntent) : ViewModelProvider.Factory {
+class LoginViewModelFactory(val context: Context, private val completionIntent: PendingIntent) :
+    ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

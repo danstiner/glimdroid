@@ -21,13 +21,15 @@ class AuthStateDataSource(context: Context) {
     private val KEY_STATE = "state"
 
     private var accountManager = AccountManager.get(context)
-    private var mPrefs: SharedPreferences = context.getSharedPreferences(STORE_NAME, Context.MODE_PRIVATE)
+    private var mPrefs: SharedPreferences =
+        context.getSharedPreferences(STORE_NAME, Context.MODE_PRIVATE)
     private var mPrefsLock: ReentrantLock = ReentrantLock()
     private var mCurrentAuthState: AtomicReference<AuthState> = AtomicReference()
 
     companion object {
         private val INSTANCE_REF: AtomicReference<WeakReference<AuthStateDataSource>> =
             AtomicReference(WeakReference(null))
+
         @AnyThread
         fun getInstance(context: Context): AuthStateDataSource {
             var manager: AuthStateDataSource? = INSTANCE_REF.get().get()
@@ -96,7 +98,7 @@ class AuthStateDataSource(context: Context) {
     private fun readState(): AuthState {
         mPrefsLock.lock()
         return try {
-            val currentState = mPrefs!!.getString(KEY_STATE, null) ?: return AuthState()
+            val currentState = mPrefs.getString(KEY_STATE, null) ?: return AuthState()
             try {
                 AuthState.jsonDeserialize(currentState)
             } catch (ex: JSONException) {
@@ -112,7 +114,7 @@ class AuthStateDataSource(context: Context) {
     private fun writeState(@Nullable state: AuthState?) {
         mPrefsLock.lock()
         try {
-            val editor = mPrefs!!.edit()
+            val editor = mPrefs.edit()
             if (state == null) {
                 editor.remove(KEY_STATE)
             } else {

@@ -25,7 +25,7 @@ class StreamActivity : AppCompatActivity() {
         binding = ActivityStreamBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val eglBase = EglBase.create();
+        val eglBase = EglBase.create()
 
         streamViewModel = ViewModelProvider(
             this,
