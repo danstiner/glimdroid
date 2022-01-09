@@ -61,4 +61,16 @@ class StreamActivity : AppCompatActivity() {
 
         streamViewModel.watch(smashbetsChannelId)
     }
+
+    override fun onUserLeaveHint() {
+        // TODO Check if paused before PiP'in
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val sourceRectHint = Rect()
+            binding.videoView.getGlobalVisibleRect(sourceRectHint)
+            enterPictureInPictureMode(PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(9, 16))
+                .setSourceRectHint(sourceRectHint)
+                .build())
+        }
+    }
 }
