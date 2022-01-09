@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.login.TokenActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name">
@@ -31,11 +34,11 @@
         </activity>
         <activity
             android:name=".ui.stream.StreamActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:label="@string/title_activity_stream"
-            android:theme="@style/AppTheme.NoActionBar"
             android:supportsPictureInPicture="true"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -43,21 +46,22 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
                     android:host="glimesh.tv"
-                    android:pathPrefix="/SmashBets"/>
+                    android:pathPrefix="/SmashBets"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="true"
             android:label="@string/title_settings">
-
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
-
         </activity>
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:label="@string/title_activity_login" />
         <activity
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
             android:exported="true"
@@ -69,9 +73,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
                     android:host="glimesh.tv"
-                    android:path="/oauth/redirect"/>
+                    android:path="/oauth/redirect"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
     </application>

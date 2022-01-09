@@ -3,14 +3,12 @@ package tv.glimesh.ui.stream
 import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.util.*
-
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 fun transactionId(): String = UUID.randomUUID().toString()
 

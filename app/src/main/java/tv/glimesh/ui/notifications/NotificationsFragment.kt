@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import tv.glimesh.R
 import tv.glimesh.databinding.FragmentCategoriesBinding
 
 class NotificationsFragment : Fragment() {

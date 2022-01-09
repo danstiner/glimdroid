@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import net.openid.appauth.AuthorizationService
+import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.LoginDataSource
 import tv.glimesh.data.LoginRepository
 
@@ -18,9 +19,11 @@ class LoginViewModelFactory(val context: Context, private val completionIntent: 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             val authService = AuthorizationService(context)
+            val authStateDataSource = AuthStateDataSource(context)
             return LoginViewModel(
                 loginRepository = LoginRepository(
-                    dataSource = LoginDataSource(authService, completionIntent)
+                    dataSource = LoginDataSource(authService, completionIntent),
+                    authStateDataSource = authStateDataSource,
                 )
             ) as T
         }

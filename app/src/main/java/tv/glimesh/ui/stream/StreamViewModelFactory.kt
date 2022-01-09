@@ -5,7 +5,9 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import org.webrtc.*
+import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.EglBase
+import org.webrtc.PeerConnectionFactory
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 

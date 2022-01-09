@@ -1,17 +1,17 @@
 package tv.glimesh.ui.stream
 
+import android.app.PictureInPictureParams
+import android.content.pm.PackageManager
+import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import tv.glimesh.databinding.ActivityStreamBinding
-import android.app.PictureInPictureParams
-import android.content.pm.PackageManager
-import android.graphics.Rect
-import android.os.Build
-import android.util.Rational
 
 
 class StreamActivity : AppCompatActivity() {

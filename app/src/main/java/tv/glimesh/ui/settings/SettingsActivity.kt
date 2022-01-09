@@ -1,14 +1,13 @@
 package tv.glimesh.ui.settings
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NavUtils
 import tv.glimesh.databinding.ActivitySettingsBinding
-import android.webkit.WebView
-
-import android.webkit.WebViewClient
 
 class SettingsActivity : AppCompatActivity() {
 

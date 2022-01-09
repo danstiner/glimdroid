@@ -10,7 +10,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.IceCandidate
-import org.webrtc.MediaConstraints
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
