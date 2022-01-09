@@ -2,7 +2,6 @@ package tv.glimesh
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -14,8 +13,6 @@ import tv.glimesh.databinding.ActivityMainBinding
 import tv.glimesh.ui.login.LoginActivity
 import tv.glimesh.ui.main.MainViewModel
 import tv.glimesh.ui.main.MainViewModelFactory
-
-const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,9 +32,9 @@ class MainActivity : AppCompatActivity() {
             MainViewModelFactory(this)
         )[MainViewModel::class.java]
 
-        Log.d(TAG, "isAuthorized: ${mainViewModel.isAuthorized}")
         if (!mainViewModel.isAuthorized) {
             startActivity(Intent(this, LoginActivity::class.java))
+            finish()
             return
         }
 
@@ -51,6 +48,5 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
-
     }
 }
