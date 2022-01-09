@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
-import tv.glimesh.ui.login.LoginFormState
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
@@ -32,8 +31,6 @@ class StreamViewModel(
 
             janus.ftlWatchChannel(session, plugin, channelId)
 
-            // STUN / TURN servers are not current used
-            // stun:stun.l.google.com:19302
             val iceServers: List<PeerConnection.IceServer> = listOf(
                 PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
             )
@@ -136,14 +133,6 @@ class StreamViewModel(
                         }
                     }
                 )
-//
-//                for (transceiver in peerConnection!!.transceivers) {
-//                    val track = transceiver.receiver.track()
-//                    if (track is VideoTrack) {
-//                        Log.d(TAG, "Video Receiver Track")
-//                        track.setEnabled(false)
-//                    }
-//                }
 
                 peerConnection!!.setRemoteDescription(object : SdpObserver {
                     override fun onCreateSuccess(description: SessionDescription) {

@@ -33,7 +33,9 @@
             android:name=".ui.stream.StreamActivity"
             android:exported="true"
             android:label="@string/title_activity_stream"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:supportsPictureInPicture="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

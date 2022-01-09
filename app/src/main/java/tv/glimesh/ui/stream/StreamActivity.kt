@@ -6,9 +6,13 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
-import org.webrtc.VideoSink
 import tv.glimesh.databinding.ActivityStreamBinding
-import tv.glimesh.ui.login.LoginViewModel
+import android.app.PictureInPictureParams
+import android.content.pm.PackageManager
+import android.graphics.Rect
+import android.os.Build
+import android.util.Rational
+
 
 class StreamActivity : AppCompatActivity() {
 
@@ -32,6 +36,20 @@ class StreamActivity : AppCompatActivity() {
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        ) {
+            val sourceRectHint = Rect()
+            binding.videoView.getGlobalVisibleRect(sourceRectHint)
+
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(9, 16))
+                    .setSourceRectHint(sourceRectHint)
+                    .setAutoEnterEnabled(true)
+                    .build()
+            )
+        }
 
         streamViewModel.videoTrack.observe(this, Observer {
             val videoTrack = it ?: return@Observer
