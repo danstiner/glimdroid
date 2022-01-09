@@ -2,6 +2,7 @@ package tv.glimesh.ui.stream
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
@@ -31,16 +32,15 @@ class StreamActivity : AppCompatActivity() {
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
 
+
+        streamViewModel.videoTrack.observe(this, Observer {
+            val videoTrack = it ?: return@Observer
+
+            videoTrack.addSink(binding.videoView)
+        })
+
         val smashbetsChannelId = 10552L
 
         streamViewModel.watch(smashbetsChannelId)
-
-        // val rtcClient = new FtlRTCClient(this);
-
-//        createFtlConnection(binding.videoView, "SmashBets");
-    }
-
-    private fun createFtlConnection(videoSink: VideoSink, username: String) {
-        TODO()
     }
 }

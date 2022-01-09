@@ -42,8 +42,7 @@ class StreamViewModelFactory(private val applicationContext: Context, private va
 
             // Set INFO libjingle logging.
             // NOTE: this _must_ happen while |factory| is alive!
-            Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
-
+//            Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
 
             return StreamViewModel(
                 janus = JanusRestApi(Uri.parse("https://do-nyc3-edge1.kjfk.live.glimesh.tv/janus")),

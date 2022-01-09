@@ -71,6 +71,12 @@ data class FtlStartRequestBody(@Required val request: String = "start")
 @Serializable
 data class FtlStartResponse(val janus: String, val transaction: String, val session_id: Long)
 
+@Serializable
+data class TrickleRequest(val candidate: IceCandidate, @Required val janus: String = "trickle", val transaction: String = transactionId())
+
+@Serializable
+data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
+
 class JanusRestApi(private val serverRoot: Uri) {
 
     suspend fun createSession(): SessionId {
@@ -141,9 +147,21 @@ class JanusRestApi(private val serverRoot: Uri) {
         assert(response.janus == "ack")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)
+    }
 
-        delay(5000)
-        // TODO()
+    suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
+
+        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
+
+        Log.d(TAG, "trickleIceCandidate $candidate")
+
+        val request = TrickleRequest(candidate)
+        val response: TrickleResponse = post(pluginUri, request)
+
+        assert(response.janus == "ack")
+        assert(response.transaction == request.transaction)
+        assert(response.session_id == session.id)
     }
 
     suspend fun longPollSession(session: SessionId): Array<SessionEvent> {

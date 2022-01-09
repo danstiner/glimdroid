@@ -1,6 +1,8 @@
 package tv.glimesh.ui.stream
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -9,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
+import tv.glimesh.ui.login.LoginFormState
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
@@ -18,6 +21,9 @@ class StreamViewModel(
     private val peerConnectionFactory: PeerConnectionFactory,
     private val executor: ExecutorService,
 ) : ViewModel() {
+
+    private val _videoTrack = MutableLiveData<VideoTrack>()
+    val videoTrack: LiveData<VideoTrack> = _videoTrack
 
     fun watch(channelId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -81,6 +87,19 @@ class StreamViewModel(
 
                         override fun onIceCandidate(candidate: IceCandidate?) {
                             Log.d(TAG, "onIceCandidate: $candidate")
+                            viewModelScope.launch(Dispatchers.IO) {
+                                if (candidate != null) {
+                                    janus.trickleIceCandidate(
+                                        session,
+                                        plugin,
+                                        IceCandidate(
+                                            candidate = candidate.sdp,
+                                            sdpMid = candidate.sdpMid,
+                                            sdpMLineIndex = candidate.sdpMLineIndex
+                                        )
+                                    )
+                                }
+                            }
                         }
 
                         override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) {
@@ -89,6 +108,12 @@ class StreamViewModel(
 
                         override fun onAddStream(stream: MediaStream) {
                             Log.d(TAG, "stream: $stream")
+
+                            viewModelScope.launch(Dispatchers.Main) {
+                                if (stream.videoTracks.size == 1) {
+                                    _videoTrack.value = stream.videoTracks[0]
+                                }
+                            }
                         }
 
                         override fun onRemoveStream(stream: MediaStream) {
