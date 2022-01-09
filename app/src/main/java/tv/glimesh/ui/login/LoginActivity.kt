@@ -41,8 +41,7 @@ class LoginActivity : AppCompatActivity() {
                 applicationContext,
                 PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
             )
-        )
-            .get(LoginViewModel::class.java)
+        )[LoginViewModel::class.java]
 
         loginViewModel.loginFormState.observe(this@LoginActivity, Observer {
             val loginState = it ?: return@Observer
