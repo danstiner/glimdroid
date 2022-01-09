@@ -1,14 +1,19 @@
 package tv.glimesh.ui.home
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.databinding.FragmentFollowingBinding
+import tv.glimesh.ui.stream.StreamActivity
+
+const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
+const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
 
 class HomeFragment : Fragment() {
 
@@ -31,14 +36,26 @@ class HomeFragment : Fragment() {
         _binding = FragmentFollowingBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView.text = it
+        val followingAdapter = FollowingAdapter { channel -> adapterOnClick(channel) }
+        homeViewModel.followingLiveChannels.observe(viewLifecycleOwner, Observer {
+            followingAdapter.submitList(it)
         })
+
+        val recyclerView = binding.recyclerView
+        recyclerView.adapter = followingAdapter
 
         homeViewModel.fetch()
 
         return root
+    }
+
+    /* Opens channel when RecyclerView item is clicked. */
+    private fun adapterOnClick(channel: Channel) {
+        Log.d("HomeFragment", "Starting stream activity; channel_id:${channel.id}, stream_id:${channel.streamId}")
+        startActivity(Intent(requireContext(), StreamActivity::class.java).apply {
+            putExtra(CHANNEL_ID, channel.id.toLong())
+            putExtra(STREAM_ID, channel.streamId?.toLong())
+        })
     }
 
     override fun onDestroyView() {
@@ -46,3 +63,5 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 }
+
+data class Channel(val id: String, val title: String, val streamerDisplayName: String, val streamerAvatarUrl: String?, val streamId: String?)

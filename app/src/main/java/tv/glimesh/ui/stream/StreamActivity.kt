@@ -5,14 +5,18 @@ import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Rational
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import net.openid.appauth.AuthorizationResponse
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import tv.glimesh.databinding.ActivityStreamBinding
+import tv.glimesh.ui.home.CHANNEL_ID
 
+const val smashbetsChannelId = 10552L
 
 class StreamActivity : AppCompatActivity() {
 
@@ -57,9 +61,16 @@ class StreamActivity : AppCompatActivity() {
             videoTrack.addSink(binding.videoView)
         })
 
-        val smashbetsChannelId = 10552L
 
-        streamViewModel.watch(smashbetsChannelId)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        var channelId = intent.getLongExtra(CHANNEL_ID, smashbetsChannelId)
+
+        Log.d(TAG, "Watching channelId:$channelId")
+        streamViewModel.watch(channelId)
     }
 
     override fun onUserLeaveHint() {
@@ -67,10 +78,12 @@ class StreamActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val sourceRectHint = Rect()
             binding.videoView.getGlobalVisibleRect(sourceRectHint)
-            enterPictureInPictureMode(PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(9, 16))
-                .setSourceRectHint(sourceRectHint)
-                .build())
+            enterPictureInPictureMode(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(9, 16))
+                    .setSourceRectHint(sourceRectHint)
+                    .build()
+            )
         }
     }
 }

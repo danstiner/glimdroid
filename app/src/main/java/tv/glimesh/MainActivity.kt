@@ -2,7 +2,6 @@ package tv.glimesh
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -51,12 +50,12 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         // TODO link to liveview
-        showFollowingCount(1)
+        showFollowingCount(42)
     }
 
     private fun showFollowingCount(count: Int) {
         val badge = binding.navView.getOrCreateBadge(R.id.navigation_following)
-        badge.maxCharacterCount= 3
+        badge.maxCharacterCount = 3
         badge.verticalOffset = 2
         badge.number = count
         badge.isVisible = true

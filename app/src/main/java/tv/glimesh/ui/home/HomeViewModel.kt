@@ -33,10 +33,10 @@ class HomeViewModel(
     }
     val followingCount: LiveData<Int> = _followingCount
 
-    private val _followingLiveChannels = MutableLiveData<Int>().apply {
-        value = 0
+    private val _followingLiveChannels = MutableLiveData<List<Channel>>().apply {
+        value = listOf()
     }
-    val followingLiveChannels: LiveData<Int> = _followingLiveChannels
+    val followingLiveChannels: LiveData<List<Channel>> = _followingLiveChannels
 
     private fun fetchFollowing() {
         authStateDataSource.getCurrent()
@@ -61,7 +61,19 @@ class HomeViewModel(
             withContext(Dispatchers.Main) {
                 _text.value = response.data?.toString()
                 _followingCount.value = response.data?.myself?.countFollowing
-                _followingLiveChannels.value = response.data?.myself?.followingLiveChannels?.count
+                _followingLiveChannels.value =
+                    response.data
+                        ?.myself
+                        ?.followingLiveChannels
+                        ?.edges
+                        ?.mapNotNull { edge -> edge?.node }
+                        ?.map { node -> Channel(
+                            id = node.id!!,
+                            title = node?.title!!,
+                            streamerDisplayName = node?.streamer?.displayname,
+                            streamerAvatarUrl = node?.streamer?.avatarUrl,
+                            streamId = node?.stream?.id,
+                        ) }
             }
         }
     }
