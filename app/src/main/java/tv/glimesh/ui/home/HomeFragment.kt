@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.databinding.FragmentFollowingBinding
-import tv.glimesh.ui.stream.StreamActivity
+import tv.glimesh.ui.channel.StreamActivity
 
 const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val STREAM_ID = "tv.glimesh.android.extra.stream.id"

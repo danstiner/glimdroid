@@ -1,4 +1,4 @@
-package tv.glimesh.ui.stream
+package tv.glimesh.ui.channel
 
 import android.content.Context
 import android.net.Uri
@@ -9,6 +9,7 @@ import org.webrtc.DefaultVideoDecoderFactory
 import org.webrtc.EglBase
 import org.webrtc.PeerConnectionFactory
 import org.webrtc.audio.JavaAudioDeviceModule
+import tv.glimesh.data.JanusRestApi
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors
  * ViewModel provider factory to instantiates StreamViewModel.
  * Required given StreamViewModel has a non-empty constructor
  */
-class StreamViewModelFactory(
+class ChannelViewModelFactory(
     private val applicationContext: Context,
     private val eglContext: EglBase.Context
 ) : ViewModelProvider.Factory {

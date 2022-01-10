@@ -1,4 +1,4 @@
-package tv.glimesh.ui.stream
+package tv.glimesh.data
 
 import android.net.Uri
 import android.util.Log
@@ -9,6 +9,8 @@ import kotlinx.serialization.json.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+
+private const val TAG = "JanusRestApi"
 
 fun transactionId(): String = UUID.randomUUID().toString()
 

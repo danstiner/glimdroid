@@ -1,4 +1,4 @@
-package tv.glimesh.ui.stream
+package tv.glimesh.ui.channel
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.IceCandidate
+import tv.glimesh.data.JanusRestApi
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
@@ -89,7 +90,7 @@ class StreamViewModel(
                                     janus.trickleIceCandidate(
                                         session,
                                         plugin,
-                                        IceCandidate(
+                                        tv.glimesh.data.IceCandidate(
                                             candidate = candidate.sdp,
                                             sdpMid = candidate.sdpMid,
                                             sdpMLineIndex = candidate.sdpMLineIndex

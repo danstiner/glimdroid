@@ -1,4 +1,4 @@
-package tv.glimesh.ui.stream
+package tv.glimesh.ui.channel
 
 import android.app.PictureInPictureParams
 import android.content.pm.PackageManager
@@ -12,11 +12,9 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.transition.Visibility
-import net.openid.appauth.AuthorizationResponse
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
-import tv.glimesh.databinding.ActivityStreamBinding
+import tv.glimesh.databinding.ActivityChannelBinding
 import tv.glimesh.ui.home.CHANNEL_ID
 
 const val smashbetsChannelId = 10552L
@@ -24,22 +22,19 @@ const val smashbetsChannelId = 10552L
 class StreamActivity : AppCompatActivity() {
 
     private lateinit var streamViewModel: StreamViewModel
-    private lateinit var binding: ActivityStreamBinding
+    private lateinit var binding: ActivityChannelBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityStreamBinding.inflate(layoutInflater)
+        binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
-        val group = binding.group
 
         val eglBase = EglBase.create()
 
         streamViewModel = ViewModelProvider(
             this,
-            StreamViewModelFactory(applicationContext, eglBase.eglBaseContext)
+            ChannelViewModelFactory(applicationContext, eglBase.eglBaseContext)
         )[StreamViewModel::class.java]
 
         binding.videoView.init(eglBase.eglBaseContext, null)
