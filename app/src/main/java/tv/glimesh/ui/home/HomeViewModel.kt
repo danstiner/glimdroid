@@ -9,6 +9,7 @@ import com.apollographql.apollo3.ApolloClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService
 import tv.glimesh.apollo.MyFollowingQuery
@@ -48,7 +49,9 @@ class HomeViewModel(
         idToken: String?,
         ex: AuthorizationException?
     ) {
-        Log.d("HomeViewModel", "accessToken:$accessToken idToken:$idToken")
+        // TODO handle authorization exceptions
+
+        Log.d("HomeViewModel", "accessToken:$accessToken idToken:$idToken ex:$ex")
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
                 _text.value = "Fetching..."

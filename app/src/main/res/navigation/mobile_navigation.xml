@@ -13,13 +13,13 @@
 
     <fragment
         android:id="@+id/navigation_featured"
-        android:name="tv.glimesh.ui.dashboard.DashboardFragment"
+        android:name="tv.glimesh.ui.featured.FeaturedFragment"
         android:label="@string/title_featured"
         tools:layout="@layout/fragment_featured" />
 
     <fragment
         android:id="@+id/navigation_categories"
-        android:name="tv.glimesh.ui.notifications.NotificationsFragment"
+        android:name="tv.glimesh.ui.categories.NotificationsFragment"
         android:label="@string/title_categories"
         tools:layout="@layout/fragment_categories" />
 </navigation>

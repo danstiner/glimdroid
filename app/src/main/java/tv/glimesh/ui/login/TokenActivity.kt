@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import net.openid.appauth.*
 import net.openid.appauth.AuthorizationService.TokenResponseCallback
 import net.openid.appauth.ClientAuthentication.UnsupportedAuthenticationMethod
+import tv.glimesh.MainActivity
 import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.databinding.ActivityTokenBinding
 
@@ -34,11 +35,6 @@ class TokenActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        if (mStateManager.getCurrent().isAuthorized) {
-//            displayAuthorized()
-            return
-        }
-
         // the stored AuthState is incomplete, so check if we are currently receiving the result of
         // the authorization flow from the browser.
 
@@ -50,6 +46,8 @@ class TokenActivity : AppCompatActivity() {
         if (response != null || ex != null) {
             mStateManager.updateAfterAuthorization(response, ex)
         }
+
+        Log.d(TAG, "onStart response:$response, ex:$ex, isAuthorized:${mStateManager.getCurrent().isAuthorized}")
 
         when {
             response?.authorizationCode != null -> {
@@ -63,6 +61,12 @@ class TokenActivity : AppCompatActivity() {
             else -> {
                 //            displayNotAuthorized("No authorization state retained - reauthorization required")
             }
+        }
+
+        if (mStateManager.getCurrent().isAuthorized) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
         }
     }
 //

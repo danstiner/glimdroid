@@ -1,4 +1,4 @@
-package tv.glimesh.ui.notifications
+package tv.glimesh.ui.categories
 
 import android.os.Bundle
 import android.view.LayoutInflater

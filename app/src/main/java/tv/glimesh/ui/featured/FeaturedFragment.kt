@@ -1,4 +1,4 @@
-package tv.glimesh.ui.dashboard
+package tv.glimesh.ui.featured
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,9 +10,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.databinding.FragmentFeaturedBinding
 
-class DashboardFragment : Fragment() {
+class FeaturedFragment : Fragment() {
 
-    private lateinit var dashboardViewModel: DashboardViewModel
+    private lateinit var featuredViewModel: FeaturedViewModel
     private var _binding: FragmentFeaturedBinding? = null
 
     // This property is only valid between onCreateView and
@@ -24,14 +24,14 @@ class DashboardFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        dashboardViewModel =
-            ViewModelProvider(this).get(DashboardViewModel::class.java)
+        featuredViewModel =
+            ViewModelProvider(this).get(FeaturedViewModel::class.java)
 
         _binding = FragmentFeaturedBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner, Observer {
+        featuredViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
         return root
