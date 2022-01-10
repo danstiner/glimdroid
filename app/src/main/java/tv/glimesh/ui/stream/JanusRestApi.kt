@@ -71,15 +71,18 @@ Examples:
           "media": "video",
           "uplink": true,
           "lost": 6
+       },
+       {
+          "janus": "keepalive"
        }
 ]
  */
 @Serializable
 data class SessionEvent(
+    val janus: String,
     val plugindata: SessionEventPluginData? = null,
     val jsep: Jsep? = null,
-    val janus: String,
-    val sender: Long,
+    val sender: Long? = null,
     val transaction: String? = null,
     val session_id: Long? = null,
     val media: String? = null,

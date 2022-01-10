@@ -2,14 +2,17 @@ package tv.glimesh.ui.stream
 
 import android.app.PictureInPictureParams
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Rational
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.transition.Visibility
 import net.openid.appauth.AuthorizationResponse
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
@@ -28,6 +31,9 @@ class StreamActivity : AppCompatActivity() {
 
         binding = ActivityStreamBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        val group = binding.group
 
         val eglBase = EglBase.create()
 
@@ -48,7 +54,7 @@ class StreamActivity : AppCompatActivity() {
 
             setPictureInPictureParams(
                 PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(9, 16))
+                    .setAspectRatio(Rational(16, 9))
                     .setSourceRectHint(sourceRectHint)
                     .setAutoEnterEnabled(true)
                     .build()
@@ -80,10 +86,22 @@ class StreamActivity : AppCompatActivity() {
             binding.videoView.getGlobalVisibleRect(sourceRectHint)
             enterPictureInPictureMode(
                 PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(9, 16))
+                    .setAspectRatio(Rational(16, 9))
                     .setSourceRectHint(sourceRectHint)
                     .build()
             )
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean,
+                                               newConfig: Configuration
+    ) {
+        if (isInPictureInPictureMode) {
+            // Hide the normal UI (controls, etc.) while in picture-in-picture mode
+            binding.group.visibility = View.INVISIBLE
+        } else {
+            // Restore the normal UI
+            binding.group.visibility = View.VISIBLE
         }
     }
 }

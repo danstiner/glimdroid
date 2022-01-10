@@ -4,7 +4,6 @@ across the layout configurations
 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -94,5 +93,12 @@ across the layout configurations
         android:layout_height="wrap_content"
         app:barrierDirection="left"
         app:constraint_referenced_ids="button_support,button_follow" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:constraint_referenced_ids="textview_streamer_display_name,textview_channel_title,textview_channel_subtitle,button_support,button_follow" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
