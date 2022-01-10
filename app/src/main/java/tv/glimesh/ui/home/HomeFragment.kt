@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.databinding.FragmentFollowingBinding
-import tv.glimesh.ui.channel.StreamActivity
+import tv.glimesh.ui.channel.ChannelActivity
 
 const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
@@ -52,7 +52,7 @@ class HomeFragment : Fragment() {
     /* Opens channel when RecyclerView item is clicked. */
     private fun adapterOnClick(channel: Channel) {
         Log.d("HomeFragment", "Starting stream activity; channel_id:${channel.id}, stream_id:${channel.streamId}")
-        startActivity(Intent(requireContext(), StreamActivity::class.java).apply {
+        startActivity(Intent(requireContext(), ChannelActivity::class.java).apply {
             putExtra(CHANNEL_ID, channel.id.toLong())
             putExtra(STREAM_ID, channel.streamId?.toLong())
         })

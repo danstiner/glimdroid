@@ -14,14 +14,15 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
+import tv.glimesh.data.model.ChannelId
 import tv.glimesh.databinding.ActivityChannelBinding
 import tv.glimesh.ui.home.CHANNEL_ID
 
 const val smashbetsChannelId = 10552L
 
-class StreamActivity : AppCompatActivity() {
+class ChannelActivity : AppCompatActivity() {
 
-    private lateinit var streamViewModel: StreamViewModel
+    private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,10 +33,10 @@ class StreamActivity : AppCompatActivity() {
 
         val eglBase = EglBase.create()
 
-        streamViewModel = ViewModelProvider(
+        viewModel = ViewModelProvider(
             this,
             ChannelViewModelFactory(applicationContext, eglBase.eglBaseContext)
-        )[StreamViewModel::class.java]
+        )[ChannelViewModel::class.java]
 
         binding.videoView.init(eglBase.eglBaseContext, null)
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
@@ -56,20 +57,31 @@ class StreamActivity : AppCompatActivity() {
             )
         }
 
-        streamViewModel.videoTrack.observe(this, Observer {
-            val videoTrack = it ?: return@Observer
-
-            videoTrack.addSink(binding.videoView)
+        viewModel.title.observe(this, {
+            binding.textviewChannelTitle.text = it
+        })
+        viewModel.streamerDisplayName.observe(this, {
+            binding.textviewStreamerDisplayName.text = it
+        })
+        viewModel.viewerCount.observe(this, {
+            if (it != null) {
+                binding.textviewChannelSubtitle.text = "$it viewers"
+            } else {
+                binding.textviewChannelSubtitle.text = "Not live"
+            }
+        })
+        viewModel.videoTrack.observe(this, {
+            it.addSink(binding.videoView)
         })
     }
 
     override fun onStart() {
         super.onStart()
 
-        var channelId = intent.getLongExtra(CHANNEL_ID, smashbetsChannelId)
+        var channelId = ChannelId(intent.getLongExtra(CHANNEL_ID, smashbetsChannelId))
 
-        Log.d(TAG, "Watching channelId:$channelId")
-        streamViewModel.watch(channelId)
+        Log.d(TAG, "Watching $channelId")
+        viewModel.watch(channelId)
     }
 
     override fun onUserLeaveHint() {

@@ -8,28 +8,41 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.webrtc.*
-import org.webrtc.IceCandidate
+import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.JanusRestApi
+import tv.glimesh.data.model.ChannelId
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
 
-class StreamViewModel(
+class ChannelViewModel(
     private val janus: JanusRestApi,
     private val peerConnectionFactory: PeerConnectionFactory,
     private val executor: ExecutorService,
+    private val glimesh: GlimeshDataSource,
 ) : ViewModel() {
+
+    private val _title = MutableLiveData<String>()
+    val title: LiveData<String> = _title
+
+    private val _streamerDisplayName = MutableLiveData<String>()
+    val streamerDisplayName: LiveData<String> = _streamerDisplayName
+
+    private val _viewerCount = MutableLiveData<Int?>()
+    val viewerCount: LiveData<Int?> = _viewerCount
 
     private val _videoTrack = MutableLiveData<VideoTrack>()
     val videoTrack: LiveData<VideoTrack> = _videoTrack
 
-    fun watch(channelId: Long) {
+    fun watch(channel: ChannelId) {
         viewModelScope.launch(Dispatchers.IO) {
+            fetchChannelInfo(channel)
             val session = janus.createSession()
             val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
 
-            janus.ftlWatchChannel(session, plugin, channelId)
+            janus.ftlWatchChannel(session, plugin, channel)
 
             val iceServers: List<PeerConnection.IceServer> = listOf(
                 PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
@@ -211,6 +224,15 @@ class StreamViewModel(
 
             // Wait for webrtcup?
             delay(10000)
+        }
+    }
+
+    private suspend fun fetchChannelInfo(channel: ChannelId) {
+        val info = glimesh.channelByIdQuery(channel)
+        withContext(Dispatchers.Main) {
+            _title.value = info?.channel?.title ?: ""
+            _streamerDisplayName.value = info?.channel?.streamer?.displayname ?: ""
+            _viewerCount.value = info?.channel?.stream?.countViewers
         }
     }
 }

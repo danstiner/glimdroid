@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import net.openid.appauth.AuthorizationService
 import tv.glimesh.data.AuthStateDataSource
+import tv.glimesh.data.GlimeshDataSource
 
 /**
  * ViewModel provider factory to instantiate HomeViewModel.
@@ -16,8 +17,7 @@ class HomeViewModelFactory(private val context: Context) : ViewModelProvider.Fac
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             return HomeViewModel(
-                AuthStateDataSource.getInstance(context),
-                AuthorizationService(context)
+                GlimeshDataSource(AuthStateDataSource.getInstance(context))
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

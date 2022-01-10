@@ -1,11 +1,14 @@
 package tv.glimesh.data
 
-import android.accounts.AccountManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.annotation.AnyThread
 import androidx.annotation.Nullable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import net.openid.appauth.*
 import org.json.JSONException
 import java.lang.ref.WeakReference
@@ -20,7 +23,7 @@ class AuthStateDataSource(context: Context) {
     private val STORE_NAME = "AuthState"
     private val KEY_STATE = "state"
 
-    private var accountManager = AccountManager.get(context)
+    private var authorizationService = AuthorizationService(context)
     private var mPrefs: SharedPreferences =
         context.getSharedPreferences(STORE_NAME, Context.MODE_PRIVATE)
     private var mPrefsLock: ReentrantLock = ReentrantLock()
@@ -52,6 +55,20 @@ class AuthStateDataSource(context: Context) {
         } else {
             mCurrentAuthState.get()
         }
+    }
+
+    @AnyThread
+    suspend fun retrieveFreshTokens(): Triple<String?, String?, AuthorizationException?> {
+        val channel = Channel<Triple<String?, String?, AuthorizationException?>>()
+        getCurrent().performActionWithFreshTokens(
+            authorizationService
+        ) { accessToken, idToken, ex ->
+            GlobalScope.launch(Dispatchers.IO) {
+                channel.send(Triple(accessToken, idToken, ex))
+                channel.close()
+            }
+        }
+        return channel.receive()
     }
 
     @AnyThread

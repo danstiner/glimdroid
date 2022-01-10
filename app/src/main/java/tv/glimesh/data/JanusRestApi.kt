@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import tv.glimesh.data.model.ChannelId
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -189,11 +190,11 @@ class JanusRestApi(private val serverRoot: Uri) {
         return response.data!!
     }
 
-    suspend fun ftlWatchChannel(session: SessionId, plugin: PluginId, channelId: Long) {
+    suspend fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
         val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
-        val request = FtlWatchRequest(FtlWatchRequestBody(channelId))
+        val request = FtlWatchRequest(FtlWatchRequestBody(channel.id))
         val response: WatchResponse = post(pluginUri, request)
 
         assert(response.janus == "ack")

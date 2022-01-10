@@ -7,8 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.DefaultVideoDecoderFactory
 import org.webrtc.EglBase
+import org.webrtc.Logging
 import org.webrtc.PeerConnectionFactory
 import org.webrtc.audio.JavaAudioDeviceModule
+import tv.glimesh.data.AuthStateDataSource
+import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.JanusRestApi
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -25,7 +28,9 @@ class ChannelViewModelFactory(
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StreamViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
+
+            val authState = AuthStateDataSource(applicationContext)
 
             // Executor thread is started once used for all
             // peer connection API calls to ensure new peer connection factory is
@@ -57,12 +62,13 @@ class ChannelViewModelFactory(
 
             // Set INFO libjingle logging.
             // NOTE: this _must_ happen while |factory| is alive!
-//            Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
+            Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
 
-            return StreamViewModel(
+            return ChannelViewModel(
                 janus = JanusRestApi(Uri.parse("https://do-nyc3-edge1.kjfk.live.glimesh.tv/janus")),
                 peerConnectionFactory = factory,
                 executor = executor,
+                glimesh = GlimeshDataSource(authState = authState),
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
