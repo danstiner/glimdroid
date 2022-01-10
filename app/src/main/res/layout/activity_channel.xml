@@ -4,6 +4,7 @@ across the layout configurations
 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -58,7 +59,6 @@ across the layout configurations
         android:text="@string/support"
         app:icon="@drawable/ic_hand_holding_usd_solid"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
-        app:layout_constraintTop_toBottomOf="@id/video_view"
         app:layout_constraintTop_toTopOf="@id/textview_streamer_display_name" />
 
     <Button
@@ -69,6 +69,16 @@ across the layout configurations
         app:icon="@drawable/ic_favorite_border_black_24dp"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
         app:layout_constraintTop_toBottomOf="@id/button_support" />
+
+    <WebView
+        android:id="@+id/webview_chat"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline_right"
+        app:layout_constraintStart_toStartOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/barrier_chat" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_left"
@@ -90,6 +100,13 @@ across the layout configurations
         android:layout_height="wrap_content"
         app:barrierDirection="left"
         app:constraint_referenced_ids="button_support,button_follow" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="textview_channel_subtitle,button_follow" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group"

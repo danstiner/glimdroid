@@ -4,13 +4,13 @@ import android.app.PictureInPictureParams
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
@@ -42,6 +42,8 @@ class ChannelActivity : AppCompatActivity() {
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
 
+        binding.webviewChat.settings.javaScriptEnabled = true
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
         ) {
@@ -60,8 +62,11 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.title.observe(this, {
             binding.textviewChannelTitle.text = it
         })
-        viewModel.streamerDisplayName.observe(this, {
+        viewModel.streamerDisplayname.observe(this, {
             binding.textviewStreamerDisplayName.text = it
+        })
+        viewModel.streamerUsername.observe(this, {
+            binding.webviewChat.loadUrl(Uri.parse("https://glimesh.tv").buildUpon().appendPath(it).appendPath("chat").build().toString())
         })
         viewModel.viewerCount.observe(this, {
             if (it != null) {

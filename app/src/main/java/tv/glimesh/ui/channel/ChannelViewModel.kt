@@ -27,8 +27,11 @@ class ChannelViewModel(
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
 
-    private val _streamerDisplayName = MutableLiveData<String>()
-    val streamerDisplayName: LiveData<String> = _streamerDisplayName
+    private val _streamerDisplayname = MutableLiveData<String>()
+    val streamerDisplayname: LiveData<String> = _streamerDisplayname
+
+    private val _streamerUsername = MutableLiveData<String>()
+    val streamerUsername: LiveData<String> = _streamerUsername
 
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
@@ -231,7 +234,8 @@ class ChannelViewModel(
         val info = glimesh.channelByIdQuery(channel)
         withContext(Dispatchers.Main) {
             _title.value = info?.channel?.title ?: ""
-            _streamerDisplayName.value = info?.channel?.streamer?.displayname ?: ""
+            _streamerDisplayname.value = info?.channel?.streamer?.displayname ?: ""
+            _streamerUsername.value = info?.channel?.streamer?.username ?: ""
             _viewerCount.value = info?.channel?.stream?.countViewers
         }
     }

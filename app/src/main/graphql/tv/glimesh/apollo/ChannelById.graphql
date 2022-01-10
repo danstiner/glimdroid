@@ -18,7 +18,8 @@ query ChannelById($id: ID) {
     streamer {
         id,
         avatarUrl,
-        displayname
+        displayname,
+        username
     }
     subcategory {
         name
