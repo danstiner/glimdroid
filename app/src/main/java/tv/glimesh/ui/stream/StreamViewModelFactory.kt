@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import org.webrtc.DefaultVideoDecoderFactory
 import org.webrtc.EglBase
 import org.webrtc.PeerConnectionFactory
+import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -42,8 +43,16 @@ class StreamViewModelFactory(
 
             val videoEncoderFactory = DefaultVideoDecoderFactory(eglContext)
 
+            val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
+                .setUseStereoOutput(true)
+                // TODO apply audio attributes to make audio a media stream once newer webrtc version with the api is avaiable
+//                .setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE).setUsage(AudioAttributes.USAGE_MEDIA).build())
+                .createAudioDeviceModule()
+
             val factory = PeerConnectionFactory.builder()
-                .setVideoDecoderFactory(videoEncoderFactory).createPeerConnectionFactory()
+                .setVideoDecoderFactory(videoEncoderFactory)
+                .setAudioDeviceModule(audioDeviceModule)
+                .createPeerConnectionFactory()
 
             // Set INFO libjingle logging.
             // NOTE: this _must_ happen while |factory| is alive!

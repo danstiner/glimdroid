@@ -66,8 +66,6 @@ class StreamActivity : AppCompatActivity() {
 
             videoTrack.addSink(binding.videoView)
         })
-
-
     }
 
     override fun onStart() {

@@ -107,9 +107,8 @@ class StreamViewModel(
                             Log.d(TAG, "stream: $stream")
 
                             viewModelScope.launch(Dispatchers.Main) {
-                                if (stream.videoTracks.size == 1) {
-                                    _videoTrack.value = stream.videoTracks[0]
-                                }
+                                assert(stream.videoTracks.size == 1)
+                                _videoTrack.value = stream.videoTracks[0]
                             }
                         }
 
