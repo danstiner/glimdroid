@@ -16,7 +16,15 @@ import tv.glimesh.data.model.ChannelId
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
-const val TAG = "StreamViewModel"
+const val TAG = "ChannelViewModel"
+
+data class Chat(
+    val id: String,
+    val message: String,
+    val displayname: String,
+    val username: String,
+    val avatarUrl: String?
+)
 
 class ChannelViewModel(
     private val janus: JanusRestApi,
@@ -36,6 +44,11 @@ class ChannelViewModel(
 
     private val _streamerAvatarUrl = MutableLiveData<URL?>()
     val streamerAvatarUrl: LiveData<URL?> = _streamerAvatarUrl
+
+    private val _chats = MutableLiveData<List<Chat>>().apply {
+        value = listOf()
+    }
+    val chats: LiveData<List<Chat>> = _chats
 
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
@@ -254,11 +267,23 @@ class ChannelViewModel(
     private suspend fun fetchChannelInfo(channel: ChannelId) {
         val info = glimesh.channelByIdQuery(channel)
         withContext(Dispatchers.Main) {
+            val chats = info?.channel?.chatMessages?.edges?.map { edge ->
+                val chat = edge!!.node!!
+                return@map Chat(
+                    id = chat.id,
+                    displayname = chat.user.displayname,
+                    username = chat.user.username,
+                    avatarUrl = chat.user.avatarUrl,
+                    message = chat.message ?: ""
+                )
+            }
+            Log.d(TAG, chats.toString())
             _title.value = info?.channel?.title ?: ""
             _streamerDisplayname.value = info?.channel?.streamer?.displayname ?: ""
             _streamerUsername.value = info?.channel?.streamer?.username ?: ""
             _streamerAvatarUrl.value = info?.channel?.streamer?.avatarUrl?.let { URL(it) }
             _viewerCount.value = info?.channel?.stream?.countViewers
+            _chats.value = chats
         }
     }
 }

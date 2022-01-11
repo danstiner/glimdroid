@@ -15,17 +15,36 @@ query ChannelById($id: ID) {
         startedAt,
         thumbnailUrl
     },
-    streamer {
-        id,
-        avatarUrl,
-        displayname,
-        username
-    }
-    subcategory {
-        name
-    },
-    tags {
-        name
-    },
+      streamer {
+          id,
+          avatarUrl,
+          displayname,
+          username
+      }
+
+      chatMessages(last: 10) {
+          edges {
+              node {
+                  id
+                  message
+                  insertedAt
+                  channel {
+                      status
+                  }
+                  user {
+                      displayname
+                      username
+                      avatarUrl
+                  }
+              }
+          }
+      }
+
+      subcategory {
+          name
+      },
+      tags {
+          name
+      },
   }
 }

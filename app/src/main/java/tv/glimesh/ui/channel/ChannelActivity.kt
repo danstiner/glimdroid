@@ -29,6 +29,8 @@ const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
 
 class ChannelActivity : AppCompatActivity() {
 
+    private val TAG = "ChannelActivity"
+
     private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
 
@@ -48,8 +50,6 @@ class ChannelActivity : AppCompatActivity() {
         binding.videoView.init(eglBase.eglBaseContext, null)
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
-
-        binding.webviewChat.settings.javaScriptEnabled = true
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
@@ -73,12 +73,6 @@ class ChannelActivity : AppCompatActivity() {
             binding.textviewStreamerDisplayName.text = it
         })
         viewModel.streamerUsername.observe(this, { username ->
-            binding.webviewChat.loadUrl(
-                Uri.parse("https://glimesh.tv").buildUpon()
-                    .appendPath(username)
-                    .appendPath("chat")
-                    .build().toString()
-            )
             binding.buttonSupport.setOnClickListener {
                 startActivity(
                     Intent(
@@ -112,6 +106,13 @@ class ChannelActivity : AppCompatActivity() {
         })
         viewModel.videoTrack.observe(this, {
             it.addSink(binding.videoView)
+        })
+
+        val chatAdapter = ChatAdapter()
+        binding.chatRecyclerView.adapter = chatAdapter
+        viewModel.chats.observe(this, {
+            Log.d(TAG, "Chats updated $it")
+            chatAdapter.submitList(it)
         })
     }
 
