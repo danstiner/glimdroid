@@ -3,7 +3,6 @@ package tv.glimesh.ui.home
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import net.openid.appauth.AuthorizationService
 import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.GlimeshDataSource
 

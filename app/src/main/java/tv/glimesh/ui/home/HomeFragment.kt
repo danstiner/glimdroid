@@ -1,6 +1,5 @@
 package tv.glimesh.ui.home
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import kotlinx.serialization.Serializable
+import tv.glimesh.data.model.ChannelId
+import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.FragmentFollowingBinding
 import tv.glimesh.ui.channel.ChannelActivity
 
@@ -51,11 +53,17 @@ class HomeFragment : Fragment() {
 
     /* Opens channel when RecyclerView item is clicked. */
     private fun adapterOnClick(channel: Channel) {
-        Log.d("HomeFragment", "Starting stream activity; channel_id:${channel.id}, stream_id:${channel.streamId}")
-        startActivity(Intent(requireContext(), ChannelActivity::class.java).apply {
-            putExtra(CHANNEL_ID, channel.id.toLong())
-            putExtra(STREAM_ID, channel.streamId?.toLong())
-        })
+        Log.d(
+            "HomeFragment",
+            "Starting stream activity; channel_id:${channel.id}, stream_id:${channel.streamId}"
+        )
+        startActivity(
+            ChannelActivity.intent(
+                requireContext(),
+                ChannelId(channel.id.toLong()),
+                StreamId(channel.streamId?.toLong()!!)
+            )
+        )
     }
 
     override fun onDestroyView() {
@@ -64,4 +72,11 @@ class HomeFragment : Fragment() {
     }
 }
 
-data class Channel(val id: String, val title: String, val streamerDisplayName: String, val streamerAvatarUrl: String?, val streamId: String?)
+@Serializable
+data class Channel(
+    val id: String,
+    val title: String,
+    val streamerDisplayName: String,
+    val streamerAvatarUrl: String?,
+    val streamId: String?
+)

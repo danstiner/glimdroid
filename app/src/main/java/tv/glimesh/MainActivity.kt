@@ -8,7 +8,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import tv.glimesh.databinding.ActivityMainBinding
 import tv.glimesh.ui.login.LoginActivity
 import tv.glimesh.ui.main.MainViewModel

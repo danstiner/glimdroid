@@ -1,6 +1,8 @@
 package tv.glimesh.ui.channel
 
 import android.app.PictureInPictureParams
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
@@ -15,8 +17,10 @@ import androidx.lifecycle.ViewModelProvider
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import tv.glimesh.data.model.ChannelId
+import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.ActivityChannelBinding
 import tv.glimesh.ui.home.CHANNEL_ID
+import tv.glimesh.ui.home.STREAM_ID
 
 const val smashbetsChannelId = 10552L
 
@@ -66,7 +70,10 @@ class ChannelActivity : AppCompatActivity() {
             binding.textviewStreamerDisplayName.text = it
         })
         viewModel.streamerUsername.observe(this, {
-            binding.webviewChat.loadUrl(Uri.parse("https://glimesh.tv").buildUpon().appendPath(it).appendPath("chat").build().toString())
+            binding.webviewChat.loadUrl(
+                Uri.parse("https://glimesh.tv").buildUpon().appendPath(it).appendPath("chat")
+                    .build().toString()
+            )
         })
         viewModel.viewerCount.observe(this, {
             if (it != null) {
@@ -103,8 +110,9 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean,
-                                               newConfig: Configuration
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration
     ) {
         if (isInPictureInPictureMode) {
             // Hide the normal UI (controls, etc.) while in picture-in-picture mode
@@ -113,5 +121,13 @@ class ChannelActivity : AppCompatActivity() {
             // Restore the normal UI
             binding.group.visibility = View.VISIBLE
         }
+    }
+
+    companion object {
+        fun intent(context: Context, channel: ChannelId, stream: StreamId) =
+            Intent(context, ChannelActivity::class.java).apply {
+                putExtra(CHANNEL_ID, channel.id)
+                putExtra(STREAM_ID, stream.id)
+            }
     }
 }

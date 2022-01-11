@@ -32,7 +32,12 @@ class LoginActivity : AppCompatActivity() {
             this,
             LoginViewModelFactory(
                 applicationContext,
-                PendingIntent.getActivity(this, 0, Intent(this, TokenActivity::class.java), PendingIntent.FLAG_MUTABLE)
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(this, TokenActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
             )
         )[LoginViewModel::class.java]
 

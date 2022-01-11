@@ -1,19 +1,12 @@
 package tv.glimesh.ui.home
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apollographql.apollo3.ApolloClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthState
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationService
-import tv.glimesh.apollo.MyFollowingQuery
-import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.GlimeshDataSource
 
 class HomeViewModel(
@@ -43,13 +36,15 @@ class HomeViewModel(
                         ?.followingLiveChannels
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
-                        ?.map { node -> Channel(
-                            id = node.id!!,
-                            title = node?.title!!,
-                            streamerDisplayName = node?.streamer?.displayname,
-                            streamerAvatarUrl = node?.streamer?.avatarUrl,
-                            streamId = node?.stream?.id,
-                        ) }
+                        ?.map { node ->
+                            Channel(
+                                id = node.id!!,
+                                title = node?.title!!,
+                                streamerDisplayName = node?.streamer?.displayname,
+                                streamerAvatarUrl = node?.streamer?.avatarUrl,
+                                streamId = node?.stream?.id,
+                            )
+                        }
             }
         }
     }

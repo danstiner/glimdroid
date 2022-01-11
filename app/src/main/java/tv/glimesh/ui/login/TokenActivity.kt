@@ -47,7 +47,10 @@ class TokenActivity : AppCompatActivity() {
             mStateManager.updateAfterAuthorization(response, ex)
         }
 
-        Log.d(TAG, "onStart response:$response, ex:$ex, isAuthorized:${mStateManager.getCurrent().isAuthorized}")
+        Log.d(
+            TAG,
+            "onStart response:$response, ex:$ex, isAuthorized:${mStateManager.getCurrent().isAuthorized}"
+        )
 
         when {
             response?.authorizationCode != null -> {

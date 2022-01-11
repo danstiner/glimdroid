@@ -39,8 +39,20 @@ class ChannelViewModel(
     private val _videoTrack = MutableLiveData<VideoTrack>()
     val videoTrack: LiveData<VideoTrack> = _videoTrack
 
+    var currentPeerConnection: PeerConnection? = null
+    var currentChannel: ChannelId? = null
+
     fun watch(channel: ChannelId) {
         viewModelScope.launch(Dispatchers.IO) {
+
+            if (currentChannel == channel) {
+                return@launch
+            }
+
+            // Close previous connection, if any
+            currentPeerConnection?.close()
+            currentChannel = channel
+
             fetchChannelInfo(channel)
             val session = janus.createSession()
             val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
@@ -77,9 +89,8 @@ class ChannelViewModel(
                 SessionDescription.Type.OFFER, sdpOfferDescription
             )
 
-            var peerConnection: PeerConnection?
             executor.execute {
-                peerConnection = peerConnectionFactory.createPeerConnection(
+                currentPeerConnection = peerConnectionFactory.createPeerConnection(
                     rtcConfiguration,
                     mediaConstraints,
                     object : PeerConnection.Observer {
@@ -150,7 +161,7 @@ class ChannelViewModel(
                     }
                 )
 
-                peerConnection!!.setRemoteDescription(object : SdpObserver {
+                currentPeerConnection!!.setRemoteDescription(object : SdpObserver {
                     override fun onCreateSuccess(description: SessionDescription) {
                         Log.d(TAG, "setRemoteDescription: onCreateSuccess")
                     }
@@ -158,7 +169,7 @@ class ChannelViewModel(
                     override fun onSetSuccess() {
                         Log.d(TAG, "setRemoteDescription: onSetSuccess")
                         executor.execute {
-                            peerConnection!!.createAnswer(object : SdpObserver {
+                            currentPeerConnection!!.createAnswer(object : SdpObserver {
                                 override fun onCreateSuccess(answer: SessionDescription) {
                                     Log.d(TAG, "createAnswer:onCreateSuccess: $answer")
                                     viewModelScope.launch(Dispatchers.IO) {
@@ -175,7 +186,8 @@ class ChannelViewModel(
                                             // TODO do something with events
                                         }
                                     }
-                                    peerConnection!!.setLocalDescription(object : SdpObserver {
+                                    currentPeerConnection!!.setLocalDescription(object :
+                                        SdpObserver {
                                         override fun onCreateSuccess(description: SessionDescription) {
                                             Log.d(
                                                 TAG,
@@ -228,6 +240,11 @@ class ChannelViewModel(
             // Wait for webrtcup?
             delay(10000)
         }
+    }
+
+    override fun onCleared() {
+        currentPeerConnection?.close()
+        super.onCleared()
     }
 
     private suspend fun fetchChannelInfo(channel: ChannelId) {
