@@ -41,7 +41,7 @@ data class LiveNotification(val id: Int, val channel: Channel)
  * Should be eventually replaced by a persistent websocket, or better yet a push notification
  * using something like: https://firebase.google.com/docs/cloud-messaging
  */
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
@@ -61,7 +61,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             val channel = NotificationChannel(
                 LIVE_CHANNEL_ID,
                 "LIVE_CHANNEL_NAME",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             )
             channel.description = "Live Followed Channels"
 
@@ -139,7 +139,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             .setContentTitle("${channel.streamerDisplayName} is live")
             .setContentText(channel.title)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .build()
