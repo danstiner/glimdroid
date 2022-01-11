@@ -72,11 +72,23 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.streamerDisplayname.observe(this, {
             binding.textviewStreamerDisplayName.text = it
         })
-        viewModel.streamerUsername.observe(this, {
+        viewModel.streamerUsername.observe(this, { username ->
             binding.webviewChat.loadUrl(
-                Uri.parse("https://glimesh.tv").buildUpon().appendPath(it).appendPath("chat")
+                Uri.parse("https://glimesh.tv").buildUpon()
+                    .appendPath(username)
+                    .appendPath("chat")
                     .build().toString()
             )
+            binding.buttonSupport.setOnClickListener {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://glimesh.tv/").buildUpon()
+                            .appendPath(username)
+                            .appendPath("support").build()
+                    )
+                )
+            }
         })
         viewModel.streamerAvatarUrl.observe(this, {
             if (it != null) {
