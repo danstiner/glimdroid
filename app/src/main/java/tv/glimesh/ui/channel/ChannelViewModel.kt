@@ -13,6 +13,7 @@ import org.webrtc.*
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.JanusRestApi
 import tv.glimesh.data.model.ChannelId
+import java.net.URL
 import java.util.concurrent.ExecutorService
 
 const val TAG = "StreamViewModel"
@@ -32,6 +33,9 @@ class ChannelViewModel(
 
     private val _streamerUsername = MutableLiveData<String>()
     val streamerUsername: LiveData<String> = _streamerUsername
+
+    private val _streamerAvatarUrl = MutableLiveData<URL?>()
+    val streamerAvatarUrl: LiveData<URL?> = _streamerAvatarUrl
 
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
@@ -253,6 +257,7 @@ class ChannelViewModel(
             _title.value = info?.channel?.title ?: ""
             _streamerDisplayname.value = info?.channel?.streamer?.displayname ?: ""
             _streamerUsername.value = info?.channel?.streamer?.username ?: ""
+            _streamerAvatarUrl.value = info?.channel?.streamer?.avatarUrl?.let { URL(it) }
             _viewerCount.value = info?.channel?.stream?.countViewers
         }
     }

@@ -14,8 +14,10 @@ import android.util.Rational
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
+import tv.glimesh.R
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.ActivityChannelBinding
@@ -74,6 +76,19 @@ class ChannelActivity : AppCompatActivity() {
                 Uri.parse("https://glimesh.tv").buildUpon().appendPath(it).appendPath("chat")
                     .build().toString()
             )
+        })
+        viewModel.streamerAvatarUrl.observe(this, {
+            if (it != null) {
+                Glide
+                    .with(this)
+                    .load(it)
+                    .fitCenter()
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_camera_black_24dp)
+                    .into(binding.avatarImage)
+            } else {
+                Glide.with(this).clear(binding.avatarImage)
+            }
         })
         viewModel.viewerCount.observe(this, {
             if (it != null) {

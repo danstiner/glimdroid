@@ -1,6 +1,5 @@
 package tv.glimesh.ui.home
 
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import tv.glimesh.R
+import java.net.URL
 
 class FollowingAdapter(private val onClick: (Channel) -> Unit) :
     ListAdapter<Channel, FollowingAdapter.ChannelViewHolder>(ChannelDiffCallback) {
@@ -35,9 +36,15 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamerDisplayName
             if (channel.streamerAvatarUrl != null) {
-                avatarImageView.setImageURI(Uri.parse(channel.streamerAvatarUrl))
+                Glide
+                    .with(itemView)
+                    .load(URL(channel.streamerAvatarUrl))
+                    .fitCenter()
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_camera_black_24dp)
+                    .into(avatarImageView)
             } else {
-                // clear avatarImageView
+                Glide.with(itemView).clear(avatarImageView)
             }
         }
     }
