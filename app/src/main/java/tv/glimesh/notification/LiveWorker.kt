@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.json.JSONException
 import tv.glimesh.R
 import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.GlimeshDataSource
@@ -152,8 +151,8 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         val currentState = store.getString(KEY_STATE, null) ?: return State(mutableMapOf())
         return try {
             Json.decodeFromString(currentState)
-        } catch (ex: JSONException) {
-            Log.w(TAG, "Failed to deserialize stored state - discarding")
+        } catch (ex: kotlinx.serialization.SerializationException) {
+            Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
             State(mutableMapOf())
         }
     }
