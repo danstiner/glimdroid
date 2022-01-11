@@ -1,9 +1,12 @@
 package tv.glimesh.ui.channel
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.net.Uri
+import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -24,6 +27,7 @@ import java.util.concurrent.Executors
  * ViewModel provider factory to instantiates StreamViewModel.
  * Required given StreamViewModel has a non-empty constructor
  */
+@RequiresApi(Build.VERSION_CODES.O)
 class ChannelViewModelFactory(
     private val applicationContext: Context,
     private val eglContext: EglBase.Context
@@ -65,8 +69,10 @@ class ChannelViewModelFactory(
 
             val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
                 .setUseStereoOutput(true)
-                // TODO apply audio attributes to make audio a media stream once newer webrtc version with the api is avaiable
-//                .setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE).setUsage(AudioAttributes.USAGE_MEDIA).build())
+                .setAudioAttributes(
+                    AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                        .setUsage(AudioAttributes.USAGE_MEDIA).build()
+                )
                 .createAudioDeviceModule()
 
             val factory = PeerConnectionFactory.builder()
