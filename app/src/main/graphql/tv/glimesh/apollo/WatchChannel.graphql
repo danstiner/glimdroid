@@ -1,0 +1,6 @@
+mutation WatchChannel($id: ID!, $country: String!) {
+	watchChannel(channelId: $id, country: $country) {
+		id
+		url
+	}
+}

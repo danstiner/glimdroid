@@ -2,7 +2,9 @@ package tv.glimesh.ui.channel
 
 import android.content.Context
 import android.net.Uri
+import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.webrtc.DefaultVideoDecoderFactory
@@ -26,11 +28,22 @@ class ChannelViewModelFactory(
     private val eglContext: EglBase.Context
 ) : ViewModelProvider.Factory {
 
+    private val TAG = "ChannelViewModelFactory"
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
 
             val authState = AuthStateDataSource(applicationContext)
+
+            val networkCountryIso = getSystemService(
+                applicationContext,
+                TelephonyManager::class.java
+            )?.networkCountryIso
+            if (networkCountryIso == null) {
+                Log.w(TAG, "No network country code available, defaulting to US")
+            }
+            val countryCode = networkCountryIso ?: "US"
 
             // Executor thread is started once used for all
             // peer connection API calls to ensure new peer connection factory is
@@ -69,6 +82,7 @@ class ChannelViewModelFactory(
                 peerConnectionFactory = factory,
                 executor = executor,
                 glimesh = GlimeshDataSource(authState = authState),
+                countryCode = countryCode,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

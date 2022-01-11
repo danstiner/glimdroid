@@ -1,11 +1,9 @@
 package tv.glimesh.data
 
 import com.apollographql.apollo3.ApolloClient
-import tv.glimesh.apollo.ChannelByIdQuery
-import tv.glimesh.apollo.HomepageQuery
-import tv.glimesh.apollo.LiveChannelsQuery
-import tv.glimesh.apollo.MyFollowingQuery
+import tv.glimesh.apollo.*
 import tv.glimesh.data.model.ChannelId
+import java.net.URL
 
 private const val TAG = "GlimeshDataSource"
 
@@ -61,4 +59,19 @@ class GlimeshDataSource(
             .execute()
             .dataAssertNoErrors
     }
+
+    suspend fun watchChannel(channel: ChannelId, countryCode: String): EdgeRoute {
+        // TODO handle authorization exceptions
+        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+
+        val data = apolloClient.mutation(WatchChannelMutation(channel.id.toString(), countryCode))
+            .addHttpHeader("Authorization", "Bearer $accessToken")
+            .execute()
+            .dataAssertNoErrors
+            .watchChannel!!
+
+        return EdgeRoute(data.id!!, URL(data.url!!))
+    }
 }
+
+data class EdgeRoute(val id: String, val url: URL)

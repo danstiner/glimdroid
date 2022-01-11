@@ -167,11 +167,15 @@ data class TrickleRequest(
 @Serializable
 data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
 
-class JanusRestApi(private val serverRoot: Uri) {
+class JanusRestApi(private var serverUrl: Uri) {
+
+    fun setServerUrl(url: URL) {
+        serverUrl = Uri.parse(url.toString())
+    }
 
     suspend fun createSession(): SessionId {
         val request = CreateRequest()
-        val response: CreateResponse = post(serverRoot, request)
+        val response: CreateResponse = post(serverUrl, request)
         assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         return response.data
@@ -179,7 +183,7 @@ class JanusRestApi(private val serverRoot: Uri) {
 
 
     suspend fun attachPlugin(session: SessionId, plugin: String): PluginId {
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
 
         val request = AttachRequest(plugin)
         val response: AttachResponse = post(sessionUri, request)
@@ -191,7 +195,7 @@ class JanusRestApi(private val serverRoot: Uri) {
     }
 
     suspend fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
         val request = FtlWatchRequest(FtlWatchRequestBody(channel.id))
@@ -220,7 +224,7 @@ class JanusRestApi(private val serverRoot: Uri) {
         sdpAnswer: String,
         trickleIceCandidates: Array<IceCandidate>
     ) {
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
         /*
         // HACK: Workaround for Chromium not enabling stereo audio by default
@@ -241,7 +245,7 @@ class JanusRestApi(private val serverRoot: Uri) {
 
     suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
 
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
         Log.d(TAG, "trickleIceCandidate $candidate")
@@ -255,14 +259,14 @@ class JanusRestApi(private val serverRoot: Uri) {
     }
 
     suspend fun longPollSession(session: SessionId): Array<SessionEvent> {
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
         val uri = sessionUri.buildUpon().appendQueryParameter("maxev", "10")
             .appendQueryParameter("rid", "${System.currentTimeMillis()}").build()
         return get(uri)
     }
 
     suspend fun messagePlugin(session: SessionId, plugin: PluginId, body: Map<String, String>) {
-        val sessionUri = serverRoot.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
         val request = MessageRequest(body)
         val response: MessageResponse = post(pluginUri, request)
