@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
@@ -36,6 +37,7 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -52,6 +54,8 @@ class ChannelActivity : AppCompatActivity() {
         binding.videoView.init(eglBase.eglBaseContext, null)
         binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
+        binding.videoView.setZOrderOnTop(true);
+        binding.videoView.holder.setFormat(PixelFormat.TRANSPARENT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
@@ -103,6 +107,29 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewChannelSubtitle.text = "$it viewers"
             } else {
                 binding.textviewChannelSubtitle.text = "Not live"
+            }
+        })
+        viewModel.streamerAvatarUrl.observe(this, {
+            if (it != null) {
+                Glide
+                    .with(this)
+                    .load(it)
+                    .fitCenter()
+                    .circleCrop()
+                    .into(binding.avatarImage)
+            } else {
+                Glide.with(this).clear(binding.avatarImage)
+            }
+        })
+        viewModel.videoThumbnailUrl.observe(this, {
+            if (it != null) {
+                Glide
+                    .with(this)
+                    .load(it)
+                    .onlyRetrieveFromCache(true)
+                    .into(binding.videoPreview)
+            } else {
+                Glide.with(this).clear(binding.videoPreview)
             }
         })
         viewModel.videoTrack.observe(this, {

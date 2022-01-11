@@ -58,6 +58,9 @@ class ChannelViewModel(
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
 
+    private val _videoThumbnailUrl = MutableLiveData<URL?>()
+    val videoThumbnailUrl: LiveData<URL?> = _videoThumbnailUrl
+
     private val _videoTrack = MutableLiveData<VideoTrack>()
     val videoTrack: LiveData<VideoTrack> = _videoTrack
 
@@ -304,6 +307,7 @@ class ChannelViewModel(
             _streamerUsername.value = info?.channel?.streamer?.username ?: ""
             _streamerAvatarUrl.value = info?.channel?.streamer?.avatarUrl?.let { URL(it) }
             _viewerCount.value = info?.channel?.stream?.countViewers
+            _videoThumbnailUrl.value = info?.channel?.stream?.thumbnailUrl?.let { URL(it) }
         }
     }
 }
