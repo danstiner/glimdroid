@@ -49,7 +49,6 @@ class ChannelAdapter(private val onClick: (Channel) -> Unit) :
                     .with(itemView)
                     .load(URL(channel.streamerAvatarUrl))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.ic_camera_black_24dp)
                     .into(avatarImageView)
             }
 

@@ -12,15 +12,17 @@ import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
-import tv.glimesh.R
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.ActivityChannelBinding
+
 
 const val smashbetsChannelId = 10552L
 
@@ -91,7 +93,6 @@ class ChannelActivity : AppCompatActivity() {
                     .load(it)
                     .fitCenter()
                     .circleCrop()
-                    .placeholder(R.drawable.ic_camera_black_24dp)
                     .into(binding.avatarImage)
             } else {
                 Glide.with(this).clear(binding.avatarImage)
@@ -110,12 +111,16 @@ class ChannelActivity : AppCompatActivity() {
 
         val chatAdapter = ChatAdapter()
         binding.chatRecyclerView.adapter = chatAdapter
-        viewModel.chats.observe(this, {
-            Log.d(TAG, "Chats updated $it")
+        val linearLayoutManager = LinearLayoutManager(this)
+        linearLayoutManager.stackFromEnd = true
+        binding.chatRecyclerView.layoutManager = linearLayoutManager
+        viewModel.messages.observe(this, {
             chatAdapter.submitList(it)
+            binding.chatRecyclerView.scrollToPosition(it.size - 1)
         })
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
 

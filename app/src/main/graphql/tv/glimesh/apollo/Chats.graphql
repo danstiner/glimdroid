@@ -1,0 +1,12 @@
+subscription Messages($id: ID!) {
+  chatMessage(channelId: $id) {
+    id
+    message
+    insertedAt
+    user {
+      username
+      displayname
+      avatarUrl
+    }
+  }
+}

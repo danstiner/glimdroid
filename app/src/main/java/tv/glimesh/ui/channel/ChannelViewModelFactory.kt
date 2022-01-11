@@ -14,6 +14,7 @@ import org.webrtc.PeerConnectionFactory
 import org.webrtc.audio.JavaAudioDeviceModule
 import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.GlimeshDataSource
+import tv.glimesh.data.GlimeshWebsocketDataSource
 import tv.glimesh.data.JanusRestApi
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -82,6 +83,7 @@ class ChannelViewModelFactory(
                 peerConnectionFactory = factory,
                 executor = executor,
                 glimesh = GlimeshDataSource(authState = authState),
+                glimeshSocket = GlimeshWebsocketDataSource(authState = authState),
                 countryCode = countryCode,
             ) as T
         }

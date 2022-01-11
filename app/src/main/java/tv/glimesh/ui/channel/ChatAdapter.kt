@@ -29,13 +29,13 @@ import java.lang.ref.WeakReference
 import java.net.URL
 
 class ChatAdapter :
-    ListAdapter<Chat, ChatAdapter.ChatViewHolder>(ChatDiffCallback) {
+    ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDiffCallback) {
 
     class ChatViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         private val textView: TextView = itemView.findViewById(R.id.text)
 
-        fun bind(chat: Chat) {
+        fun bind(chat: ChatMessage) {
             Log.d("ChatAdapter", chat.message)
             textView.text = buildSpannedString {
                 append("  ")
@@ -90,12 +90,12 @@ class ChatAdapter :
     }
 }
 
-object ChatDiffCallback : DiffUtil.ItemCallback<Chat>() {
-    override fun areItemsTheSame(oldItem: Chat, newItem: Chat): Boolean {
+object ChatDiffCallback : DiffUtil.ItemCallback<ChatMessage>() {
+    override fun areItemsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: Chat, newItem: Chat): Boolean {
+    override fun areContentsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {
         return oldItem.id == newItem.id
     }
 }

@@ -1,47 +1,32 @@
 query ChannelById($id: ID) {
   channel(id: $id) {
-    id,
-    title,
-    category {
-        name
-    },
-    language,
-    matureContent,
-    status,
-    stream {
-        id,
-        countViewers,
-        peakViewers,
-        startedAt,
-        thumbnailUrl
-    },
-      streamer {
-          id,
-          avatarUrl,
-          displayname,
-          username
+      id
+      title
+      category {
+          name
       }
-
-      chatMessages(last: 15) {
-          edges {
-              node {
-                  id
-                  message
-                  insertedAt
-                  user {
-                      displayname
-                      username
-                      avatarUrl
-                  }
-              }
-          }
+      language
+      matureContent
+      status
+      stream {
+          id
+          countViewers
+          peakViewers
+          startedAt
+          thumbnailUrl
+      }
+      streamer {
+          id
+          avatarUrl
+          displayname
+          username
       }
 
       subcategory {
           name
-      },
+      }
       tags {
           name
-      },
+      }
   }
 }

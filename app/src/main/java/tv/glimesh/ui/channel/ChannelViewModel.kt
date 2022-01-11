@@ -1,34 +1,39 @@
 package tv.glimesh.ui.channel
 
+import android.os.Build
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.annotation.RequiresApi
+import androidx.lifecycle.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import org.webrtc.*
 import tv.glimesh.data.GlimeshDataSource
+import tv.glimesh.data.GlimeshWebsocketDataSource
 import tv.glimesh.data.JanusRestApi
 import tv.glimesh.data.model.ChannelId
 import java.net.URL
+import java.time.Instant
 import java.util.concurrent.ExecutorService
 
 
 const val TAG = "ChannelViewModel"
 
-data class Chat(
+data class ChatMessage(
     val id: String,
     val message: String,
     val displayname: String,
     val username: String,
-    val avatarUrl: String?
+    val avatarUrl: String?,
+    val timestamp: Instant
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 class ChannelViewModel(
     private val janus: JanusRestApi,
     private val peerConnectionFactory: PeerConnectionFactory,
     private val executor: ExecutorService,
     private val glimesh: GlimeshDataSource,
+    private val glimeshSocket: GlimeshWebsocketDataSource,
     private val countryCode: String
 ) : ViewModel() {
 
@@ -44,10 +49,11 @@ class ChannelViewModel(
     private val _streamerAvatarUrl = MutableLiveData<URL?>()
     val streamerAvatarUrl: LiveData<URL?> = _streamerAvatarUrl
 
-    private val _chats = MutableLiveData<List<Chat>>().apply {
-        value = listOf()
+    private val _messagesMutable: MutableList<ChatMessage> = mutableListOf()
+    private val _messages = MutableLiveData<List<ChatMessage>>().apply {
+        value = _messagesMutable
     }
-    val chats: LiveData<List<Chat>> = _chats
+    val messages: LiveData<List<ChatMessage>> = _messages
 
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
@@ -64,11 +70,9 @@ class ChannelViewModel(
                 return@launch
             }
 
-            async {
-                connectRtc(channel)
-                fetchChannelInfo(channel)
-                subscribeToChats(channel)
-            }
+            launch { connectRtc(channel) }
+            launch { fetchChannelInfo(channel) }
+            launch { subscribeToChats(channel) }
         }
     }
 
@@ -77,7 +81,7 @@ class ChannelViewModel(
         currentPeerConnection?.close()
         currentChannel = channel
 
-        val route = glimesh.watchChannel(channel, "US")
+        val route = glimesh.watchChannel(channel, countryCode)
 
         janus.setServerUrl(route.url)
 
@@ -265,11 +269,26 @@ class ChannelViewModel(
         }
 
         // Wait for webrtcup?
-        delay(10000)
     }
 
     private suspend fun subscribeToChats(channel: ChannelId) {
-        // TODO
+        withContext(Dispatchers.Main) {
+            _messages.value = listOf()
+        }
+        val recentMessages = glimesh.recentChatMessages(channel)
+
+        withContext(Dispatchers.Main) {
+            _messages.value = recentMessages
+        }
+        glimeshSocket.chatMessages(channel).collect { message ->
+            Log.d(TAG, "New message: $message")
+            withContext(Dispatchers.Main) {
+                _messages.value = mutableListOf<ChatMessage>().apply {
+                    addAll(_messages.value!!)
+                    add(message)
+                }
+            }
+        }
     }
 
     override fun onCleared() {
@@ -285,16 +304,6 @@ class ChannelViewModel(
             _streamerUsername.value = info?.channel?.streamer?.username ?: ""
             _streamerAvatarUrl.value = info?.channel?.streamer?.avatarUrl?.let { URL(it) }
             _viewerCount.value = info?.channel?.stream?.countViewers
-            _chats.value = info?.channel?.chatMessages?.edges?.map { edge ->
-                val chat = edge!!.node!!
-                return@map Chat(
-                    id = chat.id,
-                    displayname = chat.user.displayname,
-                    username = chat.user.username,
-                    avatarUrl = chat.user.avatarUrl,
-                    message = chat.message ?: ""
-                )
-            }
         }
     }
 }

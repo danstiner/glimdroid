@@ -1,5 +1,7 @@
 package tv.glimesh.ui.featured
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +13,7 @@ import tv.glimesh.apollo.type.ChannelStatus
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.ui.home.Channel
 
+@RequiresApi(Build.VERSION_CODES.O)
 class FeaturedViewModel(
     private val glimesh: GlimeshDataSource
 ) : ViewModel() {
@@ -31,7 +34,7 @@ class FeaturedViewModel(
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
                         ?.filter { node -> node?.status == ChannelStatus.LIVE }
-                        ?.sortedBy { node -> node?.stream?.countViewers }
+                        ?.sortedBy { node -> node?.stream?.countViewers?.times(Math.random()) }
                         ?.reversed()
                         ?.map { node ->
                             Channel(
