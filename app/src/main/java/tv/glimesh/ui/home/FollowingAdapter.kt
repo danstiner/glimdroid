@@ -20,6 +20,7 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
         private val displayNameTextView: TextView = itemView.findViewById(R.id.display_name_text)
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
         private val avatarImageView: ImageView = itemView.findViewById(R.id.avatar_image)
+        private val channelPreviewImageView: ImageView = itemView.findViewById(R.id.thumbnail_image)
         private var currentChannel: Channel? = null
 
         init {
@@ -35,7 +36,10 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
 
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamerDisplayName
-            if (channel.streamerAvatarUrl != null) {
+
+            if (channel.streamerAvatarUrl == null) {
+                Glide.with(itemView).clear(avatarImageView)
+            } else {
                 Glide
                     .with(itemView)
                     .load(URL(channel.streamerAvatarUrl))
@@ -43,8 +47,18 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
                     .circleCrop()
                     .placeholder(R.drawable.ic_camera_black_24dp)
                     .into(avatarImageView)
+            }
+
+
+            if (channel.streamThumbnailUrl == null) {
+                Glide.with(itemView).clear(channelPreviewImageView)
             } else {
-                Glide.with(itemView).clear(avatarImageView)
+                Glide
+                    .with(itemView)
+                    .load(URL(channel.streamThumbnailUrl))
+                    .fitCenter()
+                    .centerCrop()
+                    .into(channelPreviewImageView)
             }
         }
     }

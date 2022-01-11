@@ -78,5 +78,6 @@ data class Channel(
     val title: String,
     val streamerDisplayName: String,
     val streamerAvatarUrl: String?,
-    val streamId: String?
+    val streamId: String?,
+    val streamThumbnailUrl: String?
 )

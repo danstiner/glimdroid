@@ -43,6 +43,7 @@ class HomeViewModel(
                                 streamerDisplayName = node?.streamer?.displayname,
                                 streamerAvatarUrl = node?.streamer?.avatarUrl,
                                 streamId = node?.stream?.id,
+                                streamThumbnailUrl = node?.stream?.thumbnailUrl,
                             )
                         }
             }
