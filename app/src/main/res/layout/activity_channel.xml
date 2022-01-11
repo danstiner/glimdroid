@@ -27,35 +27,38 @@ across the layout configurations
 
     <TextView
         android:id="@+id/textview_streamer_display_name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textAppearance="?attr/textAppearanceHeadline6"
         app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/avatar_image"
         app:layout_constraintTop_toBottomOf="@+id/video_view" />
 
     <TextView
         android:id="@+id/textview_channel_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/avatar_image"
         app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name" />
 
     <TextView
         android:id="@+id/textview_channel_subtitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textAppearance="?attr/textAppearanceBodySmall"
         app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/avatar_image"
         app:layout_constraintTop_toBottomOf="@+id/textview_channel_title" />
 

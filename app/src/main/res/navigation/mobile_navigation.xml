@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/navigation_categories"
-        android:name="tv.glimesh.ui.categories.NotificationsFragment"
+        android:name="tv.glimesh.ui.categories.CategoriesFragment"
         android:label="@string/title_categories"
         tools:layout="@layout/fragment_categories" />
 </navigation>

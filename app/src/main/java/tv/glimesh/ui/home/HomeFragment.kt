@@ -12,10 +12,8 @@ import kotlinx.serialization.Serializable
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.FragmentFollowingBinding
+import tv.glimesh.ui.ChannelAdapter
 import tv.glimesh.ui.channel.ChannelActivity
-
-const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
-const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
 
 class HomeFragment : Fragment() {
 
@@ -38,8 +36,8 @@ class HomeFragment : Fragment() {
         _binding = FragmentFollowingBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val followingAdapter = FollowingAdapter { channel -> adapterOnClick(channel) }
-        homeViewModel.followingLiveChannels.observe(viewLifecycleOwner, Observer {
+        val followingAdapter = ChannelAdapter { channel -> adapterOnClick(channel) }
+        homeViewModel.channels.observe(viewLifecycleOwner, Observer {
             followingAdapter.submitList(it)
         })
 

@@ -1,4 +1,4 @@
-package tv.glimesh.ui.featured
+package tv.glimesh.ui.categories
 
 import android.os.Bundle
 import android.util.Log
@@ -9,19 +9,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
-import tv.glimesh.databinding.FragmentFeaturedBinding
+import tv.glimesh.databinding.FragmentCategoriesBinding
 import tv.glimesh.ui.ChannelAdapter
 import tv.glimesh.ui.channel.ChannelActivity
 import tv.glimesh.ui.home.Channel
 
-class FeaturedFragment : Fragment() {
+class CategoriesFragment : Fragment() {
 
-    private val TAG = "FeaturedFragment"
+    private val TAG = "CategoriesFragment"
 
-    private lateinit var viewModel: FeaturedViewModel
-    private var _binding: FragmentFeaturedBinding? = null
+    private lateinit var viewModel: CategoriesViewModel
+    private var _binding: FragmentCategoriesBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView
+    // This property is only valid between onCreateView and
+    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -31,10 +32,10 @@ class FeaturedFragment : Fragment() {
     ): View? {
         viewModel = ViewModelProvider(
             this,
-            FeaturedViewModelFactory(requireContext())
-        )[FeaturedViewModel::class.java]
+            CategoriesViewModelFactory(requireContext())
+        )[CategoriesViewModel::class.java]
 
-        _binding = FragmentFeaturedBinding.inflate(inflater, container, false)
+        _binding = FragmentCategoriesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val channelAdapter = ChannelAdapter { channel -> adapterOnClick(channel) }

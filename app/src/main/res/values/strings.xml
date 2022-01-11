@@ -2,7 +2,7 @@
     <string name="app_name">Glimesh.tv</string>
     <string name="title_following">Following</string>
     <string name="title_featured">Featured</string>
-    <string name="title_categories">Categories</string>
+    <string name="title_categories">All Channels</string>
     <string name="title_activity_login">Glimesh.tv</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>

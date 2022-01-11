@@ -18,10 +18,10 @@ class HomeViewModel(
     }
     val followingCount: LiveData<Int> = _followingCount
 
-    private val _followingLiveChannels = MutableLiveData<List<Channel>>().apply {
+    private val _channels = MutableLiveData<List<Channel>>().apply {
         value = listOf()
     }
-    val followingLiveChannels: LiveData<List<Channel>> = _followingLiveChannels
+    val channels: LiveData<List<Channel>> = _channels
 
     private fun fetchFollowing() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -30,12 +30,14 @@ class HomeViewModel(
 
             withContext(Dispatchers.Main) {
                 _followingCount.value = data.myself?.countFollowing
-                _followingLiveChannels.value =
+                _channels.value =
                     data
                         ?.myself
                         ?.followingLiveChannels
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
+                        ?.sortedBy { node -> node?.stream?.countViewers }
+                        ?.reversed()
                         ?.map { node ->
                             Channel(
                                 id = node.id!!,

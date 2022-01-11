@@ -8,12 +8,12 @@
 
     <item
         android:id="@+id/navigation_featured"
-        android:icon="@drawable/ic_local_offer_black_24dp"
+        android:icon="@drawable/ic_dashboard_black_24dp"
         android:title="@string/title_featured" />
 
     <item
         android:id="@+id/navigation_categories"
-        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:icon="@drawable/ic_local_offer_black_24dp"
         android:title="@string/title_categories" />
 
 </menu>

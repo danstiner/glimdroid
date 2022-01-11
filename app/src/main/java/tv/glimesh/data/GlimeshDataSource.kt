@@ -3,6 +3,7 @@ package tv.glimesh.data
 import com.apollographql.apollo3.ApolloClient
 import tv.glimesh.apollo.ChannelByIdQuery
 import tv.glimesh.apollo.HomepageQuery
+import tv.glimesh.apollo.LiveChannelsQuery
 import tv.glimesh.apollo.MyFollowingQuery
 import tv.glimesh.data.model.ChannelId
 
@@ -46,6 +47,16 @@ class GlimeshDataSource(
         var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
 
         return apolloClient.query(MyFollowingQuery())
+            .addHttpHeader("Authorization", "Bearer $accessToken")
+            .execute()
+            .dataAssertNoErrors
+    }
+
+    suspend fun liveChannelsQuery(): LiveChannelsQuery.Data {
+        // TODO handle authorization exceptions
+        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+
+        return apolloClient.query(LiveChannelsQuery())
             .addHttpHeader("Authorization", "Bearer $accessToken")
             .execute()
             .dataAssertNoErrors

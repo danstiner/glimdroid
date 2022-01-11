@@ -1,4 +1,4 @@
-package tv.glimesh.ui.home
+package tv.glimesh.ui
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,11 +9,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import tv.glimesh.R
+import tv.glimesh.ui.home.Channel
 import java.net.URL
 
-class FollowingAdapter(private val onClick: (Channel) -> Unit) :
-    ListAdapter<Channel, FollowingAdapter.ChannelViewHolder>(ChannelDiffCallback) {
+class ChannelAdapter(private val onClick: (Channel) -> Unit) :
+    ListAdapter<Channel, ChannelAdapter.ChannelViewHolder>(ChannelDiffCallback) {
 
     class ChannelViewHolder(itemView: View, val onClick: (Channel) -> Unit) :
         RecyclerView.ViewHolder(itemView) {
@@ -21,6 +25,7 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
         private val avatarImageView: ImageView = itemView.findViewById(R.id.avatar_image)
         private val channelPreviewImageView: ImageView = itemView.findViewById(R.id.thumbnail_image)
+        private val radius = itemView.resources.getDimensionPixelSize(R.dimen.corner_radius)
         private var currentChannel: Channel? = null
 
         init {
@@ -43,12 +48,10 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
                 Glide
                     .with(itemView)
                     .load(URL(channel.streamerAvatarUrl))
-                    .fitCenter()
-                    .circleCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.ic_camera_black_24dp)
                     .into(avatarImageView)
             }
-
 
             if (channel.streamThumbnailUrl == null) {
                 Glide.with(itemView).clear(channelPreviewImageView)
@@ -56,8 +59,8 @@ class FollowingAdapter(private val onClick: (Channel) -> Unit) :
                 Glide
                     .with(itemView)
                     .load(URL(channel.streamThumbnailUrl))
-                    .fitCenter()
-                    .centerCrop()
+                    .transform(RoundedCorners(radius))
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(channelPreviewImageView)
             }
         }

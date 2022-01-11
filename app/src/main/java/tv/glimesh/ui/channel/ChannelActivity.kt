@@ -21,10 +21,11 @@ import tv.glimesh.R
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.ActivityChannelBinding
-import tv.glimesh.ui.home.CHANNEL_ID
-import tv.glimesh.ui.home.STREAM_ID
 
 const val smashbetsChannelId = 10552L
+
+const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
+const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
 
 class ChannelActivity : AppCompatActivity() {
 

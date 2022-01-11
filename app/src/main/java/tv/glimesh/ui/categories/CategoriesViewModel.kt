@@ -1,4 +1,4 @@
-package tv.glimesh.ui.featured
+package tv.glimesh.ui.categories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,7 +11,7 @@ import tv.glimesh.apollo.type.ChannelStatus
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.ui.home.Channel
 
-class FeaturedViewModel(
+class CategoriesViewModel(
     private val glimesh: GlimeshDataSource
 ) : ViewModel() {
 
@@ -22,12 +22,12 @@ class FeaturedViewModel(
 
     private fun fetchFollowing() {
         viewModelScope.launch(Dispatchers.IO) {
-            val data = glimesh.homepageQuery()
+            val data = glimesh.liveChannelsQuery()
 
             withContext(Dispatchers.Main) {
                 _channels.value =
                     data
-                        ?.homepageChannels
+                        ?.channels
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
                         ?.filter { node -> node?.status == ChannelStatus.LIVE }
