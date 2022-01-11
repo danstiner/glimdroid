@@ -7,6 +7,8 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_16.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_5.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_6.xml" value="0.559375" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_account_circle_24dp.xml" value="0.40625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_baseline_favorite_24.xml" value="0.40625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.4401041666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_hand_holding_usd_solid.xml" value="0.6447916666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.5592592592592592" />
@@ -44,6 +46,7 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/nav_header_stream2.xml" value="0.4832427536231884" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_nav_menu.xml" value="0.46770833333333334" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_navigation.xml" value="0.5432291666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/main_activity_actions.xml" value="0.39010416666666664" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/navigation_drawer.xml" value="0.5432291666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/overflow.xml" value="0.5432291666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/mipmap-anydpi-v26/ic_launcher_winter.xml" value="0.5604166666666667" />

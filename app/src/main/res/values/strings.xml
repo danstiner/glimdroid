@@ -44,4 +44,6 @@
     <string name="support">Support</string>
     <string name="follow">Follow</string>
     <string name="title_settings">Settings</string>
+    <string name="action_user_profile">User Profile</string>
+    <string name="action_search">Search</string>
 </resources>
