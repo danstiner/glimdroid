@@ -22,15 +22,12 @@ query ChannelById($id: ID) {
           username
       }
 
-      chatMessages(last: 10) {
+      chatMessages(last: 15) {
           edges {
               node {
                   id
                   message
                   insertedAt
-                  channel {
-                      status
-                  }
                   user {
                       displayname
                       username
