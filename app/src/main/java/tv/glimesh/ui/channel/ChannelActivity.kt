@@ -32,6 +32,7 @@ const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
 const val STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
 
+@RequiresApi(Build.VERSION_CODES.O)
 class ChannelActivity : AppCompatActivity() {
 
     private val TAG = "ChannelActivity"
@@ -91,18 +92,38 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.streamerDisplayname.observe(this, {
             binding.textviewStreamerDisplayName.text = it
         })
-//        viewModel.streamerUsername.observe(this, { username ->
-//            binding.buttonSupport.setOnClickListener {
-//                startActivity(
-//                    Intent(
-//                        Intent.ACTION_VIEW,
-//                        Uri.parse("https://glimesh.tv/").buildUpon()
-//                            .appendPath(username)
-//                            .appendPath("support").build()
-//                    )
-//                )
-//            }
-//        })
+        viewModel.streamerUsername.observe(this, { username ->
+            binding.textviewStreamerDisplayName.setOnClickListener {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://glimesh.tv/").buildUpon()
+                            .appendPath(username)
+                            .appendPath("profile").build()
+                    )
+                )
+            }
+            binding.avatarImage.setOnClickListener {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://glimesh.tv/").buildUpon()
+                            .appendPath(username)
+                            .appendPath("profile").build()
+                    )
+                )
+            }
+            binding.buttonSupport.setOnClickListener {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://glimesh.tv/").buildUpon()
+                            .appendPath(username)
+                            .appendPath("support").build()
+                    )
+                )
+            }
+        })
         viewModel.streamerAvatarUrl.observe(this, {
             if (it != null) {
                 Glide
@@ -180,27 +201,34 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
+        watch(intent)
+    }
 
-        var channelId = ChannelId(intent.getLongExtra(CHANNEL_ID, smashbetsChannelId))
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopWatching()
+    }
 
-        Log.d(TAG, "Watching $channelId")
-        viewModel.watch(channelId)
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        watch(intent)
     }
 
     override fun onUserLeaveHint() {
-        // TODO Check if paused before PiP'in
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val sourceRectHint = Rect()
-            binding.videoView.getGlobalVisibleRect(sourceRectHint)
-            enterPictureInPictureMode(
-                PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(16, 9))
-                    .setSourceRectHint(sourceRectHint)
-                    .build()
-            )
+        if (viewModel.isWatching && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            enterPictureInPicture()
+        } else {
+            super.onUserLeaveHint()
+        }
+    }
+
+    override fun onBackPressed() {
+        if (viewModel.isWatching && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            enterPictureInPicture()
+        } else {
+            super.onBackPressed()
         }
     }
 
@@ -215,6 +243,29 @@ class ChannelActivity : AppCompatActivity() {
             // Restore the normal UI
             binding.group.visibility = View.VISIBLE
         }
+    }
+
+    private fun watch(intent: Intent?) {
+        var channelId = intent?.getLongExtra(CHANNEL_ID, 0) ?: 0
+        if (channelId == 0L) {
+            Log.w(TAG, "watch: No channel id to watch in givin intent")
+            return
+        }
+
+        var channel = ChannelId(channelId)
+        Log.d(TAG, "onNewIntent: Watching $channel")
+        viewModel.watch(channel)
+    }
+
+    private fun enterPictureInPicture() {
+        val sourceRectHint = Rect()
+        binding.videoView.getGlobalVisibleRect(sourceRectHint)
+        enterPictureInPictureMode(
+            PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+                .setSourceRectHint(sourceRectHint)
+                .build()
+        )
     }
 
     companion object {

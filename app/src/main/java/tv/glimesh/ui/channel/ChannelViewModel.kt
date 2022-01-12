@@ -3,9 +3,15 @@ package tv.glimesh.ui.channel
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.webrtc.*
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.GlimeshWebsocketDataSource
@@ -67,16 +73,15 @@ class ChannelViewModel(
     var currentPeerConnection: PeerConnection? = null
     var currentChannel: ChannelId? = null
 
-    fun watch(channel: ChannelId) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (currentChannel == channel) {
-                return@launch
-            }
+    val isWatching: Boolean get() = currentChannel != null
 
-            launch { connectRtc(channel) }
-            launch { fetchChannelInfo(channel) }
-            launch { subscribeToChats(channel) }
+    fun watch(channel: ChannelId) {
+        if (currentChannel == channel) {
+            return
         }
+        viewModelScope.launch(Dispatchers.IO) { connectRtc(channel) }
+        viewModelScope.launch(Dispatchers.IO) { fetchChannelInfo(channel) }
+        viewModelScope.launch(Dispatchers.IO) { subscribeToChats(channel) }
     }
 
     private suspend fun connectRtc(channel: ChannelId) {
@@ -281,6 +286,11 @@ class ChannelViewModel(
         }
     }
 
+    fun stopWatching() {
+        currentPeerConnection?.close()
+        currentChannel = null
+    }
+
     private suspend fun subscribeToChats(channel: ChannelId) {
         withContext(Dispatchers.Main) {
             _messages.value = listOf()
@@ -302,7 +312,8 @@ class ChannelViewModel(
     }
 
     override fun onCleared() {
-        currentPeerConnection?.close()
+        stopWatching()
+
         super.onCleared()
     }
 
@@ -317,5 +328,4 @@ class ChannelViewModel(
             _videoThumbnailUrl.value = info?.channel?.stream?.thumbnailUrl?.let { URL(it) }
         }
     }
-
 }
