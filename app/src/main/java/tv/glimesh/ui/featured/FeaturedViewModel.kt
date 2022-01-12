@@ -34,8 +34,6 @@ class FeaturedViewModel(
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
                         ?.filter { node -> node?.status == ChannelStatus.LIVE }
-                        ?.sortedBy { Math.random() }
-                        ?.reversed()
                         ?.map { node ->
                             Channel(
                                 id = node.id!!,

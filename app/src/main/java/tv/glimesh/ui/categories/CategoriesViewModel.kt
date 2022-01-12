@@ -35,7 +35,7 @@ class CategoriesViewModel(
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
                         ?.filter { node -> node?.status == ChannelStatus.LIVE }
-                        ?.sortedBy { node -> node?.stream?.countViewers?.let { ln(it.toDouble()) * Math.random() } }
+                        ?.sortedBy { node -> node?.stream?.countViewers?.let { (ln(it.toDouble() + 1) + 1) * Math.random() } }
                         ?.reversed()
                         ?.map { node ->
                             Channel(

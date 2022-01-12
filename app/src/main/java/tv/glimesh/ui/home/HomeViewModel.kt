@@ -1,5 +1,7 @@
 package tv.glimesh.ui.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,7 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tv.glimesh.data.GlimeshDataSource
+import kotlin.math.ln
 
+@RequiresApi(Build.VERSION_CODES.O)
 class HomeViewModel(
     private val glimesh: GlimeshDataSource,
 ) : ViewModel() {
@@ -36,7 +40,7 @@ class HomeViewModel(
                         ?.followingLiveChannels
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
-                        ?.sortedBy { node -> node?.stream?.countViewers }
+                        ?.sortedBy { node -> node?.stream?.countViewers?.let { (ln(it.toDouble() + 1) + 1) * Math.random() } }
                         ?.reversed()
                         ?.map { node ->
                             Channel(
