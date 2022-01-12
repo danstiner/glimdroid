@@ -48,6 +48,7 @@ class ChannelAdapter(private val onClick: (Channel) -> Unit) :
                 Glide
                     .with(itemView)
                     .load(URL(channel.streamerAvatarUrl))
+                    .circleCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(avatarImageView)
             }

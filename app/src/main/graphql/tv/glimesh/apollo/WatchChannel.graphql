@@ -1,5 +1,5 @@
-mutation WatchChannel($id: ID!, $country: String!) {
-	watchChannel(channelId: $id, country: $country) {
+mutation WatchChannel($channelId: ID!, $country: String!) {
+	watchChannel(channelId: $channelId, country: $country) {
 		id
 		url
 	}

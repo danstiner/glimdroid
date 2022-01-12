@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/danst/.gradle/caches/transforms-3/8e2706a300bbec00002d22cf9bfadad6/transformed/appcompat-1.4.0/res/drawable/abc_edit_text_material.xml" value="0.39179487179487177" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_1.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_16.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_5.xml" value="0.559375" />
@@ -19,7 +20,7 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/activity_stream2.xml" value="0.46296296296296297" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/content_stream.xml" value="0.46296296296296297" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w936dp/activity_login.xml" value="0.36441256830601093" />
-        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_channel.xml" value="0.18055555555555555" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_channel.xml" value="0.516548463356974" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_entry.xml" value="0.1890625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_login.xml" value="0.19746376811594202" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_main.xml" value="0.2662037037037037" />

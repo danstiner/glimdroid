@@ -12,10 +12,10 @@ across the layout configurations
         android:id="@+id/video_preview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="@id/video_view"
-        app:layout_constraintStart_toStartOf="@id/video_view"
+        app:layout_constraintBottom_toBottomOf="@id/video_view"
         app:layout_constraintEnd_toEndOf="@id/video_view"
-        app:layout_constraintBottom_toBottomOf="@id/video_view" />
+        app:layout_constraintStart_toStartOf="@id/video_view"
+        app:layout_constraintTop_toTopOf="@id/video_view" />
 
     <org.webrtc.SurfaceViewRenderer
         android:id="@+id/video_view"
@@ -26,60 +26,130 @@ across the layout configurations
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/avatar_image"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@id/video_view" />
-
-    <TextView
-        android:id="@+id/textview_streamer_display_name"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/stream_info_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintStart_toEndOf="@id/avatar_image"
-        app:layout_constraintTop_toBottomOf="@id/video_view" />
+        app:layout_constraintEnd_toStartOf="@id/guideline_right"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/video_view">
 
-    <TextView
-        android:id="@+id/textview_channel_title"
+        <ImageView
+            android:id="@+id/avatar_image"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toBottomOf="@id/button_follow"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/button_follow" />
+
+        <TextView
+            android:id="@+id/textview_streamer_display_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            app:layout_constraintBottom_toTopOf="@id/textview_channel_title"
+            app:layout_constraintEnd_toStartOf="@id/button_follow"
+            app:layout_constraintStart_toEndOf="@id/avatar_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            android:id="@+id/textview_channel_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintEnd_toStartOf="@id/button_follow"
+            app:layout_constraintStart_toEndOf="@id/avatar_image"
+            app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name" />
+
+        <Button
+            android:id="@+id/button_follow"
+            style="@style/AppTheme.Button.Follow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:text="@string/followed"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/button_support"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <Button
+            android:id="@+id/button_support"
+            style="@style/AppTheme.Button.Support"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="@string/support"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="left"
+            app:constraint_referenced_ids="button_follow" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/tag_scroll_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintStart_toEndOf="@id/avatar_image"
-        app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name" />
-
-    <TextView
-        android:id="@+id/textview_channel_subtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        app:layout_constraintEnd_toStartOf="@id/barrier_actions"
-        app:layout_constraintStart_toEndOf="@id/avatar_image"
-        app:layout_constraintTop_toBottomOf="@+id/textview_channel_title" />
-
-    <Button
-        android:id="@+id/button_follow"
-        style="@style/Widget.Material3.Button.TextButton.Icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/follow"
-        app:icon="@drawable/ic_favorite_border_black_24dp"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
-        app:layout_constraintTop_toTopOf="@id/textview_streamer_display_name" />
+        app:layout_constraintTop_toBottomOf="@id/stream_info_layout">
+
+        <com.google.android.material.chip.ChipGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true">
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="English" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Interactive" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Game Development" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Experimental" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"
@@ -103,6 +173,7 @@ across the layout configurations
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/chat_input_edit_text"
+            style="@style/AppTheme.TextInputEditText.Message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Send a message"
@@ -124,24 +195,17 @@ across the layout configurations
         app:layout_constraintGuide_end="8dp" />
 
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier_actions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="left"
-        app:constraint_referenced_ids="button_support,button_follow" />
-
-    <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier_chat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="textview_channel_subtitle,button_follow" />
+        app:constraint_referenced_ids="stream_info_layout,tag_scroll_view" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        app:constraint_referenced_ids="textview_streamer_display_name,textview_channel_title,textview_channel_subtitle,button_support,button_follow" />
+        app:constraint_referenced_ids="stream_info_layout,chat_recycler_view,chat_input_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

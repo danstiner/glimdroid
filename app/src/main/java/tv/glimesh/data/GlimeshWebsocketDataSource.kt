@@ -3,11 +3,8 @@ package tv.glimesh.data
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.apollographql.apollo3.api.ApolloResponse
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Subscription
+import com.apollographql.apollo3.api.*
 import com.apollographql.apollo3.api.json.BufferedSourceJsonReader
-import com.apollographql.apollo3.api.variables
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.websocket.*
@@ -22,9 +19,11 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import okio.Buffer
 import tv.glimesh.apollo.MessagesSubscription
+import tv.glimesh.apollo.WatchChannelMutation
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.ui.channel.ChatMessage
 import java.io.Closeable
+import java.net.URL
 import java.time.Instant
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -69,6 +68,21 @@ class GlimeshWebsocketDataSource(
         }
     }
 
+    suspend fun watchChannel(channel: ChannelId, countryCode: String): EdgeRoute {
+        val connection = requireConnection()
+
+        val data = connection.mutation(
+            WatchChannelMutation(channel.id.toString(), countryCode)
+        ).dataAssertNoErrors.watchChannel!!
+
+        return EdgeRoute(data.id!!, URL(data.url!!))
+    }
+
+    private suspend fun requireConnection(): Connection {
+        // TODO allow unauthenticated connections
+        return requireAuthenticatedConnection()
+    }
+
     private suspend fun requireAuthenticatedConnection(): Connection {
         assert(authState.getCurrent().isAuthorized)
         if (connection == null) {
@@ -102,6 +116,39 @@ class GlimeshWebsocketDataSource(
         // Send ["join_ref", "ref", "__absinthe__:control", "doc", {"query": "subscription($channelId: ID) {chatMessage(channelId: $channelId) { id message}}","variables":{"channelId": "10552"}}]
         // Success Reply ["join_ref", "ref", "__absinthe__:control", "phx_reply", {"response":{"subscriptionId":"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A"},"status":"ok"}]
         // Subscription Message [null,null,"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A","subscription:data",{"result":{"data":{"chatMessage":{"id":"3531994","message":"test"}}},"subscriptionId":"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A"}]
+        suspend fun <D : Mutation.Data> mutation(mutation: Mutation<D>): ApolloResponse<D> {
+            val variables = buildJsonObject {
+                mutation.variables(CustomScalarAdapters.Empty).valueMap.forEach { (key, value) ->
+                    when (value) {
+                        is Int -> put(key, value)
+                        is String -> put(key, value)
+                        else -> TODO("Unsupported variable: " + value.toString())
+                    }
+                }
+            }
+
+            val response = rr(controlTopic, "doc", buildJsonObject {
+                put("query", mutation.document())
+                put("variables", variables)
+            })
+            assert(response.event == "phx_reply")
+            assert(response.payload["status"]?.jsonPrimitive?.contentOrNull == "ok")
+
+            val buffer = Buffer().write(
+                response.payload.jsonObject["result"]!!.jsonObject["data"]!!.toString()
+                    .toByteArray()
+            )
+            return ApolloResponse.Builder(
+                mutation,
+                com.benasher44.uuid.Uuid.fromString(response.ref!!.ref),
+                mutation.adapter()
+                    .fromJson(BufferedSourceJsonReader(buffer), CustomScalarAdapters.Empty)
+            ).build()
+        }
+
+        // Send ["join_ref", "ref", "__absinthe__:control", "doc", {"query": "subscription($channelId: ID) {chatMessage(channelId: $channelId) { id message}}","variables":{"channelId": "10552"}}]
+        // Success Reply ["join_ref", "ref", "__absinthe__:control", "phx_reply", {"response":{"subscriptionId":"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A"},"status":"ok"}]
+        // Subscription Message [null,null,"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A","subscription:data",{"result":{"data":{"chatMessage":{"id":"3531994","message":"test"}}},"subscriptionId":"__absinthe__:doc:-576460752257112799:07BA4A1ED159234418A35EB4A11517B5E26F748D8BE9AD57110863199DC35D5A"}]
         suspend fun <D : Subscription.Data> subscription(subscription: Subscription<D>): Flow<ApolloResponse<D>> {
             val variables = buildJsonObject {
                 subscription.variables(CustomScalarAdapters.Empty).valueMap.forEach { (key, value) ->
@@ -115,7 +162,7 @@ class GlimeshWebsocketDataSource(
 
             val response = rr(controlTopic, "doc", buildJsonObject {
                 put("query", subscription.document())
-                put("variables", variables) // TODO inject variables
+                put("variables", variables)
             })
 
             assert(response.event == "phx_reply")
@@ -136,15 +183,6 @@ class GlimeshWebsocketDataSource(
                             .fromJson(BufferedSourceJsonReader(buffer), CustomScalarAdapters.Empty)
                     ).build()
                 }
-        }
-
-        private suspend fun subscriptionResponses(ref: Reference): Flow<Message> {
-            val response = waitForResponse(ref)!!
-            assert(response.event == "phx_reply")
-            assert(response.payload["status"]?.jsonPrimitive?.contentOrNull == "ok")
-            val subscriptionId =
-                response.payload["response"]!!.jsonObject["response"]!!.jsonPrimitive!!.contentOrNull
-            return received.filter { message -> message.topic == subscriptionId }
         }
 
         private suspend fun waitForResponse(ref: Reference): Message? {

@@ -49,4 +49,36 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="AppTheme.Button.Follow" parent="@style/Widget.Material3.Button.TextButton">
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+    </style>
+
+    <style name="AppTheme.Button.Support" parent="@style/Widget.Material3.Button">
+        <item name="backgroundTint">@color/glimesh_purple</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+    </style>
+
+    <style name="AppTheme.Chip.Tag" parent="@style/Widget.Material3.Chip.Suggestion">
+        <item name="android:checkable">false</item>
+        <item name="chipMinHeight">24dp</item>
+        <item name="chipStartPadding">4dp</item>
+        <item name="chipEndPadding">4dp</item>
+        <item name="chipMinTouchTargetSize">32dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppTheme.Chip.Tag</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.AppTheme.Chip.Tag</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.AppTheme.Chip.Tag" parent="">
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="TextAppearance.AppTheme.Chip.Tag" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="AppTheme.TextInputEditText.Message" parent="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"></style>
+
 </resources>

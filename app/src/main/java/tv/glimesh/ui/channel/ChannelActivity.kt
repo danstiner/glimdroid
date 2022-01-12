@@ -115,13 +115,13 @@ class ChannelActivity : AppCompatActivity() {
                 Glide.with(this).clear(binding.avatarImage)
             }
         })
-        viewModel.viewerCount.observe(this, {
-            if (it != null) {
-                binding.textviewChannelSubtitle.text = "$it viewers"
-            } else {
-                binding.textviewChannelSubtitle.text = "Not live"
-            }
-        })
+//        viewModel.viewerCount.observe(this, {
+//            if (it != null) {
+//                binding.textviewChannelSubtitle.text = "$it viewers"
+//            } else {
+//                binding.textviewChannelSubtitle.text = "Not live"
+//            }
+//        })
         viewModel.streamerAvatarUrl.observe(this, {
             if (it != null) {
                 Glide

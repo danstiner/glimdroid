@@ -84,6 +84,7 @@ class ChannelViewModel(
         currentPeerConnection?.close()
         currentChannel = channel
 
+        // TODO, need to use the websocket connection here, keeping it open keeps presence
         val route = glimesh.watchChannel(channel, countryCode)
 
         janus.setServerUrl(route.url)

@@ -46,4 +46,6 @@
     <string name="title_settings">Settings</string>
     <string name="action_user_profile">User Profile</string>
     <string name="action_search">Search</string>
+    <string name="chat_title">Chat</string>
+    <string name="followed">Followed</string>
 </resources>

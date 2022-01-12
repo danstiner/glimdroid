@@ -33,12 +33,37 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textAppearance="?attr/textAppearanceBodySmall"
         android:ellipsize="end"
         android:maxLines="1"
         app:layout_constraintEnd_toStartOf="@id/thumbnail_image"
         app:layout_constraintStart_toEndOf="@id/avatar_image"
         app:layout_constraintTop_toBottomOf="@id/display_name_text" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="-3dp"
+        app:singleLine="true"
+        app:layout_constraintEnd_toStartOf="@id/thumbnail_image"
+        app:layout_constraintStart_toEndOf="@id/avatar_image"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.chip.Chip
+            style="@style/AppTheme.Chip.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:text="Tech" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/AppTheme.Chip.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Interactive" />
+
+    </com.google.android.material.chip.ChipGroup>
 
     <ImageView
         android:id="@+id/thumbnail_image"
