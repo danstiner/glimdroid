@@ -97,10 +97,27 @@ across the layout configurations
         android:layout_height="0dp"
         android:layout_marginTop="4dp"
         app:layoutManager="LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/chat_input_layout"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
         app:layout_constraintStart_toStartOf="@id/guideline_left"
         app:layout_constraintTop_toBottomOf="@id/barrier_chat" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/chat_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline_right"
+        app:layout_constraintStart_toStartOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/chat_recycler_view">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/chat_input_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Send a message"
+            android:inputType="textShortMessage" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_left"

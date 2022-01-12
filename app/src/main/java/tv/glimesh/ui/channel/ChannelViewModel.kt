@@ -274,6 +274,12 @@ class ChannelViewModel(
         // Wait for webrtcup?
     }
 
+    fun sendMessage(text: CharSequence?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            glimesh.sendMessage(currentChannel!!, text!!)
+        }
+    }
+
     private suspend fun subscribeToChats(channel: ChannelId) {
         withContext(Dispatchers.Main) {
             _messages.value = listOf()
@@ -310,4 +316,5 @@ class ChannelViewModel(
             _videoThumbnailUrl.value = info?.channel?.stream?.thumbnailUrl?.let { URL(it) }
         }
     }
+
 }

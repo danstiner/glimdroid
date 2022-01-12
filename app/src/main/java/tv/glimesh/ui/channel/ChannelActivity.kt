@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -143,8 +144,20 @@ class ChannelActivity : AppCompatActivity() {
         binding.chatRecyclerView.layoutManager = linearLayoutManager
         viewModel.messages.observe(this, {
             chatAdapter.submitList(it)
-            binding.chatRecyclerView.scrollToPosition(it.size - 1)
+            // TODO only scroll if we're already at the bottom of the list
+            binding.chatRecyclerView.smoothScrollToPosition(it.size)
         })
+
+        binding.chatInputEditText.setOnEditorActionListener { textView, id, _ ->
+            when (id) {
+                EditorInfo.IME_ACTION_DONE -> {
+                    viewModel.sendMessage(textView.text)
+                    textView.text = ""
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

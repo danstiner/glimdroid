@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.apollographql.apollo3.ApolloClient
 import tv.glimesh.apollo.*
+import tv.glimesh.apollo.type.ChatMessageInput
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.ui.channel.ChatMessage
 import java.net.URL
@@ -79,12 +80,6 @@ class GlimeshDataSource(
         return EdgeRoute(data.id!!, URL(data.url!!))
     }
 
-
-    suspend fun chats(channel: ChannelId, countryCode: String): EdgeRoute {
-
-        return TODO()
-    }
-
     suspend fun recentChatMessages(channel: ChannelId): List<ChatMessage> {
         // TODO handle authorization exceptions
         var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
@@ -110,6 +105,22 @@ class GlimeshDataSource(
                     timestamp = Instant.parse(message.insertedAt as String + "Z"),
                 )
             }.filter { it.timestamp.isAfter(oneHourAgo) }
+    }
+
+    suspend fun sendMessage(channel: ChannelId, text: CharSequence) {
+        // TODO handle authorization exceptions
+        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+
+        val message = ChatMessageInput(
+            com.apollographql.apollo3.api.Optional.Present(
+                text.toString()
+            )
+        )
+        apolloClient.mutation(SendMessageMutation(channel.id.toString(), message))
+            .addHttpHeader("Authorization", "Bearer $accessToken")
+            .execute()
+            .dataAssertNoErrors
+            .createChatMessage
     }
 }
 
