@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import tv.glimesh.apollo.type.ChannelStatus
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.ui.home.Channel
+import kotlin.math.ln
 
 @RequiresApi(Build.VERSION_CODES.O)
 class CategoriesViewModel(
@@ -34,7 +35,7 @@ class CategoriesViewModel(
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
                         ?.filter { node -> node?.status == ChannelStatus.LIVE }
-                        ?.sortedBy { node -> node?.stream?.countViewers?.times(Math.random()) }
+                        ?.sortedBy { node -> node?.stream?.countViewers?.let { ln(it.toDouble()) * Math.random() } }
                         ?.reversed()
                         ?.map { node ->
                             Channel(
