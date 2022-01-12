@@ -91,18 +91,18 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.streamerDisplayname.observe(this, {
             binding.textviewStreamerDisplayName.text = it
         })
-        viewModel.streamerUsername.observe(this, { username ->
-            binding.buttonSupport.setOnClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/").buildUpon()
-                            .appendPath(username)
-                            .appendPath("support").build()
-                    )
-                )
-            }
-        })
+//        viewModel.streamerUsername.observe(this, { username ->
+//            binding.buttonSupport.setOnClickListener {
+//                startActivity(
+//                    Intent(
+//                        Intent.ACTION_VIEW,
+//                        Uri.parse("https://glimesh.tv/").buildUpon()
+//                            .appendPath(username)
+//                            .appendPath("support").build()
+//                    )
+//                )
+//            }
+//        })
         viewModel.streamerAvatarUrl.observe(this, {
             if (it != null) {
                 Glide
