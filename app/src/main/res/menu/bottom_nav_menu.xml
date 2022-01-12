@@ -16,4 +16,9 @@
         android:icon="@drawable/ic_local_offer_black_24dp"
         android:title="@string/title_categories" />
 
+    <item
+        android:id="@+id/navigation_events"
+        android:icon="@drawable/ic_calendar_month_black_24dp"
+        android:title="@string/title_events" />
+
 </menu>
