@@ -49,6 +49,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     private val KEY_STATE = "state"
 
     private val LIVE_CHANNEL_ID = "LIVE_CHANNEL_ID"
+    private val LIVE_CHANNEL_NAME =
+        appContext.resources.getString(R.string.live_channel_notification_name)
+    private val LIVE_CHANNEL_DESCRIPTION =
+        appContext.resources.getString(R.string.live_channel_notification_description)
 
     private var store: SharedPreferences =
         appContext.getSharedPreferences(STORE_NAME, Context.MODE_PRIVATE)
@@ -58,15 +62,14 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                LIVE_CHANNEL_ID,
-                "LIVE_CHANNEL_NAME",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            channel.description = "Live Followed Channels"
-
             getSystemService(appContext, NotificationManager::class.java)!!
-                .createNotificationChannel(channel)
+                .createNotificationChannel(NotificationChannel(
+                    LIVE_CHANNEL_ID,
+                    LIVE_CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = LIVE_CHANNEL_DESCRIPTION
+                })
         }
     }
 

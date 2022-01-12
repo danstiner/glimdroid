@@ -48,4 +48,6 @@
     <string name="action_search">Search</string>
     <string name="chat_title">Chat</string>
     <string name="followed">Followed</string>
+    <string name="live_channel_notification_name">Live channels</string>
+    <string name="live_channel_notification_description">Get notified when channels you follow go live</string>
 </resources>
