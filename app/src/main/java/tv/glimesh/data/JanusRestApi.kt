@@ -90,7 +90,8 @@ data class SessionEvent(
     val session_id: Long? = null,
     val media: String? = null,
     val uplink: Boolean? = null,
-    val lost: Int? = null
+    val lost: Int? = null,
+    val reason: String? = null,
 )
 
 @Serializable
