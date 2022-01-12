@@ -52,9 +52,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_following,
-                R.id.navigation_featured,
-                R.id.navigation_categories,
+                R.id.navigation_home,
                 R.id.navigation_events
             )
         )
@@ -115,7 +113,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFollowingCount(count: Int) {
-        val badge = binding.navView.getOrCreateBadge(R.id.navigation_following)
+        val badge = binding.navView.getOrCreateBadge(R.id.navigation_home)
         badge.maxCharacterCount = 3
         badge.verticalOffset = 2
         badge.number = count

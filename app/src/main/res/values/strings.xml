@@ -51,4 +51,6 @@
     <string name="live_channel_notification_name">Live channels</string>
     <string name="live_channel_notification_description">Get notified when channels you follow go live</string>
     <string name="title_events">Events</string>
+    <string name="title_home">Home</string>
+    <string name="title_glimesh">Glimesh.tv</string>
 </resources>

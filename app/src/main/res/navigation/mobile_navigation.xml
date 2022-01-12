@@ -3,25 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_following">
+    app:startDestination="@+id/navigation_home">
 
     <fragment
-        android:id="@+id/navigation_following"
+        android:id="@+id/navigation_home"
         android:name="tv.glimesh.ui.home.HomeFragment"
-        android:label="@string/title_following"
-        tools:layout="@layout/fragment_following" />
-
-    <fragment
-        android:id="@+id/navigation_featured"
-        android:name="tv.glimesh.ui.featured.FeaturedFragment"
-        android:label="@string/title_featured"
-        tools:layout="@layout/fragment_featured" />
-
-    <fragment
-        android:id="@+id/navigation_categories"
-        android:name="tv.glimesh.ui.categories.CategoriesFragment"
-        android:label="@string/title_categories"
-        tools:layout="@layout/fragment_categories" />
+        android:label="@string/title_glimesh"
+        tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_events"
