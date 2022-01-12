@@ -16,7 +16,7 @@ import okhttp3.internal.toImmutableList
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.FragmentHomeBinding
-import tv.glimesh.ui.ChannelAdapter
+import tv.glimesh.ui.SectionedChannelAdapter
 import tv.glimesh.ui.categories.CategoriesViewModel
 import tv.glimesh.ui.categories.CategoriesViewModelFactory
 import tv.glimesh.ui.channel.ChannelActivity
@@ -59,12 +59,12 @@ class HomeFragment : Fragment() {
         var featuredChannels = listOf<Channel>()
         var liveChannels = listOf<Channel>()
 
-        val channelAdapter = ChannelAdapter { channel -> adapterOnClick(channel) }
+        val channelAdapter = SectionedChannelAdapter { channel -> adapterOnClick(channel) }
 
         homeViewModel.channels.observe(viewLifecycleOwner, Observer {
             followingChannels = it
             channelAdapter.submitList(
-                concatChannels(
+                combineChannelLists(
                     followingChannels,
                     featuredChannels,
                     liveChannels
@@ -75,7 +75,7 @@ class HomeFragment : Fragment() {
         featuredViewModel.channels.observe(viewLifecycleOwner, Observer {
             featuredChannels = it
             channelAdapter.submitList(
-                concatChannels(
+                combineChannelLists(
                     followingChannels,
                     featuredChannels,
                     liveChannels
@@ -86,7 +86,7 @@ class HomeFragment : Fragment() {
         categoriesViewModel.channels.observe(viewLifecycleOwner, Observer {
             liveChannels = it
             channelAdapter.submitList(
-                concatChannels(
+                combineChannelLists(
                     followingChannels,
                     featuredChannels,
                     liveChannels
@@ -104,32 +104,51 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    private fun concatChannels(
+    private fun combineChannelLists(
         followingChannels: List<Channel>,
         featuredChannels: List<Channel>,
         liveChannels: List<Channel>
-    ): List<Channel> {
+    ): List<SectionedChannelAdapter.Item> {
         var addedIds = mutableSetOf<String>()
-        var channels = mutableListOf<Channel>()
-        for (channel in followingChannels) {
-            if (channel.id !in addedIds) {
-                channels.add(channel)
-                addedIds.add(channel.id)
+        var items = mutableListOf<SectionedChannelAdapter.Item>()
+
+        if (followingChannels.isNotEmpty()) {
+            items.add(SectionedChannelAdapter.Item.Header("Followed Live Channels"))
+            for (channel in followingChannels) {
+                if (channel.id !in addedIds) {
+                    items.add(SectionedChannelAdapter.Item.Channel(channel))
+                    addedIds.add(channel.id)
+                }
             }
         }
-        for (channel in featuredChannels) {
-            if (channel.id !in addedIds) {
-                channels.add(channel)
-                addedIds.add(channel.id)
+
+        if (featuredChannels.isNotEmpty()) {
+            items.add(SectionedChannelAdapter.Item.Header("Featured Live Channels"))
+            var addedLargeChannel = false
+            for (channel in featuredChannels) {
+                if (channel.id !in addedIds) {
+                    if (addedLargeChannel) {
+                        items.add(SectionedChannelAdapter.Item.Channel(channel))
+                    } else {
+                        items.add(SectionedChannelAdapter.Item.LargeChannel(channel))
+                        addedLargeChannel = true
+                    }
+                    addedIds.add(channel.id)
+                }
             }
         }
-        for (channel in liveChannels) {
-            if (channel.id !in addedIds) {
-                channels.add(channel)
-                addedIds.add(channel.id)
+
+        if (liveChannels.isNotEmpty()) {
+            items.add(SectionedChannelAdapter.Item.Header("Other Live Channels"))
+            for (channel in liveChannels) {
+                if (channel.id !in addedIds) {
+                    items.add(SectionedChannelAdapter.Item.Channel(channel))
+                    addedIds.add(channel.id)
+                }
             }
         }
-        return channels.toImmutableList()
+
+        return items.toImmutableList()
     }
 
     /* Opens channel when RecyclerView item is clicked. */

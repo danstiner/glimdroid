@@ -79,14 +79,14 @@ class ChannelAdapter(private val onClick: (Channel) -> Unit) :
         holder.bind(channel)
 
     }
-}
 
-object ChannelDiffCallback : DiffUtil.ItemCallback<Channel>() {
-    override fun areItemsTheSame(oldItem: Channel, newItem: Channel): Boolean {
-        return oldItem == newItem
-    }
+    object ChannelDiffCallback : DiffUtil.ItemCallback<Channel>() {
+        override fun areItemsTheSame(oldItem: Channel, newItem: Channel): Boolean {
+            return oldItem == newItem
+        }
 
-    override fun areContentsTheSame(oldItem: Channel, newItem: Channel): Boolean {
-        return oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Channel, newItem: Channel): Boolean {
+            return oldItem.id == newItem.id
+        }
     }
 }
