@@ -30,6 +30,7 @@ const val smashbetsChannelId = 10552L
 
 const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
+const val STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
 
 class ChannelActivity : AppCompatActivity() {
 
@@ -44,6 +45,17 @@ class ChannelActivity : AppCompatActivity() {
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val origStreamThumbnailUrl =
+            intent.getStringExtra(STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+        origStreamThumbnailUrl?.let {
+            Log.d(TAG, "Stream thumbnail url: $it")
+            Glide
+                .with(this)
+                .load(it)
+                .onlyRetrieveFromCache(true)
+                .into(binding.videoPreview)
+        }
 
         val eglBase = EglBase.create()
 
@@ -123,14 +135,22 @@ class ChannelActivity : AppCompatActivity() {
             }
         })
         viewModel.videoThumbnailUrl.observe(this, {
-            if (it != null) {
-                Glide
-                    .with(this)
-                    .load(it)
-                    .onlyRetrieveFromCache(true)
-                    .into(binding.videoPreview)
-            } else {
-                Glide.with(this).clear(binding.videoPreview)
+            val newWithoutQuery = Uri.parse(it.toString()).buildUpon().clearQuery().build()
+            val origWithoutQuery = origStreamThumbnailUrl?.buildUpon()?.clearQuery()?.build()
+            when {
+                newWithoutQuery == origWithoutQuery -> {
+                    return@observe
+                }
+                it != null -> {
+                    Glide
+                        .with(this)
+                        .load(it)
+                        .onlyRetrieveFromCache(true)
+                        .into(binding.videoPreview)
+                }
+                else -> {
+                    Glide.with(this).clear(binding.videoPreview)
+                }
             }
         })
         viewModel.videoTrack.observe(this, {
@@ -198,10 +218,21 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun intent(context: Context, channel: ChannelId, stream: StreamId) =
+        fun intent(
+            context: Context,
+            channel: ChannelId,
+            stream: StreamId,
+            streamThumbnailUrl: Uri? = null
+        ) =
             Intent(context, ChannelActivity::class.java).apply {
                 putExtra(CHANNEL_ID, channel.id)
                 putExtra(STREAM_ID, stream.id)
+                streamThumbnailUrl?.let {
+                    putExtra(
+                        STREAM_THUMBNAIL_URL,
+                        streamThumbnailUrl.toString()
+                    )
+                }
             }
     }
 }

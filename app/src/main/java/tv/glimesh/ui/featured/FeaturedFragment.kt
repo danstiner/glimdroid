@@ -1,5 +1,6 @@
 package tv.glimesh.ui.featured
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -60,7 +61,8 @@ class FeaturedFragment : Fragment() {
             ChannelActivity.intent(
                 requireContext(),
                 ChannelId(channel.id.toLong()),
-                StreamId(channel.streamId?.toLong()!!)
+                StreamId(channel.streamId?.toLong()!!),
+                channel.streamThumbnailUrl?.let { Uri.parse(it) }
             )
         )
     }

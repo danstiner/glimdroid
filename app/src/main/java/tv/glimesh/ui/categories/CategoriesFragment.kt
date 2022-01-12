@@ -1,10 +1,13 @@
 package tv.glimesh.ui.categories
 
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.data.model.ChannelId
@@ -14,6 +17,7 @@ import tv.glimesh.ui.ChannelAdapter
 import tv.glimesh.ui.channel.ChannelActivity
 import tv.glimesh.ui.home.Channel
 
+@RequiresApi(Build.VERSION_CODES.O)
 class CategoriesFragment : Fragment() {
 
     private val TAG = "CategoriesFragment"
@@ -61,7 +65,8 @@ class CategoriesFragment : Fragment() {
             ChannelActivity.intent(
                 requireContext(),
                 ChannelId(channel.id.toLong()),
-                StreamId(channel.streamId?.toLong()!!)
+                StreamId(channel.streamId?.toLong()!!),
+                channel.streamThumbnailUrl?.let { Uri.parse(it) }
             )
         )
     }
