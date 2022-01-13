@@ -115,36 +115,32 @@ class HomeFragment : Fragment() {
         if (followingChannels.isNotEmpty()) {
             items.add(SectionedChannelAdapter.Item.Header("Followed Live Channels"))
             for (channel in followingChannels) {
-                if (channel.id !in addedIds) {
-                    items.add(SectionedChannelAdapter.Item.Channel(channel))
-                    addedIds.add(channel.id)
-                }
+                items.add(SectionedChannelAdapter.Item.Channel(channel))
+                addedIds.add(channel.id)
             }
         }
 
-        if (featuredChannels.isNotEmpty()) {
+        val uniqueFeaturedChannels = featuredChannels.filterNot { it.id in addedIds }
+        if (uniqueFeaturedChannels.isNotEmpty()) {
             items.add(SectionedChannelAdapter.Item.Header("Featured Live Channels"))
             var addedLargeChannel = false
-            for (channel in featuredChannels) {
-                if (channel.id !in addedIds) {
-                    if (addedLargeChannel) {
-                        items.add(SectionedChannelAdapter.Item.Channel(channel))
-                    } else {
-                        items.add(SectionedChannelAdapter.Item.LargeChannel(channel))
-                        addedLargeChannel = true
-                    }
-                    addedIds.add(channel.id)
+            for (channel in uniqueFeaturedChannels) {
+                if (addedLargeChannel) {
+                    items.add(SectionedChannelAdapter.Item.Channel(channel))
+                } else {
+                    items.add(SectionedChannelAdapter.Item.LargeChannel(channel))
+                    addedLargeChannel = true
                 }
+                addedIds.add(channel.id)
             }
         }
 
-        if (liveChannels.isNotEmpty()) {
+        var uniqueLiveChannels = liveChannels.filterNot { it.id in addedIds }
+        if (uniqueLiveChannels.isNotEmpty()) {
             items.add(SectionedChannelAdapter.Item.Header("Other Live Channels"))
-            for (channel in liveChannels) {
-                if (channel.id !in addedIds) {
-                    items.add(SectionedChannelAdapter.Item.Channel(channel))
-                    addedIds.add(channel.id)
-                }
+            for (channel in uniqueLiveChannels) {
+                items.add(SectionedChannelAdapter.Item.Channel(channel))
+                addedIds.add(channel.id)
             }
         }
 
