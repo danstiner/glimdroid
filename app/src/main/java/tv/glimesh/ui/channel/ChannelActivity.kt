@@ -13,9 +13,11 @@ import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.*
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -40,7 +42,6 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -197,6 +198,37 @@ class ChannelActivity : AppCompatActivity() {
                     true
                 }
                 else -> false
+            }
+        }
+
+        // Hide stream/streamer info when ime keyboard is visible, to leave more room to see chats
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            ViewCompat.setOnApplyWindowInsetsListener(binding.activityContainer) { view, windowInsets ->
+                val imeVisible =
+                    view.rootWindowInsets?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+                val insets =
+                    windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+                // Apply the insets as a margin to the view. Here the system is setting
+                // only the bottom, left, and right dimensions, but apply whichever insets are
+                // appropriate to your layout. You can also update the view padding
+                // if that's more appropriate.
+                view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    leftMargin = insets.left
+                    bottomMargin = insets.bottom
+                    rightMargin = insets.right
+                    topMargin = insets.top
+                }
+
+                if (imeVisible) {
+                    binding.groupInfo.visibility = View.GONE
+                } else {
+                    binding.groupInfo.visibility = View.VISIBLE
+                }
+
+                // Return CONSUMED if you don't want want the window insets to keep being
+                // passed down to descendant views.
+                WindowInsetsCompat.CONSUMED
             }
         }
     }

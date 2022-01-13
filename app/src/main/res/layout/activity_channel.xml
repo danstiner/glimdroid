@@ -35,6 +35,68 @@ across the layout configurations
         app:layout_constraintStart_toEndOf="@id/guideline_left"
         app:layout_constraintTop_toBottomOf="@id/video_view">
 
+        <TextView
+            android:id="@+id/textview_channel_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <HorizontalScrollView
+            android:id="@+id/tag_scroll_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/textview_channel_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true">
+
+                <com.google.android.material.chip.Chip
+                    style="@style/AppTheme.Chip.Tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Interactive" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/AppTheme.Chip.Tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Betting" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/AppTheme.Chip.Tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Game Development" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/AppTheme.Chip.Tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Experimental" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/streamer_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@drawable/border_top_bottom"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stream_info_layout">
+
         <ImageView
             android:id="@+id/avatar_image"
             android:layout_width="0dp"
@@ -54,30 +116,33 @@ across the layout configurations
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            app:layout_constraintBottom_toTopOf="@id/textview_channel_title"
             app:layout_constraintEnd_toStartOf="@id/button_follow"
             app:layout_constraintStart_toEndOf="@id/avatar_image"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.5"
             app:layout_constraintVertical_chainStyle="packed" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline2"
+        <com.google.android.material.chip.ChipGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-
-        <TextView
-            android:id="@+id/textview_channel_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintEnd_toStartOf="@id/button_follow"
             app:layout_constraintStart_toEndOf="@id/avatar_image"
-            app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name" />
+            app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name"
+            app:singleLine="true">
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="English" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/AppTheme.Chip.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mature" />
+
+        </com.google.android.material.chip.ChipGroup>
 
         <Button
             android:id="@+id/button_follow"
@@ -112,50 +177,10 @@ across the layout configurations
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <HorizontalScrollView
-        android:id="@+id/tag_scroll_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/guideline_left"
-        app:layout_constraintEnd_toEndOf="@id/guideline_right"
-        app:layout_constraintTop_toBottomOf="@id/stream_info_layout">
-
-        <com.google.android.material.chip.ChipGroup
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleLine="true">
-
-            <com.google.android.material.chip.Chip
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="English" />
-
-            <com.google.android.material.chip.Chip
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Interactive" />
-
-            <com.google.android.material.chip.Chip
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Game Development" />
-
-            <com.google.android.material.chip.Chip
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Experimental" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="@id/chat_input_layout"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
@@ -198,14 +223,22 @@ across the layout configurations
         android:id="@+id/barrier_chat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="stream_info_layout,tag_scroll_view" />
+        app:constraint_referenced_ids="streamer_info_layout" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        app:constraint_referenced_ids="stream_info_layout,chat_recycler_view,chat_input_layout" />
+        app:constraint_referenced_ids="group_info,chat_recycler_view,chat_input_layout" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:constraint_referenced_ids="stream_info_layout,streamer_info_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
