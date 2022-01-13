@@ -122,7 +122,7 @@ class HomeFragment : Fragment() {
 
         val uniqueFeaturedChannels = featuredChannels.filterNot { it.id in addedIds }
         if (uniqueFeaturedChannels.isNotEmpty()) {
-            items.add(SectionedChannelAdapter.Item.Header("Explore"))
+            items.add(SectionedChannelAdapter.Item.Header("Featured"))
             var addedLargeChannel = false
             for (channel in uniqueFeaturedChannels) {
                 if (addedLargeChannel) {
