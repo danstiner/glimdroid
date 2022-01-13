@@ -290,6 +290,7 @@ class JanusRestApi(private var serverUrl: Uri) {
 
                 return@withContext Json.decodeFromString<R>(responseBody)
             } finally {
+                Log.w(TAG, "Janus GET Complete: HTTP " + urlConnection.responseCode)
                 urlConnection.disconnect()
             }
         }
@@ -313,6 +314,7 @@ class JanusRestApi(private var serverUrl: Uri) {
 
                 return@withContext Json.decodeFromString<R>(responseBody)
             } finally {
+                Log.w(TAG, "Janus POST Complete: HTTP " + urlConnection.responseCode)
                 urlConnection.disconnect()
             }
         }

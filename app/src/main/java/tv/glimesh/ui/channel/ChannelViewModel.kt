@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.webrtc.*
 import tv.glimesh.data.GlimeshDataSource
@@ -75,6 +77,8 @@ class ChannelViewModel(
 
     val isWatching: Boolean get() = currentChannel != null
 
+    val mutex = Mutex()
+
     fun watch(channel: ChannelId) {
         if (currentChannel == channel) {
             return
@@ -85,199 +89,212 @@ class ChannelViewModel(
     }
 
     private suspend fun connectRtc(channel: ChannelId) {
-        // Close previous connection, if any
-        currentPeerConnection?.close()
-        currentChannel = channel
+        mutex.withLock {
 
-        // TODO, need to use the websocket connection here, keeping it open keeps presence
-        val route = glimesh.watchChannel(channel, countryCode)
+            // Close previous connection, if any
+            currentPeerConnection?.close()
+            currentChannel = channel
 
-        janus.setServerUrl(route.url)
+            // TODO, need to use the websocket connection here, keeping it open keeps presence
+            val route = glimesh.watchChannel(channel, countryCode)
 
-        val session = janus.createSession()
-        val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
+            janus.setServerUrl(route.url)
 
-        janus.ftlWatchChannel(session, plugin, channel)
+            val session = janus.createSession()
+            val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
 
-        val iceServers: List<PeerConnection.IceServer> = listOf(
-            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
-        )
+            janus.ftlWatchChannel(session, plugin, channel)
 
-        val rtcConfiguration = PeerConnection.RTCConfiguration(iceServers).apply {
-            tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED
-
-            continualGatheringPolicy =
-                PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-            enableDtlsSrtp = true
-            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-            rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-            bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
-        }
-
-        val mediaConstraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"))
-            optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
-            optional.add(MediaConstraints.KeyValuePair("googIPv6", "true"))
-        }
-
-        // Wait for sdp offer
-        val sdpOfferDescription = janus.waitForSdpOffer(session)
-
-        // Create sdp answer
-        val offer = SessionDescription(
-            SessionDescription.Type.OFFER, sdpOfferDescription
-        )
-
-        executor.execute {
-            currentPeerConnection = peerConnectionFactory.createPeerConnection(
-                rtcConfiguration,
-                mediaConstraints,
-                object : PeerConnection.Observer {
-                    override fun onSignalingChange(state: PeerConnection.SignalingState) {
-                        Log.d(TAG, "onSignalingChange: $state")
-                    }
-
-                    override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
-                        Log.d(TAG, "onIceConnectionReceivingChange: $state")
-                    }
-
-                    override fun onIceConnectionReceivingChange(receiving: Boolean) {
-                        Log.d(TAG, "onIceConnectionReceivingChange: $receiving")
-                    }
-
-                    override fun onIceGatheringChange(state: PeerConnection.IceGatheringState) {
-                        Log.d(TAG, "onIceGatheringChange: $state")
-                    }
-
-                    override fun onIceCandidate(candidate: IceCandidate?) {
-                        Log.d(TAG, "onIceCandidate: $candidate")
-                        viewModelScope.launch(Dispatchers.IO) {
-                            if (candidate != null) {
-                                janus.trickleIceCandidate(
-                                    session,
-                                    plugin,
-                                    tv.glimesh.data.IceCandidate(
-                                        candidate = candidate.sdp,
-                                        sdpMid = candidate.sdpMid,
-                                        sdpMLineIndex = candidate.sdpMLineIndex
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-                    override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) {
-                        Log.d("onIceCandidatesRemoved", candidates.toString())
-                    }
-
-                    override fun onAddStream(stream: MediaStream) {
-                        Log.d(TAG, "stream: $stream")
-
-                        viewModelScope.launch(Dispatchers.Main) {
-                            assert(stream.videoTracks.size == 1)
-                            _videoTrack.value = stream.videoTracks[0]
-                        }
-                    }
-
-                    override fun onRemoveStream(stream: MediaStream) {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun onDataChannel(channel: DataChannel) {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun onRenegotiationNeeded() {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun onAddTrack(
-                        receiver: RtpReceiver,
-                        streams: Array<out MediaStream>
-                    ) {
-                        Log.d(TAG, "onAddTrack")
-                    }
-                }
+            val iceServers: List<PeerConnection.IceServer> = listOf(
+                PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
             )
 
-            currentPeerConnection!!.setRemoteDescription(object : SdpObserver {
-                override fun onCreateSuccess(description: SessionDescription) {
-                    Log.d(TAG, "setRemoteDescription: onCreateSuccess")
-                }
+            val rtcConfiguration = PeerConnection.RTCConfiguration(iceServers).apply {
+                tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED
 
-                override fun onSetSuccess() {
-                    Log.d(TAG, "setRemoteDescription: onSetSuccess")
-                    executor.execute {
-                        currentPeerConnection!!.createAnswer(object : SdpObserver {
-                            override fun onCreateSuccess(answer: SessionDescription) {
-                                Log.d(TAG, "createAnswer:onCreateSuccess: $answer")
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    janus.ftlStart(
+                continualGatheringPolicy =
+                    PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
+                enableDtlsSrtp = true
+                sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
+                rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
+                bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
+            }
+
+            val mediaConstraints = MediaConstraints().apply {
+                mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
+                mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"))
+                optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
+                optional.add(MediaConstraints.KeyValuePair("googIPv6", "true"))
+            }
+
+            // Wait for sdp offer
+            val sdpOfferDescription = janus.waitForSdpOffer(session)
+
+            // Create sdp answer
+            val offer = SessionDescription(
+                SessionDescription.Type.OFFER, sdpOfferDescription
+            )
+
+            executor.execute {
+                currentPeerConnection = peerConnectionFactory.createPeerConnection(
+                    rtcConfiguration,
+                    mediaConstraints,
+                    object : PeerConnection.Observer {
+                        override fun onSignalingChange(state: PeerConnection.SignalingState) {
+                            Log.d(TAG, "onSignalingChange: $state")
+                        }
+
+                        override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
+                            Log.d(TAG, "onIceConnectionReceivingChange: $state")
+                        }
+
+                        override fun onIceConnectionReceivingChange(receiving: Boolean) {
+                            Log.d(TAG, "onIceConnectionReceivingChange: $receiving")
+                        }
+
+                        override fun onIceGatheringChange(state: PeerConnection.IceGatheringState) {
+                            Log.d(TAG, "onIceGatheringChange: $state")
+                        }
+
+                        override fun onIceCandidate(candidate: IceCandidate?) {
+                            Log.d(TAG, "onIceCandidate: $candidate")
+                            viewModelScope.launch(Dispatchers.IO) {
+                                if (candidate != null) {
+                                    janus.trickleIceCandidate(
                                         session,
                                         plugin,
-                                        answer.description,
-                                        arrayOf()
+                                        tv.glimesh.data.IceCandidate(
+                                            candidate = candidate.sdp,
+                                            sdpMid = candidate.sdpMid,
+                                            sdpMLineIndex = candidate.sdpMLineIndex
+                                        )
                                     )
-
-                                    while (true) {
-                                        delay(30_000)
-                                        val events = janus.longPollSession(session)
-                                        // TODO do something with events
-                                    }
                                 }
-                                currentPeerConnection!!.setLocalDescription(object :
-                                    SdpObserver {
-                                    override fun onCreateSuccess(description: SessionDescription) {
+                            }
+                        }
+
+                        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) {
+                            Log.d("onIceCandidatesRemoved", candidates.toString())
+                        }
+
+                        override fun onAddStream(stream: MediaStream) {
+                            Log.d(TAG, "stream: $stream")
+
+                            viewModelScope.launch(Dispatchers.Main) {
+                                assert(stream.videoTracks.size == 1)
+                                _videoTrack.value = stream.videoTracks[0]
+                            }
+                        }
+
+                        override fun onRemoveStream(stream: MediaStream) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun onDataChannel(channel: DataChannel) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun onRenegotiationNeeded() {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun onAddTrack(
+                            receiver: RtpReceiver,
+                            streams: Array<out MediaStream>
+                        ) {
+                            Log.d(TAG, "onAddTrack")
+                        }
+                    }
+                )
+
+                currentPeerConnection!!.setRemoteDescription(object : SdpObserver {
+                    override fun onCreateSuccess(description: SessionDescription) {
+                        Log.d(TAG, "setRemoteDescription: onCreateSuccess")
+                    }
+
+                    override fun onSetSuccess() {
+                        Log.d(TAG, "setRemoteDescription: onSetSuccess")
+                        executor.execute {
+                            currentPeerConnection!!.createAnswer(object : SdpObserver {
+                                override fun onCreateSuccess(answer: SessionDescription) {
+                                    Log.d(TAG, "createAnswer:onCreateSuccess: $answer")
+                                    viewModelScope.launch(Dispatchers.IO) {
+                                        janus.ftlStart(
+                                            session,
+                                            plugin,
+                                            answer.description,
+                                            arrayOf()
+                                        )
+
+                                        val pollSession = session.copy()
+                                        while (pollSession == session) {
+                                            val events = janus.longPollSession(session)
+                                            // TODO do something with events
+
+                                            // Short wait to avoid spamming server, technically not
+                                            // needed since this is a long poll request
+                                            delay(1_000)
+                                        }
+
+                                        // TODO forcibly end stream
                                         Log.d(
                                             TAG,
-                                            "setLocalDescription:onCreateSuccess: $description"
+                                            "Stream finished, letting it timeout on the janus side"
                                         )
                                     }
+                                    currentPeerConnection!!.setLocalDescription(object :
+                                        SdpObserver {
+                                        override fun onCreateSuccess(description: SessionDescription) {
+                                            Log.d(
+                                                TAG,
+                                                "setLocalDescription:onCreateSuccess: $description"
+                                            )
+                                        }
 
-                                    override fun onSetSuccess() {
-                                        Log.d(TAG, "setLocalDescription:onSetSuccess")
-                                    }
+                                        override fun onSetSuccess() {
+                                            Log.d(TAG, "setLocalDescription:onSetSuccess")
+                                        }
 
-                                    override fun onCreateFailure(p0: String?) {
-                                        TODO("Not yet implemented")
-                                    }
+                                        override fun onCreateFailure(p0: String?) {
+                                            TODO("Not yet implemented")
+                                        }
 
-                                    override fun onSetFailure(p0: String?) {
-                                        TODO("Not yet implemented")
-                                    }
+                                        override fun onSetFailure(p0: String?) {
+                                            TODO("Not yet implemented")
+                                        }
 
-                                }, answer)
-                            }
+                                    }, answer)
+                                }
 
-                            override fun onSetSuccess() {
-                                TODO("Not yet implemented")
-                            }
+                                override fun onSetSuccess() {
+                                    TODO("Not yet implemented")
+                                }
 
-                            override fun onCreateFailure(error: String) {
-                                TODO("Not yet implemented")
-                            }
+                                override fun onCreateFailure(error: String) {
+                                    TODO("Not yet implemented")
+                                }
 
-                            override fun onSetFailure(error: String) {
-                                TODO("Not yet implemented")
-                            }
+                                override fun onSetFailure(error: String) {
+                                    TODO("Not yet implemented")
+                                }
 
-                        }, mediaConstraints)
+                            }, mediaConstraints)
+                        }
                     }
-                }
 
-                override fun onCreateFailure(error: String) {
-                    TODO("Not yet implemented")
-                }
+                    override fun onCreateFailure(error: String) {
+                        TODO("Not yet implemented")
+                    }
 
-                override fun onSetFailure(error: String) {
-                    TODO("Not yet implemented")
-                }
-            }, offer)
+                    override fun onSetFailure(error: String) {
+                        TODO("Not yet implemented")
+                    }
+                }, offer)
 
+            }
+
+            // Wait for webrtcup?
         }
-
-        // Wait for webrtcup?
     }
 
     fun sendMessage(text: CharSequence?) {
