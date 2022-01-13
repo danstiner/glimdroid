@@ -21,6 +21,7 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/activity_stream2.xml" value="0.46296296296296297" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w600dp/content_stream.xml" value="0.46296296296296297" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w936dp/activity_login.xml" value="0.36441256830601093" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/action_bar_logo.xml" value="0.2869791666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_channel.xml" value="0.516548463356974" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_entry.xml" value="0.1890625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/activity_login.xml" value="0.19746376811594202" />
@@ -45,15 +46,18 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_settings.xml" value="0.4832427536231884" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/fragment_stream_video.xml" value="0.48143115942028986" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_channel.xml" value="0.34148550724637683" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_channel_header.xml" value="0.26197916666666665" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_channel_large.xml" value="0.30625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_channel_separator.xml" value="0.2942708333333333" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_chat.xml" value="0.33106884057971014" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/item_tagline.xml" value="0.17857142857142858" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout/nav_header_stream2.xml" value="0.4832427536231884" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_nav_menu.xml" value="0.46770833333333334" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/bottom_navigation.xml" value="0.5432291666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/main_activity_actions.xml" value="0.39010416666666664" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/navigation_drawer.xml" value="0.5432291666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/menu/overflow.xml" value="0.5432291666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/mipmap-anydpi-v26/ic_banner.xml" value="0.50625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/mipmap-anydpi-v26/ic_launcher_winter.xml" value="0.5604166666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/mipmap-anydpi-v26/ic_launcher_winter_round.xml" value="0.5604166666666667" />
       </map>

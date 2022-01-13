@@ -113,7 +113,7 @@ class HomeFragment : Fragment() {
         var items = mutableListOf<SectionedChannelAdapter.Item>()
 
         if (followingChannels.isNotEmpty()) {
-            items.add(SectionedChannelAdapter.Item.Header("Followed Live Channels"))
+            items.add(SectionedChannelAdapter.Item.Header("Followed"))
             for (channel in followingChannels) {
                 items.add(SectionedChannelAdapter.Item.Channel(channel))
                 addedIds.add(channel.id)
@@ -122,7 +122,7 @@ class HomeFragment : Fragment() {
 
         val uniqueFeaturedChannels = featuredChannels.filterNot { it.id in addedIds }
         if (uniqueFeaturedChannels.isNotEmpty()) {
-            items.add(SectionedChannelAdapter.Item.Header("Featured Live Channels"))
+            items.add(SectionedChannelAdapter.Item.Header("Explore"))
             var addedLargeChannel = false
             for (channel in uniqueFeaturedChannels) {
                 if (addedLargeChannel) {
@@ -135,9 +135,11 @@ class HomeFragment : Fragment() {
             }
         }
 
+        items.add(SectionedChannelAdapter.Item.Tagline())
+
         var uniqueLiveChannels = liveChannels.filterNot { it.id in addedIds }
         if (uniqueLiveChannels.isNotEmpty()) {
-            items.add(SectionedChannelAdapter.Item.Header("Other Live Channels"))
+//            items.add(SectionedChannelAdapter.Item.Header("Other Live Channels"))
             for (channel in uniqueLiveChannels) {
                 items.add(SectionedChannelAdapter.Item.Channel(channel))
                 addedIds.add(channel.id)

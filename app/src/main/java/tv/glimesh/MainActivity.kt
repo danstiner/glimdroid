@@ -10,12 +10,11 @@ import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
 import tv.glimesh.databinding.ActivityMainBinding
 import tv.glimesh.ui.login.LoginActivity
 import tv.glimesh.ui.main.MainViewModel
 import tv.glimesh.ui.main.MainViewModelFactory
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +26,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setTitle(R.string.title_live)
 
         mainViewModel = ViewModelProvider(
             this,
@@ -44,16 +47,6 @@ class MainActivity : AppCompatActivity() {
 
         val drawerLayout = binding.drawerLayout
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home,
-                R.id.navigation_events
-            )
-        )
-
         drawerToggle = ActionBarDrawerToggle(
             this,
             drawerLayout,
@@ -61,8 +54,6 @@ class MainActivity : AppCompatActivity() {
             R.string.navigation_drawer_close
         )
         drawerLayout.addDrawerListener(drawerToggle)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setHomeButtonEnabled(true)
 
         // TODO link to liveview
 //        showFollowingCount(2)

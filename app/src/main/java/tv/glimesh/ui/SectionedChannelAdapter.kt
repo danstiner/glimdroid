@@ -21,11 +21,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         DiffCallback
     ) {
 
-    private val ITEM_VIEW_TYPE_CHANNEL = 1
-    private val ITEM_VIEW_TYPE_LARGE_CHANNEL = 2
-    private val ITEM_VIEW_TYPE_HEADER = 3
-
-    class ChannelViewHolder(itemView: View, val onClick: (Channel) -> Unit) :
+    private class ChannelViewHolder(itemView: View, val onClick: (Channel) -> Unit) :
         RecyclerView.ViewHolder(itemView) {
         private val displayNameTextView: TextView = itemView.findViewById(R.id.display_name_text)
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
@@ -83,7 +79,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
     }
 
-    class LargeChannelViewHolder(itemView: View, val onClick: (Channel) -> Unit) :
+    private class LargeChannelViewHolder(itemView: View, val onClick: (Channel) -> Unit) :
         RecyclerView.ViewHolder(itemView) {
         private val displayNameTextView: TextView = itemView.findViewById(R.id.display_name_text)
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
@@ -141,7 +137,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
     }
 
-    class HeaderViewHolder(itemView: View) :
+    private class HeaderViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         private val textView: TextView = itemView.findViewById(R.id.text)
 
@@ -159,11 +155,25 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
     }
 
+    private class TaglineViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
+
+        companion object {
+            fun inflate(parent: ViewGroup): TaglineViewHolder {
+                return TaglineViewHolder(
+                    LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_tagline, parent, false)
+                )
+            }
+        }
+    }
+
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
             is Item.Channel -> ITEM_VIEW_TYPE_CHANNEL
             is Item.LargeChannel -> ITEM_VIEW_TYPE_LARGE_CHANNEL
             is Item.Header -> ITEM_VIEW_TYPE_HEADER
+            is Item.Tagline -> ITEM_VIEW_TYPE_TAGLINE
         }
     }
 
@@ -172,6 +182,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             ITEM_VIEW_TYPE_CHANNEL -> ChannelViewHolder.inflate(parent, onClick)
             ITEM_VIEW_TYPE_LARGE_CHANNEL -> LargeChannelViewHolder.inflate(parent, onClick)
             ITEM_VIEW_TYPE_HEADER -> HeaderViewHolder.inflate(parent)
+            ITEM_VIEW_TYPE_TAGLINE -> TaglineViewHolder.inflate(parent)
             else -> throw ClassCastException("Unknown viewType: $viewType")
         }
     }
@@ -187,6 +198,8 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             is HeaderViewHolder -> {
                 holder.bind(getItem(position) as Item.Header)
             }
+            is TaglineViewHolder -> {
+            }
         }
     }
 
@@ -200,7 +213,11 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
 
         data class Header(val title: String) : Item() {
-            override val id = title
+            override val id = "Header:$title"
+        }
+
+        class Tagline() : SectionedChannelAdapter.Item() {
+            override val id = "Tagline"
         }
 
         abstract val id: String
@@ -214,5 +231,12 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
             return oldItem.id == newItem.id
         }
+    }
+
+    companion object {
+        private const val ITEM_VIEW_TYPE_CHANNEL = 1
+        private const val ITEM_VIEW_TYPE_LARGE_CHANNEL = 2
+        private const val ITEM_VIEW_TYPE_HEADER = 3
+        private const val ITEM_VIEW_TYPE_TAGLINE = 4
     }
 }

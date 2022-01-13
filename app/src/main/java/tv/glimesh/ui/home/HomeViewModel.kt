@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tv.glimesh.data.GlimeshDataSource
-import kotlin.math.ln
 
 @RequiresApi(Build.VERSION_CODES.O)
 class HomeViewModel(
@@ -40,7 +39,7 @@ class HomeViewModel(
                         ?.followingLiveChannels
                         ?.edges
                         ?.mapNotNull { edge -> edge?.node }
-                        ?.sortedBy { node -> node?.stream?.countViewers?.let { (ln(it.toDouble() + 1) + 1) * Math.random() } }
+                        ?.sortedBy { node -> node?.stream?.startedAt.toString() }
                         ?.reversed()
                         ?.map { node ->
                             Channel(

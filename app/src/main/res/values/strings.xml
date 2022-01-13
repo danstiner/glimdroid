@@ -52,5 +52,6 @@
     <string name="live_channel_notification_description">Get notified when channels you follow go live</string>
     <string name="title_events">Events</string>
     <string name="title_home">Home</string>
-    <string name="title_glimesh">Glimesh.tv</string>
+    <string name="title_live">Live Channels</string>
+    <string name="tagline_description">"The first live streaming platform built around truly real time interactivity. Our streams are warp speed, our chat is blazing, and our community is thriving. "</string>
 </resources>
