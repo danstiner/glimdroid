@@ -14,6 +14,7 @@ import android.util.Log
 import android.util.Rational
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +48,8 @@ class ChannelActivity : AppCompatActivity() {
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         val origStreamThumbnailUrl =
             intent.getStringExtra(STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
