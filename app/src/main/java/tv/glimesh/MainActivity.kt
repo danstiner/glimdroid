@@ -12,8 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import tv.glimesh.databinding.ActivityMainBinding
 import tv.glimesh.ui.login.LoginActivity
 import tv.glimesh.ui.main.MainViewModel
@@ -45,7 +43,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val drawerLayout = binding.drawerLayout
-        val navView = binding.navView
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         // Passing each menu ID as a set of Ids because each
@@ -56,8 +53,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_events
             )
         )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
 
         drawerToggle = ActionBarDrawerToggle(
             this,
@@ -70,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         supportActionBar!!.setHomeButtonEnabled(true)
 
         // TODO link to liveview
-        showFollowingCount(2)
+//        showFollowingCount(2)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -110,13 +105,5 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun showFollowingCount(count: Int) {
-        val badge = binding.navView.getOrCreateBadge(R.id.navigation_home)
-        badge.maxCharacterCount = 3
-        badge.verticalOffset = 2
-        badge.number = count
-        badge.isVisible = true
     }
 }
