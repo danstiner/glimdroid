@@ -75,19 +75,8 @@ class ChannelActivity : AppCompatActivity() {
         binding.videoView.setZOrderOnTop(true);
         binding.videoView.holder.setFormat(PixelFormat.TRANSPARENT);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-        ) {
-            val sourceRectHint = Rect()
-            binding.videoView.getGlobalVisibleRect(sourceRectHint)
-
-            setPictureInPictureParams(
-                PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(16, 9))
-                    .setSourceRectHint(sourceRectHint)
-                    .setAutoEnterEnabled(true)
-                    .build()
-            )
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            setPictureInPictureParams(pictureInPictureParams(binding.videoView))
         }
 
         viewModel.title.observe(this, {
@@ -204,6 +193,16 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
+        // Ensure sourceRectHint is updated so exiting PiP animates smoothly to the original view
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            binding.videoView.addOnLayoutChangeListener { _, left, top, right, bottom,
+                                                          oldLeft, oldTop, oldRight, oldBottom ->
+                if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
+                    setPictureInPictureParams(pictureInPictureParams(binding.videoView))
+                }
+            }
+        }
+
         // Hide stream/streamer info when ime keyboard is visible, to leave more room to see chats
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -236,6 +235,20 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    private fun pictureInPictureParams(sourceView: View): PictureInPictureParams {
+        val sourceRectHint = Rect()
+        sourceView.getGlobalVisibleRect(sourceRectHint)
+        val builder = PictureInPictureParams.Builder()
+            .setSourceRectHint(sourceRectHint)
+            .setAspectRatio(Rational(16, 9))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true);
+        }
+
+        return builder.build()
+    }
+
     override fun onStart() {
         super.onStart()
         watch(intent)
@@ -252,7 +265,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (viewModel.isWatching && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (viewModel.isWatching) {
             enterPictureInPicture()
         } else {
             super.onUserLeaveHint()
@@ -260,7 +273,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (viewModel.isWatching && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (viewModel.isWatching) {
             enterPictureInPicture()
         } else {
             super.onBackPressed()
@@ -284,24 +297,23 @@ class ChannelActivity : AppCompatActivity() {
     private fun watch(intent: Intent?) {
         var channelId = intent?.getLongExtra(CHANNEL_ID, 0) ?: 0
         if (channelId == 0L) {
-            Log.w(TAG, "watch: No channel id to watch in givin intent")
+            Log.w(TAG, "watch: No channel id to watch in given intent")
+            viewModel.stopWatching()
             return
         }
 
         var channel = ChannelId(channelId)
-        Log.d(TAG, "onNewIntent: Watching $channel")
+        Log.d(TAG, "onNewIntent: Watching $channel, current channel:${viewModel.currentChannel}")
+        if (viewModel.currentChannel != channel) {
+            binding.videoView.clearImage()
+        }
         viewModel.watch(channel)
     }
 
     private fun enterPictureInPicture() {
-        val sourceRectHint = Rect()
-        binding.videoView.getGlobalVisibleRect(sourceRectHint)
-        enterPictureInPictureMode(
-            PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(16, 9))
-                .setSourceRectHint(sourceRectHint)
-                .build()
-        )
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            enterPictureInPictureMode(pictureInPictureParams(binding.videoView))
+        }
     }
 
     companion object {
