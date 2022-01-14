@@ -1,6 +1,5 @@
 package tv.glimesh.android.ui.login
 
-import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import tv.glimesh.android.MainActivity
-import tv.glimesh.android.R
 import tv.glimesh.android.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -36,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
                     this,
                     0,
                     Intent(this, TokenActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
+                    PendingIntent.FLAG_MUTABLE
                 )
             )
         )[LoginViewModel::class.java]
@@ -55,28 +53,17 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(loginResult.error)
             }
             if (loginResult.success != null) {
-                updateUiWithUser(loginResult.success)
+                // TODO
             }
-            setResult(Activity.RESULT_OK)
-
-            //Complete and destroy login activity once successful
-            finish()
+//            setResult(Activity.RESULT_OK)
+//
+//            //Complete and destroy login activity once successful
+//            finish()
         })
 
         buttonLogin.setOnClickListener {
             loginViewModel.login()
         }
-    }
-
-    private fun updateUiWithUser(model: LoggedInUserView) {
-        val welcome = getString(R.string.welcome)
-        val displayName = model.displayName
-        // TODO : initiate successful logged in experience
-        Toast.makeText(
-            applicationContext,
-            "$welcome $displayName",
-            Toast.LENGTH_LONG
-        ).show()
     }
 
     private fun showLoginFailed(@StringRes errorString: Int) {

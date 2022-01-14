@@ -28,8 +28,6 @@ import java.time.Instant
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632"
-
 /**
  * Query and subscribe to data from glimesh.tv
  *

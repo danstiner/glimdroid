@@ -10,6 +10,8 @@ import tv.glimesh.android.data.model.LoggedInUser
 import java.io.IOException
 import java.util.*
 
+const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632"
+
 val REDIRECT_URI: Uri = Uri.parse("https://glimesh.tv/oauth/callback")
 
 /**
