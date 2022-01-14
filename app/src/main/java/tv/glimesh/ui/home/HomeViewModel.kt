@@ -51,6 +51,11 @@ class HomeViewModel(
                         streamerAvatarUrl = node?.streamer?.avatarUrl,
                         streamId = node?.stream?.id,
                         streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                        matureContent = node?.matureContent ?: false,
+                        language = node?.language,
+                        category = Category(node?.category?.name!!),
+                        tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } }
+                            ?: listOf(),
                     )
                 } ?: listOf()
 
@@ -71,6 +76,10 @@ class HomeViewModel(
                     streamerAvatarUrl = node?.streamer?.avatarUrl,
                     streamId = node?.stream?.id,
                     streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                    matureContent = node?.matureContent ?: false,
+                    language = node?.language,
+                    category = Category(node?.category?.name!!),
+                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
                 )
             } ?: listOf()
 
@@ -93,6 +102,10 @@ class HomeViewModel(
                     streamerAvatarUrl = node?.streamer?.avatarUrl,
                     streamId = node?.stream?.id,
                     streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                    matureContent = node?.matureContent ?: false,
+                    language = node?.language,
+                    category = Category(node?.category?.name!!),
+                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
                 )
             } ?: listOf()
 

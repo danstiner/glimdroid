@@ -24,7 +24,9 @@ import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.ui.channel.ChannelActivity
+import tv.glimesh.ui.home.Category
 import tv.glimesh.ui.home.Channel
+import tv.glimesh.ui.home.Tag
 import java.util.concurrent.TimeUnit
 
 @Serializable
@@ -89,6 +91,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
                     streamerAvatarUrl = node?.streamer?.avatarUrl,
                     streamId = node?.stream?.id,
                     streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                    matureContent = node?.matureContent ?: false,
+                    language = node?.language,
+                    category = Category(node?.category?.name!!),
+                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
                 )
             } ?: listOf()
 

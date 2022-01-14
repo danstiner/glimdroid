@@ -15,6 +15,9 @@ import org.webrtc.VideoTrack
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.GlimeshWebsocketDataSource
 import tv.glimesh.data.model.ChannelId
+import tv.glimesh.ui.home.Category
+import tv.glimesh.ui.home.Channel
+import tv.glimesh.ui.home.Tag
 import java.net.URL
 import java.time.Instant
 
@@ -40,6 +43,18 @@ class ChannelViewModel(
 
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
+
+    private val _matureContent = MutableLiveData<Boolean>()
+    val matureContent: LiveData<Boolean> = _matureContent
+
+    private val _language = MutableLiveData<String?>()
+    val language: LiveData<String?> = _language
+
+    private val _category = MutableLiveData<Category>()
+    val category: LiveData<Category> = _category
+
+    private val _tags = MutableLiveData<List<Tag>>()
+    val tags: LiveData<List<Tag>> = _tags
 
     private val _streamerDisplayname = MutableLiveData<String>()
     val streamerDisplayname: LiveData<String> = _streamerDisplayname
@@ -137,12 +152,29 @@ class ChannelViewModel(
     private suspend fun fetchChannelInfo(channel: ChannelId) {
         val info = glimesh.channelByIdQuery(channel)
         withContext(Dispatchers.Main) {
-            _title.value = info?.channel?.title ?: ""
-            _streamerDisplayname.value = info?.channel?.streamer?.displayname ?: ""
-            _streamerUsername.value = info?.channel?.streamer?.username ?: ""
-            _streamerAvatarUrl.value = info?.channel?.streamer?.avatarUrl?.let { URL(it) }
+            val node = info?.channel!!
+            val channel = Channel(
+                id = node.id!!,
+                title = node?.title!!,
+                streamerDisplayName = node?.streamer?.displayname,
+                streamerAvatarUrl = node?.streamer?.avatarUrl,
+                streamId = node?.stream?.id,
+                streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                matureContent = node?.matureContent ?: false,
+                language = node?.language,
+                category = Category(node?.category?.name!!),
+                tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
+            )
+            _title.value = channel.title
+            _matureContent.value = channel.matureContent
+            _language.value = channel.language
+            _category.value = channel.category
+            _tags.value = channel.tags
+            _streamerDisplayname.value = channel.streamerDisplayName
+            _streamerUsername.value = info?.channel?.streamer?.username
+            _streamerAvatarUrl.value = URL(channel.streamerAvatarUrl)
             _viewerCount.value = info?.channel?.stream?.countViewers
-            _videoThumbnailUrl.value = info?.channel?.stream?.thumbnailUrl?.let { URL(it) }
+            _videoThumbnailUrl.value = URL(channel.streamThumbnailUrl)
         }
     }
 }

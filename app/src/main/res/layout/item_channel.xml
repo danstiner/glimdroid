@@ -48,24 +48,38 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="-3dp"
-        android:visibility="gone"
         app:singleLine="true"
         app:layout_constraintEnd_toStartOf="@id/thumbnail_image"
         app:layout_constraintStart_toEndOf="@id/avatar_image"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.chip.Chip
+            android:id="@+id/chip_category"
             style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:text="Tech" />
+            android:visibility="invisible" />
 
         <com.google.android.material.chip.Chip
+            android:id="@+id/chip_language"
             style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Interactive" />
+            android:visibility="gone" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_mature"
+            style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/mature" />
 
     </com.google.android.material.chip.ChipGroup>
 

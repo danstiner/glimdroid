@@ -63,20 +63,57 @@
 
     <style name="AppTheme.Chip.Tag" parent="@style/Widget.Material3.Chip.Suggestion">
         <item name="android:checkable">false</item>
+
         <item name="chipMinHeight">24dp</item>
-        <item name="chipStartPadding">4dp</item>
-        <item name="chipEndPadding">4dp</item>
+        <item name="chipStartPadding">2dp</item>
+        <item name="chipEndPadding">2dp</item>
         <item name="chipMinTouchTargetSize">32dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.AppTheme.Chip.Tag</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppTheme.Chip.Tag</item>-->
+        <!--        <item name="android:textAppearance">@style/TextAppearance.AppTheme.Chip.Tag</item>-->
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.AppTheme.Chip.Tag</item>
+
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipBackgroundColor">?attr/colorSurfaceVariant</item>
+
+        <!--        <item name="chipMinHeight">32dp</item>-->
+
+        <!--        <item name="chipStartPadding">8dp</item>-->
+        <!--        <item name="iconStartPadding">0dp</item>-->
+        <!--        &lt;!&ndash; The existence of a chip icon takes away padding before the text. &ndash;&gt;-->
+        <!--        <item name="iconEndPadding">-2dp</item>-->
+        <!--        <item name="textStartPadding">8dp</item>-->
+        <!--        <item name="textEndPadding">6dp</item>-->
+        <!--        &lt;!&ndash; The existence of a chip icon takes away padding after the text. &ndash;&gt;-->
+        <!--        <item name="closeIconStartPadding">-2dp</item>-->
+        <!--        <item name="closeIconEndPadding">0dp</item>-->
+        <!--        <item name="chipEndPadding">10dp</item>-->
+
+        <!--        <item name="enforceTextAppearance">false</item>-->
+        <!--        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>-->
+        <!--        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Material3.Chip</item>-->
+        <!--        <item name="android:textColor">@color/m3_chip_text_color</item>-->
+        <!--        <item name="closeIconTint">@color/m3_chip_text_color</item>-->
+        <!--        <item name="chipStrokeColor">@color/m3_chip_stroke_color</item>-->
+        <!--        <item name="chipSurfaceColor">?attr/colorSurface</item>-->
+        <!--        <item name="chipBackgroundColor">@color/m3_chip_background_color</item>-->
+        <!--        <item name="chipStrokeWidth">1dp</item>-->
+        <!--        <item name="rippleColor">@color/m3_chip_ripple_color</item>-->
+        <!--        <item name="checkedIcon">@drawable/ic_m3_chip_checked_circle</item>-->
+        <!--        <item name="closeIcon">@drawable/ic_m3_chip_close</item>-->
+        <!--        <item name="chipIconSize">@dimen/m3_chip_icon_size</item>-->
+        <!--        <item name="android:stateListAnimator" ns1:ignore="NewApi">-->
+        <!--            @animator/m3_chip_state_list_anim-->
+        <!--        </item>-->
+        <!--        <item name="materialThemeOverlay">@style/ThemeOverlay.Material3.Chip</item>-->
     </style>
 
     <style name="ShapeAppearanceOverlay.AppTheme.Chip.Tag" parent="">
         <item name="cornerSize">8dp</item>
     </style>
 
-    <style name="TextAppearance.AppTheme.Chip.Tag" parent="TextAppearance.MaterialComponents.Body2">
-        <item name="android:textSize">12sp</item>
+    <style name="TextAppearance.AppTheme.Chip.Tag" parent="@style/TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="AppTheme.TextInputEditText.Message" parent="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"></style>

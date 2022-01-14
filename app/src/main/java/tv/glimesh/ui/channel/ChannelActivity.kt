@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Rational
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -22,11 +23,14 @@ import androidx.core.view.*
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.material.chip.Chip
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
+import tv.glimesh.R
 import tv.glimesh.data.model.ChannelId
 import tv.glimesh.data.model.StreamId
 import tv.glimesh.databinding.ActivityChannelBinding
+import java.util.*
 
 
 const val smashbetsChannelId = 10552L
@@ -81,6 +85,40 @@ class ChannelActivity : AppCompatActivity() {
 
         viewModel.title.observe(this, {
             binding.textviewChannelTitle.text = it
+        })
+        viewModel.matureContent.observe(this, {
+            if (it) {
+                binding.chipMature.visibility = View.VISIBLE
+            } else {
+                binding.chipMature.visibility = View.GONE
+            }
+        })
+        viewModel.language.observe(this, {
+            if (it != null) {
+                val loc = Locale(it)
+                val name: String = loc.getDisplayLanguage(loc)
+                binding.chipLanguage.text = name
+                binding.chipLanguage.visibility = View.VISIBLE
+            } else {
+                binding.chipLanguage.visibility = View.GONE
+            }
+        })
+        viewModel.category.observe(this, {
+            if (it != null) {
+                binding.chipCategory.text = it.name
+                binding.chipCategory.visibility = View.VISIBLE
+            } else {
+                binding.chipCategory.visibility = View.GONE
+            }
+        })
+        viewModel.tags.observe(this, {
+            binding.chipGroupTag.removeAllViews()
+            for (tag in it) {
+                val view = LayoutInflater.from(binding.chipGroupTag.context)
+                    .inflate(R.layout.chip_tag, binding.chipGroupTag, false) as Chip
+                view.text = tag.name
+                binding.chipGroupTag.addView(view)
+            }
         })
         viewModel.streamerDisplayname.observe(this, {
             binding.textviewStreamerDisplayName.text = it

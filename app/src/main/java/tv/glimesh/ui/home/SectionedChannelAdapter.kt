@@ -15,8 +15,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import tv.glimesh.R
 import java.net.URL
+import java.util.*
 
 class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
     ListAdapter<SectionedChannelAdapter.Item, RecyclerView.ViewHolder>(
@@ -29,6 +32,9 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
         private val avatarImageView: ImageView = itemView.findViewById(R.id.avatar_image)
         private val channelPreviewImageView: ImageView = itemView.findViewById(R.id.thumbnail_image)
+        private val chipMature: Chip = itemView.findViewById(R.id.chip_mature)
+        private val chipLanguage: Chip = itemView.findViewById(R.id.chip_language)
+        private val chipCategory: Chip = itemView.findViewById(R.id.chip_category)
         private val radius = itemView.resources.getDimensionPixelSize(R.dimen.corner_radius)
         private var currentChannel: Channel? = null
 
@@ -46,6 +52,26 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
 
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamerDisplayName
+
+            if (channel.matureContent) {
+                chipMature.visibility = View.VISIBLE
+            } else {
+                chipMature.visibility = View.INVISIBLE
+            }
+            if (channel.language != null) {
+                val loc = Locale(channel.language)
+                val name: String = loc.getDisplayLanguage(loc)
+                chipLanguage.text = name
+                chipLanguage.visibility = View.VISIBLE
+            } else {
+                chipLanguage.visibility = View.INVISIBLE
+            }
+            if (channel.category != null) {
+                chipCategory.text = channel.category.name
+                chipCategory.visibility = View.VISIBLE
+            } else {
+                chipCategory.visibility = View.INVISIBLE
+            }
 
             if (channel.streamerAvatarUrl == null) {
                 Glide.with(itemView).clear(avatarImageView)
@@ -87,6 +113,10 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
         private val avatarImageView: ImageView = itemView.findViewById(R.id.avatar_image)
         private val channelPreviewImageView: ImageView = itemView.findViewById(R.id.thumbnail_image)
+        private val chipMature: Chip = itemView.findViewById(R.id.chip_mature)
+        private val chipLanguage: Chip = itemView.findViewById(R.id.chip_language)
+        private val chipCategory: Chip = itemView.findViewById(R.id.chip_category)
+        private val chipGroupTag: ChipGroup = itemView.findViewById(R.id.chip_group_tag)
         private val radius = itemView.resources.getDimensionPixelSize(R.dimen.corner_radius)
         private var currentChannel: Channel? = null
 
@@ -104,6 +134,36 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
 
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamerDisplayName
+
+            if (channel.matureContent) {
+                chipMature.visibility = View.VISIBLE
+            } else {
+                chipMature.visibility = View.GONE
+            }
+            if (channel.language != null) {
+                val loc = Locale(channel.language)
+                val name: String = loc.getDisplayLanguage(loc)
+                chipLanguage.text = name
+                chipLanguage.visibility = View.VISIBLE
+            } else {
+                chipLanguage.visibility = View.GONE
+            }
+            if (channel.category != null) {
+                chipCategory.text = channel.category.name
+                chipCategory.visibility = View.VISIBLE
+            } else {
+                chipCategory.visibility = View.GONE
+            }
+
+            chipGroupTag.removeAllViews()
+            for (tag in channel.tags) {
+                val view = LayoutInflater.from(chipGroupTag.context)
+                    .inflate(R.layout.chip_tag, chipGroupTag, false) as Chip
+                view.text = tag.name
+                view.isClickable = false
+                view.isFocusable = false
+                chipGroupTag.addView(view)
+            }
 
             if (channel.streamerAvatarUrl == null) {
                 Glide.with(itemView).clear(avatarImageView)

@@ -58,38 +58,56 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.chip.ChipGroup
-        android:layout_width="match_parent"
+        android:id="@+id/chip_group_fixed"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="-3dp"
-        android:visibility="gone"
         app:singleLine="true"
         app:layout_constraintTop_toBottomOf="@id/stream_info_layout"
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.chip.Chip
+            android:id="@+id/chip_category"
             style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tech" />
+            android:visibility="invisible" />
 
         <com.google.android.material.chip.Chip
+            android:id="@+id/chip_language"
             style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Interactive" />
+            android:visibility="gone" />
 
         <com.google.android.material.chip.Chip
+            android:id="@+id/chip_mature"
             style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Game Development" />
+            android:visibility="gone"
+            android:text="@string/mature" />
 
-        <com.google.android.material.chip.Chip
-            style="@style/AppTheme.Chip.Tag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Experimental" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_tag"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="-3dp"
+        app:singleLine="true"
+        app:layout_constraintTop_toBottomOf="@id/stream_info_layout"
+        app:layout_constraintStart_toEndOf="@id/chip_group_fixed"
+        app:layout_constraintEnd_toEndOf="parent">
 
     </com.google.android.material.chip.ChipGroup>
 

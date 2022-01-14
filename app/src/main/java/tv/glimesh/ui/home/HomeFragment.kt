@@ -95,5 +95,19 @@ data class Channel(
     val streamerDisplayName: String,
     val streamerAvatarUrl: String?,
     val streamId: String?,
-    val streamThumbnailUrl: String?
+    val streamThumbnailUrl: String?,
+    val matureContent: Boolean,
+    val language: String?,
+    val category: Category,
+    val tags: List<Tag>,
+)
+
+@Serializable
+data class Category(
+    val name: String
+)
+
+@Serializable
+data class Tag(
+    val name: String
 )
