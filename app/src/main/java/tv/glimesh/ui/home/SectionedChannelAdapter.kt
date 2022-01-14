@@ -1,4 +1,4 @@
-package tv.glimesh.ui
+package tv.glimesh.ui.home
 
 import android.view.LayoutInflater
 import android.view.View
@@ -13,7 +13,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import tv.glimesh.R
-import tv.glimesh.ui.home.Channel
 import java.net.URL
 
 class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
@@ -216,7 +215,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             override val id = "Header:$title"
         }
 
-        class Tagline() : SectionedChannelAdapter.Item() {
+        class Tagline() : Item() {
             override val id = "Tagline"
         }
 

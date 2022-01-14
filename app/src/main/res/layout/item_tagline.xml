@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="Next-Gen"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            android:textColor="#BA1B1B"
+            android:textColor="#dc3545"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
