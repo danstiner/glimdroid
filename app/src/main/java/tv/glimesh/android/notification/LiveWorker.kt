@@ -56,6 +56,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     private val LIVE_CHANNEL_DESCRIPTION =
         appContext.resources.getString(R.string.live_channel_notification_description)
 
+    private var auth = AuthStateDataSource.getInstance(appContext)
     private var store: SharedPreferences =
         appContext.getSharedPreferences(STORE_NAME, Context.MODE_PRIVATE)
     private val glimesh = GlimeshDataSource(AuthStateDataSource(appContext))
@@ -76,6 +77,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result {
+        if (!auth.getCurrent().isAuthorized) {
+            Log.d(TAG, "Not authorized, skipping work")
+            return Result.success()
+        }
         Log.d(TAG, "doWork")
         val data = glimesh.myFollowingQuery()
         val channels = data
