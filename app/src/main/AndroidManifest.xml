@@ -60,10 +60,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="glimesh.tv" />
-                <data android:pathPrefix="/oauth/callback" />
+                <data android:scheme="tv.glimesh.android" />
+                <data android:host="oauthcallback" />
             </intent-filter>
         </activity>
     </application>
