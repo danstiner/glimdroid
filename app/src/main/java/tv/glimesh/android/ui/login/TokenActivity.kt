@@ -37,9 +37,6 @@ class TokenActivity : AppCompatActivity() {
 
         // the stored AuthState is incomplete, so check if we are currently receiving the result of
         // the authorization flow from the browser.
-
-        // the stored AuthState is incomplete, so check if we are currently receiving the result of
-        // the authorization flow from the browser.
         val response = AuthorizationResponse.fromIntent(intent)
         val ex = AuthorizationException.fromIntent(intent)
 

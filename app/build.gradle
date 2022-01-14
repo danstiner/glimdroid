@@ -16,7 +16,7 @@ android {
         versionName "1.0"
 
         manifestPlaceholders = [
-            'appAuthRedirectScheme': 'tv.glimesh'
+            'appAuthRedirectScheme': 'tv.glimesh.android'
         ]
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
