@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="tv.glimesh.ui.home.HomeFragment"
+        android:name="tv.glimesh.android.ui.home.HomeFragment"
         android:label="@string/title_live"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_events"
-        android:name="tv.glimesh.ui.events.EventsFragment"
+        android:name="tv.glimesh.android.ui.events.EventsFragment"
         android:label="@string/title_events"
         tools:layout="@layout/fragment_events" />
 
