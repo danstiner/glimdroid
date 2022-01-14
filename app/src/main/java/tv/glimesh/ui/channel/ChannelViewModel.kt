@@ -8,20 +8,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.webrtc.*
+import org.webrtc.VideoTrack
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.GlimeshWebsocketDataSource
-import tv.glimesh.data.JanusRestApi
 import tv.glimesh.data.model.ChannelId
 import java.net.URL
 import java.time.Instant
-import java.util.concurrent.ExecutorService
 
 
 const val TAG = "ChannelViewModel"
@@ -37,9 +32,7 @@ data class ChatMessage(
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ChannelViewModel(
-    private val janus: JanusRestApi,
-    private val peerConnectionFactory: PeerConnectionFactory,
-    private val executor: ExecutorService,
+    private val peerConnectionFactory: WrappedPeerConnectionFactory,
     private val glimesh: GlimeshDataSource,
     private val glimeshSocket: GlimeshWebsocketDataSource,
     private val countryCode: String
@@ -72,229 +65,20 @@ class ChannelViewModel(
     private val _videoTrack = MutableLiveData<VideoTrack>()
     val videoTrack: LiveData<VideoTrack> = _videoTrack
 
-    var currentPeerConnection: PeerConnection? = null
+    var connection: JanusRtcConnection? = null
     var currentChannel: ChannelId? = null
 
-    val isWatching: Boolean get() = currentChannel != null
-
-    val mutex = Mutex()
+    val isWatching: Boolean get() = connection != null && (connection?.isClosed != true)
 
     fun watch(channel: ChannelId) {
         if (currentChannel == channel) {
             return
         }
+        currentChannel = channel
+
         viewModelScope.launch(Dispatchers.IO) { connectRtc(channel) }
         viewModelScope.launch(Dispatchers.IO) { fetchChannelInfo(channel) }
         viewModelScope.launch(Dispatchers.IO) { subscribeToChats(channel) }
-    }
-
-    private suspend fun connectRtc(channel: ChannelId) {
-        mutex.withLock {
-
-            // Close previous connection, if any
-            currentPeerConnection?.close()
-            currentChannel = channel
-
-            // TODO, need to use the websocket connection here, keeping it open keeps presence
-            val route = glimesh.watchChannel(channel, countryCode)
-
-            janus.setServerUrl(route.url)
-
-            val session = janus.createSession()
-            val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
-
-            janus.ftlWatchChannel(session, plugin, channel)
-
-            val iceServers: List<PeerConnection.IceServer> = listOf(
-                PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
-            )
-
-            val rtcConfiguration = PeerConnection.RTCConfiguration(iceServers).apply {
-                tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED
-
-                continualGatheringPolicy =
-                    PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-                enableDtlsSrtp = true
-                sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-                rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-                bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
-            }
-
-            val mediaConstraints = MediaConstraints().apply {
-                mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-                mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"))
-                optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
-                optional.add(MediaConstraints.KeyValuePair("googIPv6", "true"))
-            }
-
-            // Wait for sdp offer
-            val sdpOfferDescription = janus.waitForSdpOffer(session)
-
-            // Create sdp answer
-            val offer = SessionDescription(
-                SessionDescription.Type.OFFER, sdpOfferDescription
-            )
-
-            executor.execute {
-                currentPeerConnection = peerConnectionFactory.createPeerConnection(
-                    rtcConfiguration,
-                    mediaConstraints,
-                    object : PeerConnection.Observer {
-                        override fun onSignalingChange(state: PeerConnection.SignalingState) {
-                            Log.d(TAG, "onSignalingChange: $state")
-                        }
-
-                        override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
-                            Log.d(TAG, "onIceConnectionReceivingChange: $state")
-                        }
-
-                        override fun onIceConnectionReceivingChange(receiving: Boolean) {
-                            Log.d(TAG, "onIceConnectionReceivingChange: $receiving")
-                        }
-
-                        override fun onIceGatheringChange(state: PeerConnection.IceGatheringState) {
-                            Log.d(TAG, "onIceGatheringChange: $state")
-                        }
-
-                        override fun onIceCandidate(candidate: IceCandidate?) {
-                            Log.d(TAG, "onIceCandidate: $candidate")
-                            viewModelScope.launch(Dispatchers.IO) {
-                                if (candidate != null) {
-                                    janus.trickleIceCandidate(
-                                        session,
-                                        plugin,
-                                        tv.glimesh.data.IceCandidate(
-                                            candidate = candidate.sdp,
-                                            sdpMid = candidate.sdpMid,
-                                            sdpMLineIndex = candidate.sdpMLineIndex
-                                        )
-                                    )
-                                }
-                            }
-                        }
-
-                        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) {
-                            Log.d("onIceCandidatesRemoved", candidates.toString())
-                        }
-
-                        override fun onAddStream(stream: MediaStream) {
-                            Log.d(TAG, "stream: $stream")
-
-                            viewModelScope.launch(Dispatchers.Main) {
-                                assert(stream.videoTracks.size == 1)
-                                _videoTrack.value = stream.videoTracks[0]
-                            }
-                        }
-
-                        override fun onRemoveStream(stream: MediaStream) {
-                            TODO("Not yet implemented")
-                        }
-
-                        override fun onDataChannel(channel: DataChannel) {
-                            TODO("Not yet implemented")
-                        }
-
-                        override fun onRenegotiationNeeded() {
-                            TODO("Not yet implemented")
-                        }
-
-                        override fun onAddTrack(
-                            receiver: RtpReceiver,
-                            streams: Array<out MediaStream>
-                        ) {
-                            Log.d(TAG, "onAddTrack")
-                        }
-                    }
-                )
-
-                currentPeerConnection!!.setRemoteDescription(object : SdpObserver {
-                    override fun onCreateSuccess(description: SessionDescription) {
-                        Log.d(TAG, "setRemoteDescription: onCreateSuccess")
-                    }
-
-                    override fun onSetSuccess() {
-                        Log.d(TAG, "setRemoteDescription: onSetSuccess")
-                        executor.execute {
-                            currentPeerConnection!!.createAnswer(object : SdpObserver {
-                                override fun onCreateSuccess(answer: SessionDescription) {
-                                    Log.d(TAG, "createAnswer:onCreateSuccess: $answer")
-                                    viewModelScope.launch(Dispatchers.IO) {
-                                        janus.ftlStart(
-                                            session,
-                                            plugin,
-                                            answer.description,
-                                            arrayOf()
-                                        )
-
-                                        val pollSession = session.copy()
-                                        while (pollSession == session) {
-                                            val events = janus.longPollSession(session)
-                                            // TODO do something with events
-
-                                            // Short wait to avoid spamming server, technically not
-                                            // needed since this is a long poll request
-                                            delay(1_000)
-                                        }
-
-                                        // TODO forcibly end stream
-                                        Log.d(
-                                            TAG,
-                                            "Stream finished, letting it timeout on the janus side"
-                                        )
-                                    }
-                                    currentPeerConnection!!.setLocalDescription(object :
-                                        SdpObserver {
-                                        override fun onCreateSuccess(description: SessionDescription) {
-                                            Log.d(
-                                                TAG,
-                                                "setLocalDescription:onCreateSuccess: $description"
-                                            )
-                                        }
-
-                                        override fun onSetSuccess() {
-                                            Log.d(TAG, "setLocalDescription:onSetSuccess")
-                                        }
-
-                                        override fun onCreateFailure(p0: String?) {
-                                            TODO("Not yet implemented")
-                                        }
-
-                                        override fun onSetFailure(p0: String?) {
-                                            TODO("Not yet implemented")
-                                        }
-
-                                    }, answer)
-                                }
-
-                                override fun onSetSuccess() {
-                                    TODO("Not yet implemented")
-                                }
-
-                                override fun onCreateFailure(error: String) {
-                                    TODO("Not yet implemented")
-                                }
-
-                                override fun onSetFailure(error: String) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            }, mediaConstraints)
-                        }
-                    }
-
-                    override fun onCreateFailure(error: String) {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun onSetFailure(error: String) {
-                        TODO("Not yet implemented")
-                    }
-                }, offer)
-
-            }
-
-            // Wait for webrtcup?
-        }
     }
 
     fun sendMessage(text: CharSequence?) {
@@ -304,8 +88,24 @@ class ChannelViewModel(
     }
 
     fun stopWatching() {
-        currentPeerConnection?.close()
         currentChannel = null
+        connection?.close()
+    }
+
+    private suspend fun connectRtc(channel: ChannelId) {
+        // Close previous connection, if any
+        connection?.close()
+
+        // TODO, need to use the websocket connection here, keeping it open keeps presence
+        val route = glimesh.watchChannel(channel, countryCode)
+
+        connection =
+            JanusRtcConnection.create(route.url, channel, peerConnectionFactory) { stream ->
+                viewModelScope.launch(Dispatchers.Main) {
+                    assert(stream.videoTracks.size == 1)
+                    _videoTrack.value = stream.videoTracks[0]
+                }
+            }
     }
 
     private suspend fun subscribeToChats(channel: ChannelId) {

@@ -271,6 +271,7 @@ class ChannelActivity : AppCompatActivity() {
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration
     ) {
+        Log.d(TAG, "Picture-in-picture mode changed to: $isInPictureInPictureMode")
         if (isInPictureInPictureMode) {
             // Hide the normal UI (controls, etc.) while in picture-in-picture mode
             binding.group.visibility = View.INVISIBLE

@@ -2,7 +2,6 @@ package tv.glimesh.ui.channel
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.net.Uri
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
@@ -18,9 +17,6 @@ import org.webrtc.audio.JavaAudioDeviceModule
 import tv.glimesh.data.AuthStateDataSource
 import tv.glimesh.data.GlimeshDataSource
 import tv.glimesh.data.GlimeshWebsocketDataSource
-import tv.glimesh.data.JanusRestApi
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 
 /**
@@ -39,60 +35,60 @@ class ChannelViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
 
-            val authState = AuthStateDataSource(applicationContext)
+            Log.d(TAG, "Initialize WebRTC.")
+            PeerConnectionFactory.initialize(
+                PeerConnectionFactory.InitializationOptions.builder(applicationContext)
+                    .setEnableInternalTracer(true)
+                    .createInitializationOptions()
+            )
 
-            val networkCountryIso = getSystemService(
-                applicationContext,
-                TelephonyManager::class.java
-            )?.networkCountryIso
-            if (networkCountryIso == null) {
-                Log.w(TAG, "No network country code available, defaulting to US")
-            }
-            val countryCode = networkCountryIso ?: "US"
-
-            // Executor thread is started once used for all
-            // peer connection API calls to ensure new peer connection factory is
-            // created on the same thread as previously destroyed factory.
-            val executor: ExecutorService = Executors.newSingleThreadExecutor()
-
-            executor.execute {
-                Log.d(TAG, "Initialize WebRTC.")
-
-                PeerConnectionFactory.initialize(
-                    PeerConnectionFactory.InitializationOptions.builder(applicationContext)
-                        .setEnableInternalTracer(true)
-                        .createInitializationOptions()
-                )
-            }
-
-            val videoEncoderFactory = DefaultVideoDecoderFactory(eglContext)
-
-            val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
-                .setUseStereoOutput(true)
-                .setAudioAttributes(
-                    AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
-                        .setUsage(AudioAttributes.USAGE_MEDIA).build()
-                )
-                .createAudioDeviceModule()
-
-            val factory = PeerConnectionFactory.builder()
-                .setVideoDecoderFactory(videoEncoderFactory)
-                .setAudioDeviceModule(audioDeviceModule)
-                .createPeerConnectionFactory()
-
-            // Set INFO libjingle logging.
-            // NOTE: this _must_ happen while |factory| is alive!
-            Logging.enableLogToDebugOutput(Logging.Severity.LS_INFO);
+            val factory = buildPeerConnectionFactory()
+            val auth = AuthStateDataSource(applicationContext)
+            val countryCode = getCountryCode()
 
             return ChannelViewModel(
-                janus = JanusRestApi(Uri.parse("https://do-nyc3-edge1.kjfk.live.glimesh.tv/janus")),
-                peerConnectionFactory = factory,
-                executor = executor,
-                glimesh = GlimeshDataSource(authState = authState),
-                glimeshSocket = GlimeshWebsocketDataSource(authState = authState),
+                peerConnectionFactory = WrappedPeerConnectionFactory(factory),
+                glimesh = GlimeshDataSource(auth = auth),
+                glimeshSocket = GlimeshWebsocketDataSource(auth = auth),
                 countryCode = countryCode,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
+    }
+
+    private fun buildPeerConnectionFactory(): PeerConnectionFactory {
+        val videoEncoderFactory = DefaultVideoDecoderFactory(eglContext)
+
+        val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
+            .setUseStereoOutput(true)
+            .setAudioAttributes(
+                AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                    .setUsage(AudioAttributes.USAGE_MEDIA).build()
+            )
+            .createAudioDeviceModule()
+
+        val factory = PeerConnectionFactory.builder()
+            .setVideoDecoderFactory(videoEncoderFactory)
+            .setAudioDeviceModule(audioDeviceModule)
+            .setOptions(PeerConnectionFactory.Options())
+            .createPeerConnectionFactory()
+
+        // Set libjingle logging level
+        // NOTE: this _must_ happen while |factory| is alive!
+        Logging.enableLogToDebugOutput(Logging.Severity.LS_WARNING)
+
+        return factory
+    }
+
+    private fun getCountryCode(): String {
+        val networkCountryIso = getSystemService(
+            applicationContext,
+            TelephonyManager::class.java
+        )?.networkCountryIso
+        if (networkCountryIso == null) {
+            Log.w(TAG, "No network country code available, defaulting to US")
+        }
+        val countryCode = networkCountryIso ?: "US"
+        return countryCode
     }
 }

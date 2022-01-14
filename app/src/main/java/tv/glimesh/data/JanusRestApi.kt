@@ -168,15 +168,13 @@ data class TrickleRequest(
 @Serializable
 data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
 
-class JanusRestApi(private var serverUrl: Uri) {
+class JanusRestApi(baseUrl: URL) {
 
-    fun setServerUrl(url: URL) {
-        serverUrl = Uri.parse(url.toString())
-    }
+    private var baseUri: Uri = Uri.parse(baseUrl.toString())
 
     suspend fun createSession(): SessionId {
         val request = CreateRequest()
-        val response: CreateResponse = post(serverUrl, request)
+        val response: CreateResponse = post(baseUri, request)
         assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         return response.data
@@ -184,7 +182,7 @@ class JanusRestApi(private var serverUrl: Uri) {
 
 
     suspend fun attachPlugin(session: SessionId, plugin: String): PluginId {
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
 
         val request = AttachRequest(plugin)
         val response: AttachResponse = post(sessionUri, request)
@@ -196,7 +194,7 @@ class JanusRestApi(private var serverUrl: Uri) {
     }
 
     suspend fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
         val request = FtlWatchRequest(FtlWatchRequestBody(channel.id))
@@ -222,10 +220,9 @@ class JanusRestApi(private var serverUrl: Uri) {
     suspend fun ftlStart(
         session: SessionId,
         plugin: PluginId,
-        sdpAnswer: String,
-        trickleIceCandidates: Array<IceCandidate>
+        sdpAnswer: String
     ) {
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
         /*
         // HACK: Workaround for Chromium not enabling stereo audio by default
@@ -234,7 +231,7 @@ class JanusRestApi(private var serverUrl: Uri) {
             jsep.sdp = jsep.sdp.replace("useinbandfec=1", "useinbandfec=1;stereo=1");
         }
          */
-        Log.d(TAG, "ftlStart $sdpAnswer $trickleIceCandidates")
+        Log.d(TAG, "ftlStart $sdpAnswer")
 
         val request = FtlStartRequest(Jsep(type = "answer", sdp = sdpAnswer))
         val response: FtlStartResponse = post(pluginUri, request)
@@ -246,7 +243,7 @@ class JanusRestApi(private var serverUrl: Uri) {
 
     suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
 
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
         Log.d(TAG, "trickleIceCandidate $candidate")
@@ -260,14 +257,14 @@ class JanusRestApi(private var serverUrl: Uri) {
     }
 
     suspend fun longPollSession(session: SessionId): Array<SessionEvent> {
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val uri = sessionUri.buildUpon().appendQueryParameter("maxev", "10")
             .appendQueryParameter("rid", "${System.currentTimeMillis()}").build()
         return get(uri)
     }
 
     suspend fun messagePlugin(session: SessionId, plugin: PluginId, body: Map<String, String>) {
-        val sessionUri = serverUrl.buildUpon().appendPath("${session.id}").build()
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
         val request = MessageRequest(body)
         val response: MessageResponse = post(pluginUri, request)

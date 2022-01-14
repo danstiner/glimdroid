@@ -15,7 +15,7 @@ private const val TAG = "GlimeshDataSource"
 
 @RequiresApi(Build.VERSION_CODES.O)
 class GlimeshDataSource(
-    private val authState: AuthStateDataSource
+    private val auth: AuthStateDataSource
 ) {
     private val apolloClient = ApolloClient.Builder()
         .serverUrl("https://glimesh.tv/api/graph")
@@ -23,7 +23,7 @@ class GlimeshDataSource(
 
     suspend fun channelByIdQuery(id: ChannelId): ChannelByIdQuery.Data {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         return apolloClient.query(
             ChannelByIdQuery(
@@ -39,7 +39,7 @@ class GlimeshDataSource(
 
     suspend fun homepageQuery(): HomepageQuery.Data {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         return apolloClient.query(HomepageQuery())
             .addHttpHeader("Authorization", "Bearer $accessToken")
@@ -49,7 +49,7 @@ class GlimeshDataSource(
 
     suspend fun myFollowingQuery(): MyFollowingQuery.Data {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         return apolloClient.query(MyFollowingQuery())
             .addHttpHeader("Authorization", "Bearer $accessToken")
@@ -59,7 +59,7 @@ class GlimeshDataSource(
 
     suspend fun liveChannelsQuery(): LiveChannelsQuery.Data {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         return apolloClient.query(LiveChannelsQuery())
             .addHttpHeader("Authorization", "Bearer $accessToken")
@@ -69,7 +69,7 @@ class GlimeshDataSource(
 
     suspend fun watchChannel(channel: ChannelId, countryCode: String): EdgeRoute {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         val data = apolloClient.mutation(WatchChannelMutation(channel.id.toString(), countryCode))
             .addHttpHeader("Authorization", "Bearer $accessToken")
@@ -82,7 +82,7 @@ class GlimeshDataSource(
 
     suspend fun recentChatMessages(channel: ChannelId): List<ChatMessage> {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         val oneHourAgo = Instant.now().minus(Duration.ofHours(1))
 
@@ -109,7 +109,7 @@ class GlimeshDataSource(
 
     suspend fun sendMessage(channel: ChannelId, text: CharSequence) {
         // TODO handle authorization exceptions
-        var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+        var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
 
         val message = ChatMessageInput(
             com.apollographql.apollo3.api.Optional.Present(

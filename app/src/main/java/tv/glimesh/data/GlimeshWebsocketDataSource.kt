@@ -41,7 +41,7 @@ const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632"
  * http://graemehill.ca/websocket-clients-and-phoenix-channels/
  */
 class GlimeshWebsocketDataSource(
-    private val authState: AuthStateDataSource,
+    private val auth: AuthStateDataSource,
 ) {
     private val scope: CloseableCoroutineScope =
         CloseableCoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -84,11 +84,11 @@ class GlimeshWebsocketDataSource(
     }
 
     private suspend fun requireAuthenticatedConnection(): Connection {
-        assert(authState.getCurrent().isAuthorized)
+        assert(auth.getCurrent().isAuthorized)
         if (connection == null) {
 
             // TODO handle authorization exceptions
-            var (accessToken, idToken, ex) = authState.retrieveFreshTokens()
+            var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
             connection = Connection.create(accessToken!!, scope)
         }
         return connection!!
