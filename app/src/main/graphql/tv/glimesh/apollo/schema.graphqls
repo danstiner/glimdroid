@@ -98,7 +98,7 @@ type Channel {
   inaccessible: Boolean
 
   """
-  Channel creation date
+  tv.glimesh.phoenix.channel.Channel creation date
   """
   insertedAt: NaiveDateTime!
 
@@ -127,9 +127,9 @@ type Channel {
   """
   moderators(after: String, before: String, first: Int, last: Int): ChannelModeratorConnection
 
-  """
-  Channel poster URL
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel poster URL
+    """
   posterUrl: String
 
   """
@@ -184,9 +184,9 @@ type Channel {
   """
   title: String
 
-  """
-  Channel updated date
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel updated date
+    """
   updatedAt: NaiveDateTime!
 }
 
@@ -194,9 +194,9 @@ type Channel {
 A channel timeout or ban
 """
 type ChannelBan {
-  """
-  Channel the ban affects
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel the ban affects
+    """
   channel: Channel!
 
   """
@@ -209,9 +209,9 @@ type ChannelBan {
   """
   id: ID!
 
-  """
-  Channel ban creation date
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel ban creation date
+    """
   insertedAt: NaiveDateTime!
 
   """
@@ -219,9 +219,9 @@ type ChannelBan {
   """
   reason: String
 
-  """
-  Channel ban updated date
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel ban updated date
+    """
   updatedAt: NaiveDateTime!
 
   """
@@ -267,9 +267,9 @@ type ChannelModerationLog {
   """
   action: String
 
-  """
-  Channel the event occurred in
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel the event occurred in
+    """
   channel: Channel!
 
   """
@@ -346,9 +346,9 @@ type ChannelModerator {
   """
   canUnban: Boolean
 
-  """
-  Channel the moderator can moderate in
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel the moderator can moderate in
+    """
   channel: Channel!
 
   """
@@ -399,9 +399,9 @@ enum ChannelStatus {
 A chat message sent to a channel by a user.
 """
 type ChatMessage {
-  """
-  Channel where the chat message occurs
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel where the chat message occurs
+    """
   channel: Channel!
 
   """
@@ -734,9 +734,9 @@ type Stream {
   """
   category: Category!
 
-  """
-  Channel running with the stream
-  """
+    """
+    tv.glimesh.phoenix.channel.Channel running with the stream
+    """
   channel: Channel!
 
   """

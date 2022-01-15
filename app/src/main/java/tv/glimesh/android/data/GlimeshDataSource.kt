@@ -1,7 +1,5 @@
 package tv.glimesh.android.data
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.apollographql.apollo3.ApolloClient
 import tv.glimesh.android.data.model.ChannelId
 import tv.glimesh.android.ui.channel.ChatMessage
@@ -13,7 +11,6 @@ import java.time.Instant
 
 private const val TAG = "GlimeshDataSource"
 
-@RequiresApi(Build.VERSION_CODES.O)
 class GlimeshDataSource(
     private val auth: AuthStateDataSource
 ) {

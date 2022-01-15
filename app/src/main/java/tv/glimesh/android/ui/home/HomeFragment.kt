@@ -1,13 +1,11 @@
 package tv.glimesh.android.ui.home
 
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -19,7 +17,6 @@ import tv.glimesh.android.data.model.StreamId
 import tv.glimesh.android.databinding.FragmentHomeBinding
 import tv.glimesh.android.ui.channel.ChannelActivity
 
-@RequiresApi(Build.VERSION_CODES.O)
 class HomeFragment : Fragment() {
 
     private val TAG = "HomeFragment"

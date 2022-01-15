@@ -36,7 +36,6 @@ const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val EXTRA_STREAM_ID = "tv.glimesh.android.extra.stream.id"
 const val EXTRA_STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
 
-@RequiresApi(Build.VERSION_CODES.O)
 class ChannelActivity : AppCompatActivity() {
 
     private val TAG = "ChannelActivity"
@@ -248,6 +247,7 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun pictureInPictureParams(sourceView: View): PictureInPictureParams {
         val sourceRectHint = Rect()
         sourceView.getGlobalVisibleRect(sourceRectHint)

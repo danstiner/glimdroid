@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
 import androidx.annotation.Nullable
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
@@ -52,7 +51,6 @@ data class LiveNotification(val id: Int, val channel: Channel)
  * Should be eventually replaced by a persistent websocket, or better yet a push notification
  * using something like: https://firebase.google.com/docs/cloud-messaging
  */
-@RequiresApi(Build.VERSION_CODES.O)
 class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 

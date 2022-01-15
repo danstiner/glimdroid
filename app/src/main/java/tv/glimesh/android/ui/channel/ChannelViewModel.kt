@@ -1,8 +1,7 @@
 package tv.glimesh.android.ui.channel
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,6 +17,7 @@ import tv.glimesh.android.data.model.ChannelId
 import tv.glimesh.android.ui.home.Category
 import tv.glimesh.android.ui.home.Channel
 import tv.glimesh.android.ui.home.Tag
+import tv.glimesh.phoenix.absinthe.Subscription
 import java.net.URL
 import java.time.Instant
 
@@ -33,7 +33,6 @@ data class ChatMessage(
     val timestamp: Instant
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
 class ChannelViewModel(
     private val peerConnectionFactory: WrappedPeerConnectionFactory,
     private val glimesh: GlimeshDataSource,
@@ -86,12 +85,42 @@ class ChannelViewModel(
     var connection: JanusRtcConnection? = null
     var currentChannel: ChannelId? = null
 
+    private var chatSubscription: Subscription<ChatMessage>? = null
+
     val isWatching: Boolean get() = connection != null && (connection?.isClosed != true)
 
+    @MainThread
     fun watch(channel: ChannelId) {
         if (currentChannel == channel) {
             return
         }
+
+        stopWatching()
+        startWatching(channel)
+    }
+
+    @MainThread
+    fun sendMessage(text: CharSequence?) {
+        val channel = currentChannel!!
+        viewModelScope.launch(Dispatchers.IO) {
+            glimesh.sendMessage(channel, text!!)
+        }
+    }
+
+    @MainThread
+    fun stopWatching() {
+        currentChannel = null
+
+        // Close previous connection, if any
+        connection?.close()
+
+        // Async cancel old chat subscription, if any
+        val sub = chatSubscription
+        viewModelScope.launch(Dispatchers.IO) { sub?.cancel() }
+    }
+
+    @MainThread
+    private fun startWatching(channel: ChannelId) {
         currentChannel = channel
 
         viewModelScope.launch(Dispatchers.IO) { connectRtc(channel) }
@@ -99,21 +128,7 @@ class ChannelViewModel(
         viewModelScope.launch(Dispatchers.IO) { subscribeToChats(channel) }
     }
 
-    fun sendMessage(text: CharSequence?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            glimesh.sendMessage(currentChannel!!, text!!)
-        }
-    }
-
-    fun stopWatching() {
-        currentChannel = null
-        connection?.close()
-    }
-
     private suspend fun connectRtc(channel: ChannelId) {
-        // Close previous connection, if any
-        connection?.close()
-
         // TODO, need to use the websocket connection here, keeping it open keeps presence
         val route = glimesh.watchChannel(channel, countryCode)
 
@@ -135,7 +150,8 @@ class ChannelViewModel(
         withContext(Dispatchers.Main) {
             _messages.value = recentMessages
         }
-        glimeshSocket.chatMessages(channel).collect { message ->
+        chatSubscription = glimeshSocket.chatMessages(channel)
+        chatSubscription!!.data.collect { message ->
             Log.d(TAG, "New message: $message")
             withContext(Dispatchers.Main) {
                 _messages.value = mutableListOf<ChatMessage>().apply {

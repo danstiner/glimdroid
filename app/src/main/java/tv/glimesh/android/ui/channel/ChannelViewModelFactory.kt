@@ -2,10 +2,8 @@ package tv.glimesh.android.ui.channel
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -23,7 +21,6 @@ import tv.glimesh.android.data.GlimeshWebsocketDataSource
  * ViewModel provider factory to instantiates StreamViewModel.
  * Required given StreamViewModel has a non-empty constructor
  */
-@RequiresApi(Build.VERSION_CODES.O)
 class ChannelViewModelFactory(
     private val applicationContext: Context,
     private val eglContext: EglBase.Context

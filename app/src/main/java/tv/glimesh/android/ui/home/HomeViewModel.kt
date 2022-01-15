@@ -1,7 +1,5 @@
 package tv.glimesh.android.ui.home
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,12 +7,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.internal.toImmutableList
 import tv.glimesh.android.data.GlimeshDataSource
+import tv.glimesh.android.data.GlimeshWebsocketDataSource
 import tv.glimesh.apollo.type.ChannelStatus
 import kotlin.math.ln
 
-@RequiresApi(Build.VERSION_CODES.O)
 class HomeViewModel(
     private val glimesh: GlimeshDataSource,
+    private val glimeshSocket: GlimeshWebsocketDataSource,
 ) : ViewModel() {
 
     private val _items = MutableLiveData<List<SectionedChannelAdapter.Item>>().apply {
