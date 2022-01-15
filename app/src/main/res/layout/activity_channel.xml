@@ -42,22 +42,58 @@ across the layout configurations
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <HorizontalScrollView
             android:id="@+id/tag_scroll_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/textview_channel_title"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/textview_channel_title">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_group_tag"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleLine="true" />
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:singleLine="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_category"
+                        style="@style/AppTheme.Chip.Tag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="invisible" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_language"
+                        style="@style/AppTheme.Chip.Tag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="invisible" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_mature"
+                        style="@style/AppTheme.Chip.Tag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mature"
+                        android:visibility="invisible" />
+
+                </com.google.android.material.chip.ChipGroup>
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_group_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true" />
+
+            </LinearLayout>
 
         </HorizontalScrollView>
 
@@ -68,9 +104,9 @@ across the layout configurations
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:background="@drawable/border_top_bottom"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:background="@drawable/border_top_bottom"
         app:layout_constraintEnd_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stream_info_layout">
 
@@ -78,8 +114,8 @@ across the layout configurations
             android:id="@+id/avatar_image"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="@id/button_follow"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
@@ -87,85 +123,37 @@ across the layout configurations
 
         <TextView
             android:id="@+id/textview_streamer_display_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceHeadline6"
             android:paddingTop="2dp"
-            app:layout_constraintEnd_toStartOf="@id/textview_subtitle"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            app:layout_constraintEnd_toStartOf="@id/button_follow"
             app:layout_constraintStart_toEndOf="@id/avatar_image"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.5"
             app:layout_constraintVertical_chainStyle="packed" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:paddingBottom="4dp"
-            app:layout_constraintStart_toEndOf="@id/avatar_image"
-            app:layout_constraintTop_toBottomOf="@+id/textview_streamer_display_name"
-            app:singleLine="true">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_category"
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_language"
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_mature"
-                style="@style/AppTheme.Chip.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"
-                android:text="@string/mature" />
-
-        </com.google.android.material.chip.ChipGroup>
-
         <TextView
             android:id="@+id/textview_subtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:paddingLeft="4dp"
-            android:paddingBottom="3dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintBottom_toBottomOf="@id/textview_streamer_display_name"
-            app:layout_constraintStart_toEndOf="@id/textview_streamer_display_name"
-            app:layout_constraintEnd_toStartOf="@id/button_follow" />
+            app:layout_constraintTop_toBottomOf="@id/textview_streamer_display_name"
+            app:layout_constraintEnd_toStartOf="@id/button_follow"
+            app:layout_constraintStart_toEndOf="@id/avatar_image" />
 
         <Button
             android:id="@+id/button_follow"
             style="@style/AppTheme.Button.Follow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="4dp"
             android:text="@string/followed"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/button_support"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.5" />
-
-        <Button
-            android:id="@+id/button_support"
-            style="@style/AppTheme.Button.Support"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:text="@string/support"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
