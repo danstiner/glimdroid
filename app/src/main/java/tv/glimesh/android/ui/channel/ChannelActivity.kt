@@ -32,12 +32,9 @@ import tv.glimesh.android.data.model.StreamId
 import tv.glimesh.android.databinding.ActivityChannelBinding
 import java.util.*
 
-
-const val smashbetsChannelId = 10552L
-
-const val CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
-const val STREAM_ID = "tv.glimesh.android.extra.stream.id"
-const val STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
+const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
+const val EXTRA_STREAM_ID = "tv.glimesh.android.extra.stream.id"
+const val EXTRA_STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ChannelActivity : AppCompatActivity() {
@@ -56,7 +53,7 @@ class ChannelActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         val origStreamThumbnailUrl =
-            intent.getStringExtra(STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
         origStreamThumbnailUrl?.let {
             Log.d(TAG, "Stream thumbnail url: $it")
             Glide
@@ -167,13 +164,13 @@ class ChannelActivity : AppCompatActivity() {
                 Glide.with(this).clear(binding.avatarImage)
             }
         })
-//        viewModel.viewerCount.observe(this, {
-//            if (it != null) {
-//                binding.textviewChannelSubtitle.text = "$it viewers"
-//            } else {
-//                binding.textviewChannelSubtitle.text = "Not live"
-//            }
-//        })
+        viewModel.viewerCount.observe(this, {
+            if (it != null) {
+                binding.textviewSubtitle.text = "$it viewers"
+            } else {
+                binding.textviewSubtitle.text = "Not live"
+            }
+        })
         viewModel.streamerAvatarUrl.observe(this, {
             if (it != null) {
                 Glide
@@ -333,7 +330,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun watch(intent: Intent?) {
-        var channelId = intent?.getLongExtra(CHANNEL_ID, 0) ?: 0
+        var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
         if (channelId == 0L) {
             Log.w(TAG, "watch: No channel id to watch in given intent")
             viewModel.stopWatching()
@@ -362,11 +359,11 @@ class ChannelActivity : AppCompatActivity() {
             streamThumbnailUrl: Uri? = null
         ) =
             Intent(context, ChannelActivity::class.java).apply {
-                putExtra(CHANNEL_ID, channel.id)
-                putExtra(STREAM_ID, stream.id)
+                putExtra(EXTRA_CHANNEL_ID, channel.id)
+                putExtra(EXTRA_STREAM_ID, stream.id)
                 streamThumbnailUrl?.let {
                     putExtra(
-                        STREAM_THUMBNAIL_URL,
+                        EXTRA_STREAM_THUMBNAIL_URL,
                         streamThumbnailUrl.toString()
                     )
                 }

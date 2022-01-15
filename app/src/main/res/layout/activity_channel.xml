@@ -87,14 +87,14 @@ across the layout configurations
 
         <TextView
             android:id="@+id/textview_streamer_display_name"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceHeadline6"
             android:paddingTop="2dp"
-            app:layout_constraintEnd_toStartOf="@id/button_follow"
+            app:layout_constraintEnd_toStartOf="@id/textview_subtitle"
             app:layout_constraintStart_toEndOf="@id/avatar_image"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.5"
@@ -133,10 +133,23 @@ across the layout configurations
 
         </com.google.android.material.chip.ChipGroup>
 
+        <TextView
+            android:id="@+id/textview_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="4dp"
+            android:paddingBottom="3dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            app:layout_constraintBottom_toBottomOf="@id/textview_streamer_display_name"
+            app:layout_constraintStart_toEndOf="@id/textview_streamer_display_name"
+            app:layout_constraintEnd_toStartOf="@id/button_follow" />
+
         <Button
             android:id="@+id/button_follow"
             style="@style/AppTheme.Button.Follow"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginRight="4dp"
             android:text="@string/followed"
