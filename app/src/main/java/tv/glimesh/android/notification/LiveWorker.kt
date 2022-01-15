@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tv.glimesh.android.R
@@ -206,7 +207,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     private fun readState(): State {
         val currentState = store.getString(KEY_STATE, null) ?: return State(mutableMapOf())
         return try {
-            State(mutableMapOf())
+            State(Json.decodeFromString(currentState))
         } catch (ex: kotlinx.serialization.SerializationException) {
             Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
             State(mutableMapOf())
