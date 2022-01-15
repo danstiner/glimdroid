@@ -28,42 +28,38 @@ class HomeViewModel(
 
     suspend fun fetchAsync() {
         withContext(Dispatchers.IO) {
-            fetchFollowedLiveChannels()
-            fetchHomepageLiveChannels()
+            fetchHomeLiveChannels()
             fetchAllLiveChannels()
         }
     }
 
-    private suspend fun fetchFollowedLiveChannels() {
-        followedLiveChannels =
-            glimesh.myFollowingQuery()
-                ?.myself
-                ?.followingLiveChannels
-                ?.edges
-                ?.mapNotNull { edge -> edge?.node }
-                ?.sortedBy { node -> node?.stream?.startedAt.toString() }
-                ?.reversed()
-                ?.map { node ->
-                    Channel(
-                        id = node.id!!,
-                        title = node?.title!!,
-                        streamerDisplayName = node?.streamer?.displayname,
-                        streamerAvatarUrl = node?.streamer?.avatarUrl,
-                        streamId = node?.stream?.id,
-                        streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                        matureContent = node?.matureContent ?: false,
-                        language = node?.language,
-                        category = Category(node?.category?.name!!),
-                        tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } }
-                            ?: listOf(),
-                    )
-                } ?: listOf()
+    private suspend fun fetchHomeLiveChannels() {
+        val result = glimesh.homepageQuery()
 
-        updateListItems()
-    }
+        followedLiveChannels = result
+            ?.myself
+            ?.followingLiveChannels
+            ?.edges
+            ?.mapNotNull { edge -> edge?.node }
+            ?.sortedBy { node -> node?.stream?.startedAt.toString() }
+            ?.reversed()
+            ?.map { node ->
+                Channel(
+                    id = node.id!!,
+                    title = node?.title!!,
+                    streamerDisplayName = node?.streamer?.displayname,
+                    streamerAvatarUrl = node?.streamer?.avatarUrl,
+                    streamId = node?.stream?.id,
+                    streamThumbnailUrl = node?.stream?.thumbnailUrl,
+                    matureContent = node?.matureContent ?: false,
+                    language = node?.language,
+                    category = Category(node?.category?.name!!),
+                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } }
+                        ?: listOf(),
+                )
+            } ?: listOf()
 
-    private suspend fun fetchHomepageLiveChannels() {
-        homepageLiveChannels = glimesh.homepageQuery()
+        homepageLiveChannels = result
             ?.homepageChannels
             ?.edges
             ?.mapNotNull { edge -> edge?.node }
@@ -154,7 +150,6 @@ class HomeViewModel(
 
         var uniqueLiveChannels = liveChannels.filterNot { it.id in addedIds }
         if (uniqueLiveChannels.isNotEmpty()) {
-//            items.add(SectionedChannelAdapter.Item.Header("Other Live Channels"))
             for (channel in uniqueLiveChannels) {
                 items.add(SectionedChannelAdapter.Item.Channel(channel))
                 addedIds.add(channel.id)

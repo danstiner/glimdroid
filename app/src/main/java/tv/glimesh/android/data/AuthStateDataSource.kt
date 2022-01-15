@@ -5,15 +5,14 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.annotation.AnyThread
 import androidx.annotation.Nullable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import net.openid.appauth.*
 import org.json.JSONException
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 
 class AuthStateDataSource(context: Context) {
@@ -58,17 +57,18 @@ class AuthStateDataSource(context: Context) {
     }
 
     @AnyThread
-    suspend fun retrieveFreshTokens(): Triple<String?, String?, AuthorizationException?> {
-        val channel = Channel<Triple<String?, String?, AuthorizationException?>>()
-        getCurrent().performActionWithFreshTokens(
-            authorizationService
-        ) { accessToken, idToken, ex ->
-            GlobalScope.launch(Dispatchers.IO) {
-                channel.send(Triple(accessToken, idToken, ex))
-                channel.close()
+    suspend fun retrieveFreshTokens(): Pair<String?, String?> {
+        return suspendCoroutine { continuation ->
+            getCurrent().performActionWithFreshTokens(
+                authorizationService
+            ) { accessToken, idToken, ex ->
+                if (ex != null) {
+                    continuation.resumeWithException(ex)
+                } else {
+                    continuation.resume(Pair(accessToken, idToken))
+                }
             }
         }
-        return channel.receive()
     }
 
     @AnyThread

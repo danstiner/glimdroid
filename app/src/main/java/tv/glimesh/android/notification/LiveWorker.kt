@@ -91,7 +91,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             return Result.success()
         }
         Log.d(TAG, "doWork")
-        val data = glimesh.myFollowingQuery()
+        val data = glimesh.myFollowingLiveQuery()
         val channels = data
             ?.myself
             ?.followingLiveChannels

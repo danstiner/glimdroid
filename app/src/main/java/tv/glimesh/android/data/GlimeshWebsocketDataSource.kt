@@ -84,9 +84,7 @@ class GlimeshWebsocketDataSource(
     private suspend fun requireAuthenticatedConnection(): Connection {
         assert(auth.getCurrent().isAuthorized)
         if (connection == null) {
-
-            // TODO handle authorization exceptions
-            var (accessToken, idToken, ex) = auth.retrieveFreshTokens()
+            var (accessToken, idToken) = auth.retrieveFreshTokens()
             connection = Connection.create(accessToken!!, scope)
         }
         return connection!!
@@ -97,7 +95,7 @@ class GlimeshWebsocketDataSource(
         private val _received = MutableSharedFlow<Message>() // private mutable shared flow
         private val received = _received.asSharedFlow() // publicly exposed as read-only shared flow
 
-        private val controlTopic = "__absinthe__:control"
+        private val CONTROL_TOPIC = "__absinthe__:control"
 
         /**
          * Join, called automatically when creating the connection
@@ -106,7 +104,7 @@ class GlimeshWebsocketDataSource(
             // Send ["join_ref","ref","__absinthe__:control","phx_join",{}]
             // Success Reply ["join_ref","ref","__absinthe__:control","phx_reply",{"response":{},"status":"ok"}]
             // Error Reply ["join_ref","join_ref","__absinthe__:control","phx_close",{}]
-            val response = rr(controlTopic, "phx_join", buildJsonObject { })
+            val response = rr(CONTROL_TOPIC, "phx_join", buildJsonObject { })
             assert(response.event == "phx_reply")
             assert(response.payload["status"]?.jsonPrimitive?.contentOrNull == "ok")
         }
@@ -125,7 +123,7 @@ class GlimeshWebsocketDataSource(
                 }
             }
 
-            val response = rr(controlTopic, "doc", buildJsonObject {
+            val response = rr(CONTROL_TOPIC, "doc", buildJsonObject {
                 put("query", mutation.document())
                 put("variables", variables)
             })
@@ -158,7 +156,7 @@ class GlimeshWebsocketDataSource(
                 }
             }
 
-            val response = rr(controlTopic, "doc", buildJsonObject {
+            val response = rr(CONTROL_TOPIC, "doc", buildJsonObject {
                 put("query", subscription.document())
                 put("variables", variables)
             })

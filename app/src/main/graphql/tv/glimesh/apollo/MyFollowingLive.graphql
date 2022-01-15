@@ -1,4 +1,4 @@
-query MyFollowing {
+query MyFollowingLive {
   myself {
     id,
     countFollowing,
