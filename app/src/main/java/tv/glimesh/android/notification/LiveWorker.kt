@@ -5,6 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
 import androidx.annotation.Nullable
@@ -14,8 +17,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.work.*
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tv.glimesh.android.R
@@ -27,7 +32,11 @@ import tv.glimesh.android.ui.channel.ChannelActivity
 import tv.glimesh.android.ui.home.Category
 import tv.glimesh.android.ui.home.Channel
 import tv.glimesh.android.ui.home.Tag
+import java.net.URL
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
 
 @Serializable
 data class State(val notifications: MutableMap<String, LiveNotification>)
@@ -136,7 +145,8 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         return Result.success()
     }
 
-    private fun showNotification(notificationId: Int, channel: Channel) {
+    private suspend fun showNotification(notificationId: Int, channel: Channel) {
+        // Build intent to launch to the channel activity when notification is clicked
         val intent = ChannelActivity.intent(
             applicationContext,
             ChannelId(channel.id.toLong()),
@@ -148,23 +158,57 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             // Get the PendingIntent containing the entire back stack
             getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
+
+        // Build notification itself and display it
         val notification = NotificationCompat.Builder(applicationContext, LIVE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_camera_black_24dp)
+            .setSmallIcon(R.drawable.ic_slideshow_black_24dp)
+            .setLargeIcon(
+                BitmapFactory.decodeResource(
+                    applicationContext.resources,
+                    R.mipmap.ic_launcher_winter_foreground
+                )
+            )
             .setContentTitle("${channel.streamerDisplayName} is live")
             .setContentText(channel.title)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
-            .build()
 
-        NotificationManagerCompat.from(applicationContext).notify(notificationId, notification)
+        NotificationManagerCompat.from(applicationContext)
+            .notify(notificationId, notification.build())
+
+        // Load avatar icon and replace large icon with it
+        channel.streamerAvatarUrl?.let { avatarUrl ->
+            val avatarBitmap = loadBitmapUrl(URL(avatarUrl))
+            Log.d(TAG, "Loaded large notification icon")
+            NotificationManagerCompat.from(applicationContext)
+                .notify(notificationId, notification.setLargeIcon(avatarBitmap).build())
+        }
+    }
+
+    private suspend fun loadBitmapUrl(url: URL): Bitmap {
+        return suspendCoroutine { continuation ->
+            Glide.with(applicationContext)
+                .asBitmap()
+                .load(url)
+                .into(object : CustomTarget<Bitmap?>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap?>?
+                    ) {
+                        continuation.resume(resource)
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {}
+                })
+        }
     }
 
     private fun readState(): State {
         val currentState = store.getString(KEY_STATE, null) ?: return State(mutableMapOf())
         return try {
-            Json.decodeFromString(currentState)
+            State(mutableMapOf())
         } catch (ex: kotlinx.serialization.SerializationException) {
             Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
             State(mutableMapOf())
@@ -191,14 +235,13 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         fun start(context: Context) {
             Log.d(TAG, "start")
             val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.UNMETERED)
                 .setRequiresBatteryNotLow(true)
                 .build()
             val work = PeriodicWorkRequestBuilder<LiveWorker>(
                 PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
                 TimeUnit.MILLISECONDS
             )
-                .setInitialDelay(1, TimeUnit.SECONDS)
+                .setInitialDelay(60, TimeUnit.SECONDS)
                 .setConstraints(constraints)
                 .build()
             val workManager = WorkManager.getInstance(context)

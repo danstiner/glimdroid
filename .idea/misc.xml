@@ -4,15 +4,22 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/danst/.gradle/caches/transforms-3/8e2706a300bbec00002d22cf9bfadad6/transformed/appcompat-1.4.0/res/drawable/abc_edit_text_material.xml" value="0.39179487179487177" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.265625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_1.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_16.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_5.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_6.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_account_circle_24dp.xml" value="0.40625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_baseline_favorite_24.xml" value="0.40625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_camera_black_24dp.xml" value="0.265625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.4401041666666667" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_gallery_black_24dp.xml" value="0.265625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_hand_holding_usd_solid.xml" value="0.6447916666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.5592592592592592" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_launcher_background.xml" value="0.265625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_local_offer_black_24dp.xml" value="0.265625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.265625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_slideshow_black_24dp.xml" value="0.265625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/side_nav_bar.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w1240dp/activity_login.xml" value="0.1703125" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-w1240dp/activity_stream2.xml" value="0.3514056224899598" />

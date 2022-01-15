@@ -41,6 +41,9 @@ class ChannelViewModel(
     private val countryCode: String
 ) : ViewModel() {
 
+    private val _channel = MutableLiveData<Channel>()
+    val channel: LiveData<Channel> = _channel
+
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
 
@@ -165,6 +168,7 @@ class ChannelViewModel(
                 category = Category(node?.category?.name!!),
                 tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
             )
+            _channel.value = channel
             _title.value = channel.title
             _matureContent.value = channel.matureContent
             _language.value = channel.language

@@ -161,18 +161,6 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = ""
             }
         })
-        viewModel.streamerAvatarUrl.observe(this, {
-            if (it != null) {
-                Glide
-                    .with(this)
-                    .load(it)
-                    .fitCenter()
-                    .circleCrop()
-                    .into(binding.avatarImage)
-            } else {
-                Glide.with(this).clear(binding.avatarImage)
-            }
-        })
         viewModel.videoThumbnailUrl.observe(this, {
             val newWithoutQuery = Uri.parse(it.toString()).buildUpon().clearQuery().build()
             val origWithoutQuery = origStreamThumbnailUrl?.buildUpon()?.clearQuery()?.build()
