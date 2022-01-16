@@ -25,6 +25,7 @@ import com.bumptech.glide.request.target.SizeReadyCallback
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import tv.glimesh.android.R
+import tv.glimesh.android.data.ChatMessage
 import java.lang.ref.WeakReference
 import java.net.URL
 

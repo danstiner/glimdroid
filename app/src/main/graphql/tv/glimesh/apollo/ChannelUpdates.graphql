@@ -1,0 +1,29 @@
+subscription ChannelUpdates($channelId: ID!) {
+    channel(id: $channelId) {
+        id
+        title
+        category {
+            name
+        }
+        language
+        matureContent
+        status
+        stream {
+            id
+            countViewers
+            startedAt
+        }
+        streamer {
+            id
+            username
+            avatarUrl
+            displayname
+        }
+        subcategory {
+            name
+        }
+        tags {
+            name
+        }
+    }
+}

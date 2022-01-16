@@ -8,30 +8,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.webrtc.VideoTrack
+import tv.glimesh.android.data.ChatMessage
 import tv.glimesh.android.data.GlimeshDataSource
 import tv.glimesh.android.data.GlimeshWebsocketDataSource
+import tv.glimesh.android.data.model.Category
+import tv.glimesh.android.data.model.Channel
 import tv.glimesh.android.data.model.ChannelId
-import tv.glimesh.android.ui.home.Category
-import tv.glimesh.android.ui.home.Channel
-import tv.glimesh.android.ui.home.Tag
+import tv.glimesh.android.data.model.Tag
 import tv.glimesh.phoenix.absinthe.Subscription
 import java.net.URL
-import java.time.Instant
 
 
 const val TAG = "ChannelViewModel"
-
-data class ChatMessage(
-    val id: String,
-    val message: String,
-    val displayname: String,
-    val username: String,
-    val avatarUrl: String?,
-    val timestamp: Instant
-)
 
 class ChannelViewModel(
     private val peerConnectionFactory: WrappedPeerConnectionFactory,
@@ -39,7 +31,6 @@ class ChannelViewModel(
     private val glimeshSocket: GlimeshWebsocketDataSource,
     private val countryCode: String
 ) : ViewModel() {
-
     private val _channel = MutableLiveData<Channel>()
     val channel: LiveData<Channel> = _channel
 
@@ -86,6 +77,7 @@ class ChannelViewModel(
     var currentChannel: ChannelId? = null
 
     private var chatSubscription: Subscription<ChatMessage>? = null
+    private var channelSubscription: Subscription<Channel>? = null
 
     val isWatching: Boolean get() = connection != null && (connection?.isClosed != true)
 
@@ -114,18 +106,37 @@ class ChannelViewModel(
         // Close previous connection, if any
         connection?.close()
 
-        // Async cancel old chat subscription, if any
-        val sub = chatSubscription
-        viewModelScope.launch(Dispatchers.IO) { sub?.cancel() }
+        // Capture subscriptions in thread-safe way for async cancellation
+        val chatSub = chatSubscription
+        val channelSub = channelSubscription
+
+        viewModelScope.launch(Dispatchers.IO) {
+            chatSub?.cancel()
+            channelSub?.cancel()
+        }
     }
 
     @MainThread
     private fun startWatching(channel: ChannelId) {
         currentChannel = channel
 
-        viewModelScope.launch(Dispatchers.IO) { connectRtc(channel) }
-        viewModelScope.launch(Dispatchers.IO) { fetchChannelInfo(channel) }
-        viewModelScope.launch(Dispatchers.IO) { subscribeToChats(channel) }
+        viewModelScope.launch(Dispatchers.IO) {
+            // Kick off loading critical in parallel to get user visible content on screen fast
+            joinAll(
+                launch { connectRtc(channel) },
+                launch { fetchChannelInfo(channel) },
+            )
+
+            // Kept separate from fetchChannelInfo because fetching chat messages is very slow
+            // (likely due to inefficient joins on the server)
+            fetchRecentChatHistory(channel)
+
+            // After initial fetch is done, start subscriptions and background work
+            joinAll(
+                launch { watchChats(channel) },
+                launch { watchChannelUpdates(channel) },
+            )
+        }
     }
 
     private suspend fun connectRtc(channel: ChannelId) {
@@ -141,7 +152,27 @@ class ChannelViewModel(
             }
     }
 
-    private suspend fun subscribeToChats(channel: ChannelId) {
+    private suspend fun fetchChannelInfo(channel: ChannelId) {
+        updateChannelLiveData(glimesh.channel(channel))
+    }
+
+    private suspend fun updateChannelLiveData(channel: Channel) {
+        withContext(Dispatchers.Main) {
+            _channel.value = channel
+            _title.value = channel.title
+            _matureContent.value = channel.matureContent
+            _language.value = channel.language
+            _category.value = channel.category
+            _tags.value = channel.tags
+            _streamerDisplayname.value = channel.streamer.displayName
+            _streamerUsername.value = channel.streamer.username
+            _streamerAvatarUrl.value = channel.streamer.avatarUrl?.let { URL(it) }
+            _viewerCount.value = channel.stream?.viewerCount
+            _videoThumbnailUrl.value = channel.stream?.thumbnailUrl?.let { URL(it) }
+        }
+    }
+
+    private suspend fun fetchRecentChatHistory(channel: ChannelId) {
         withContext(Dispatchers.Main) {
             _messages.value = listOf()
         }
@@ -150,14 +181,26 @@ class ChannelViewModel(
         withContext(Dispatchers.Main) {
             _messages.value = recentMessages
         }
-        chatSubscription = glimeshSocket.chatMessages(channel)
-        chatSubscription!!.data.collect { message ->
-            Log.d(TAG, "New message: $message")
-            withContext(Dispatchers.Main) {
-                _messages.value = mutableListOf<ChatMessage>().apply {
-                    addAll(_messages.value!!)
-                    add(message)
+    }
+
+    private suspend fun watchChats(channel: ChannelId) {
+        chatSubscription = glimeshSocket.chatMessages(channel).apply {
+            data.collect { message ->
+                withContext(Dispatchers.Main) {
+                    _messages.value = buildList {
+                        addAll(_messages.value!!)
+                        add(message)
+                    }
                 }
+            }
+        }
+    }
+
+    private suspend fun watchChannelUpdates(channel: ChannelId) {
+        channelSubscription = glimeshSocket.channelUpdates(channel).apply {
+            data.collect { channel ->
+                Log.d(TAG, "Channel update: $channel")
+                updateChannelLiveData(channel)
             }
         }
     }
@@ -166,35 +209,5 @@ class ChannelViewModel(
         stopWatching()
 
         super.onCleared()
-    }
-
-    private suspend fun fetchChannelInfo(channel: ChannelId) {
-        val info = glimesh.channelByIdQuery(channel)
-        withContext(Dispatchers.Main) {
-            val node = info?.channel!!
-            val channel = Channel(
-                id = node.id!!,
-                title = node?.title!!,
-                streamerDisplayName = node?.streamer?.displayname,
-                streamerAvatarUrl = node?.streamer?.avatarUrl,
-                streamId = node?.stream?.id,
-                streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                matureContent = node?.matureContent ?: false,
-                language = node?.language,
-                category = Category(node?.category?.name!!),
-                tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
-            )
-            _channel.value = channel
-            _title.value = channel.title
-            _matureContent.value = channel.matureContent
-            _language.value = channel.language
-            _category.value = channel.category
-            _tags.value = channel.tags
-            _streamerDisplayname.value = channel.streamerDisplayName
-            _streamerUsername.value = info?.channel?.streamer?.username
-            _streamerAvatarUrl.value = URL(channel.streamerAvatarUrl)
-            _viewerCount.value = info?.channel?.stream?.countViewers
-            _videoThumbnailUrl.value = URL(channel.streamThumbnailUrl)
-        }
     }
 }

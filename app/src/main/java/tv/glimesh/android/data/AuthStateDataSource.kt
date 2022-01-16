@@ -57,15 +57,15 @@ class AuthStateDataSource(context: Context) {
     }
 
     @AnyThread
-    suspend fun retrieveFreshTokens(): Pair<String?, String?> {
+    suspend fun freshAccessToken(): String {
         return suspendCoroutine { continuation ->
             getCurrent().performActionWithFreshTokens(
                 authorizationService
-            ) { accessToken, idToken, ex ->
+            ) { accessToken, _, ex ->
                 if (ex != null) {
                     continuation.resumeWithException(ex)
                 } else {
-                    continuation.resume(Pair(accessToken, idToken))
+                    continuation.resume(accessToken!!)
                 }
             }
         }

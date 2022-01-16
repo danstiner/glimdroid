@@ -3,35 +3,36 @@ query MyFollowingLive {
     id,
     countFollowing,
     followingLiveChannels {
-      count,
-      edges {
-        cursor,
-        node {
-          id
-          category {
-            name
-          },
-          language,
-          matureContent,
-          status,
+      count
+        edges {
+            cursor,
+            node {
+                id
+                category {
+                    name
+                }
+                language,
+                matureContent,
+                status,
           stream {
-            id,
-            countViewers,
-            peakViewers,
-            startedAt,
-            thumbnailUrl
-          },
+              id
+              countViewers
+              peakViewers
+              startedAt
+              thumbnailUrl
+          }
           streamer {
-            id,
-            avatarUrl,
-            displayname
+              id
+              avatarUrl
+              displayname
+              username
           },
           subcategory {
             name
-          },
+          }
           tags {
             name
-          },
+          }
           title
         }
       }

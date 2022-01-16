@@ -71,7 +71,7 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
         val phoenixChannel = channel(Topic("phoenix"), joinRef = null)
         while (state == State.OPEN) {
             delay(30_000)
-            if (phoenixChannel.push(Event("heartbeat")) is Reply.Err) {
+            if (phoenixChannel.push(Event("heartbeat")) is Result.Err) {
                 TODO("Failed")
             }
         }

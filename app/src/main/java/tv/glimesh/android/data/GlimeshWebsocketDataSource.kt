@@ -1,18 +1,34 @@
 package tv.glimesh.android.data
 
 import android.util.Log
+import com.apollographql.apollo3.api.CustomScalarAdapters
+import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import tv.glimesh.android.data.model.ChannelId
-import tv.glimesh.android.ui.channel.ChatMessage
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import tv.glimesh.android.data.model.*
 import tv.glimesh.apollo.*
 import tv.glimesh.apollo.type.ChatMessageInput
 import tv.glimesh.phoenix.channels.Socket
+import java.lang.ref.WeakReference
 import java.net.URI
 import java.net.URL
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
+
+data class ChatMessage(
+    val id: String,
+    val message: String,
+    val displayname: String,
+    val username: String,
+    val avatarUrl: String?,
+    val timestamp: Instant,
+)
+
+data class EdgeRoute(val id: String, val url: URL)
 
 /**
  * Query and subscribe to data from glimesh.tv
@@ -23,12 +39,13 @@ import java.time.Instant
  * https://glimesh.github.io/api-docs/docs/api/live-updates/channels/
  * http://graemehill.ca/websocket-clients-and-phoenix-channels/
  */
-class GlimeshWebsocketDataSource(
+class GlimeshWebsocketDataSource private constructor(
     private val auth: AuthStateDataSource,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var connection: tv.glimesh.phoenix.absinthe.Connection? = null
     private var authenticatedConnection: tv.glimesh.phoenix.absinthe.Connection? = null
+    private val mutex = Mutex()
 
     suspend fun channelQuery(channel: ChannelId): ChannelByIdQuery.Data {
         return connection().query(
@@ -78,10 +95,10 @@ class GlimeshWebsocketDataSource(
         ).dataAssertNoErrors.createChatMessage
     }
 
-    suspend fun chatMessages(id: ChannelId): tv.glimesh.phoenix.absinthe.Subscription<ChatMessage> {
+    suspend fun chatMessages(channel: ChannelId): tv.glimesh.phoenix.absinthe.Subscription<ChatMessage> {
         return connection().subscription(
             MessagesSubscription(
-                id.id.toString()
+                channel.id.toString()
             )
         ).map { response ->
             Log.d("ChatMessage", response.data?.toString() ?: "null")
@@ -92,37 +109,127 @@ class GlimeshWebsocketDataSource(
                 displayname = message.user.displayname,
                 username = message.user.username,
                 avatarUrl = message.user.avatarUrl,
-                timestamp = Instant.parse(message.insertedAt as String + "Z"),
+                timestamp = message.insertedAt,
             )
         }
     }
 
+    suspend fun channelUpdates(channel: ChannelId): tv.glimesh.phoenix.absinthe.Subscription<Channel> {
+        return connection().subscription(
+            ChannelUpdatesSubscription(
+                channel.id.toString()
+            )
+        ).map { response ->
+            val node = response.dataAssertNoErrors.channel!!
+            Channel(
+                id = ChannelId(node.id!!.toLong()),
+                title = node.title!!,
+                matureContent = node.matureContent ?: false,
+                language = node.language,
+                category = Category(node.category!!.name!!),
+                tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
+                streamer = Streamer(
+                    username = node.streamer.username,
+                    displayName = node.streamer.displayname,
+                    avatarUrl = node.streamer.avatarUrl,
+                ),
+                stream = node.stream?.let { stream ->
+                    Stream(
+                        id = StreamId(stream.id!!.toLong()),
+                        viewerCount = stream.countViewers ?: 0,
+                        thumbnailUrl = null, // Channel view does not care about thumbnail updates
+                        startedAt = stream.startedAt
+                    )
+                }
+            )
+        }
+    }
+
+    suspend fun streamUpdates(channel: ChannelId): tv.glimesh.phoenix.absinthe.Subscription<Stream?> {
+        return connection().subscription(
+            StreamUpdatesSubscription(
+                channel.id.toString()
+            )
+        ).map { response ->
+            response.dataAssertNoErrors.channel!!.stream?.let { stream ->
+                Stream(
+                    id = StreamId(stream.id!!.toLong()),
+                    viewerCount = stream.countViewers ?: 0,
+                    thumbnailUrl = null, // Channel view does not care about thumbnail updates
+                    startedAt = stream.startedAt
+                )
+            }
+        }
+    }
+
+    @Synchronized
     private suspend fun connection(): tv.glimesh.phoenix.absinthe.Connection {
         if (auth.getCurrent().isAuthorized) {
             // TODO maybe close unauthenticated connection
             return authenticatedConnection()
         }
 
-        if (connection == null) {
-            val socket = Socket.open(
-                URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&client_id=$CLIENT_ID"),
-                scope = scope
-            )
-            connection = tv.glimesh.phoenix.absinthe.Connection.create(socket, scope)
-        }
+        mutex.withLock {
+            var con = connection
 
-        return connection!!
+            if (con == null) {
+                val socket = Socket.open(
+                    URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&client_id=$CLIENT_ID"),
+                    scope = scope
+                )
+                con = tv.glimesh.phoenix.absinthe.Connection.create(
+                    socket,
+                    scope,
+                    CUSTOM_SCALAR_ADAPTERS
+                )
+                connection = con
+            }
+
+            return con
+        }
     }
 
+    @Synchronized
     private suspend fun authenticatedConnection(): tv.glimesh.phoenix.absinthe.Connection {
-        if (authenticatedConnection == null) {
-            val (accessToken, idToken) = auth.retrieveFreshTokens()
-            val socket = Socket.open(
-                URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&token=$accessToken"),
-                scope = scope
-            )
-            authenticatedConnection = tv.glimesh.phoenix.absinthe.Connection.create(socket, scope)
+        mutex.withLock {
+            var con = authenticatedConnection
+
+            if (con == null) {
+                val socket = Socket.open(
+                    URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&token=${auth.freshAccessToken()}"),
+                    scope = scope
+                )
+                con = tv.glimesh.phoenix.absinthe.Connection.create(
+                    socket,
+                    scope,
+                    CUSTOM_SCALAR_ADAPTERS
+                )
+                authenticatedConnection = con
+            }
+
+            return con
         }
-        return authenticatedConnection!!
+    }
+
+    companion object {
+        const val TAG = "GlimeshWebsocket"
+
+        val CUSTOM_SCALAR_ADAPTERS: CustomScalarAdapters = CustomScalarAdapters.Builder().add(
+            CustomScalarType("NaiveDateTime", Instant::javaClass.name),
+            GlimeshNaiveTimeToInstantAdapter
+        ).build()
+
+        private val INSTANCE_REF = AtomicReference(WeakReference<GlimeshWebsocketDataSource>(null))
+
+        @Synchronized
+        fun getInstance(auth: AuthStateDataSource): GlimeshWebsocketDataSource {
+            var instance: GlimeshWebsocketDataSource? = INSTANCE_REF.get().get()
+            if (instance == null) {
+                Log.d(TAG, "Constructing GlimeshWebsocketDataSource")
+                instance = GlimeshWebsocketDataSource(auth)
+                INSTANCE_REF.set(WeakReference(instance))
+            }
+            return instance
+        }
     }
 }

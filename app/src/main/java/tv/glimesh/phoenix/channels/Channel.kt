@@ -30,7 +30,10 @@ class Channel(
         }
     }
 
-    suspend fun join(): Reply {
+    // Send ["join_ref","ref","__absinthe__:control","phx_join",{}]
+    // Success Reply ["join_ref","ref","__absinthe__:control","phx_reply",{"response":{},"status":"ok"}]
+    // Error Reply ["join_ref","join_ref","__absinthe__:control","phx_close",{}]
+    suspend fun join(): Result<JsonObject> {
         state = State.JOINING
 
         val ref = sendJoin()
@@ -39,12 +42,10 @@ class Channel(
 
         return when {
             reply.event == Event.CLOSE -> {
-                // Join failed
-                Reply.Err()
+                Result.Err(TODO())
             }
             reply.event == Event.REPLY && status == "ok" -> {
-                // Join successful
-                Reply.Ok(reply.payload["response"]!!.jsonObject)
+                Result.Ok(reply.payload["response"]!!.jsonObject)
             }
             else -> TODO()
         }
@@ -57,7 +58,7 @@ class Channel(
         event: Event,
         payload: JsonObject = buildJsonObject {},
         ref: Ref = refFactory.newRef()
-    ): Reply {
+    ): Result<JsonObject> {
         val ref = send(event, payload, ref)
         val reply = firstReplyOrClose(ref)
         val status = reply.payload["status"]?.jsonPrimitive?.contentOrNull
@@ -65,17 +66,17 @@ class Channel(
         return when {
             reply.event == Event.CLOSE -> {
                 // Push failed
-                Reply.Err()
+                Result.Err(TODO())
             }
             reply.event == Event.REPLY && status == "ok" -> {
                 // Push successful
-                Reply.Ok(reply.payload["response"]!!.jsonObject)
+                Result.Ok(reply.payload["response"]!!.jsonObject)
             }
             else -> TODO("" + reply)
         }
     }
 
-    suspend fun leave(): Reply {
+    suspend fun leave(): Result<JsonObject> {
         state = State.LEAVING
 
         val ref = sendLeave()

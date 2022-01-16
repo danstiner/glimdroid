@@ -1,7 +1,5 @@
 package tv.glimesh.android.data
 
-import tv.glimesh.android.data.model.LoggedInUser
-
 /**
  * Class that requests authentication and user information from the remote data source and
  * maintains an in-memory cache of login status and user credentials information.
@@ -19,7 +17,7 @@ class LoginRepository(
         dataSource.logout()
     }
 
-    fun login(): Result<LoggedInUser> {
+    fun login(): Result<Unit> {
         // handle login
         val result = dataSource.login()
 

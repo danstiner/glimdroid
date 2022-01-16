@@ -18,9 +18,10 @@ query LiveChannels {
           thumbnailUrl
         },
         streamer {
-          id,
-          avatarUrl,
-          displayname
+            id
+            avatarUrl
+            displayname
+            username
         }
         subcategory {
           name

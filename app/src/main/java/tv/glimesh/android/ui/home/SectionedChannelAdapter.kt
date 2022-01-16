@@ -18,6 +18,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import tv.glimesh.android.R
+import tv.glimesh.android.data.model.Channel
 import java.net.URL
 import java.util.*
 
@@ -51,7 +52,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             currentChannel = channel
 
             titleTextView.text = channel.title
-            displayNameTextView.text = channel.streamerDisplayName
+            displayNameTextView.text = channel.streamer.displayName
 
             if (channel.matureContent) {
                 chipMature.visibility = View.VISIBLE
@@ -73,23 +74,23 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 chipCategory.visibility = View.INVISIBLE
             }
 
-            if (channel.streamerAvatarUrl == null) {
+            if (channel.streamer.avatarUrl == null) {
                 Glide.with(itemView).clear(avatarImageView)
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamerAvatarUrl))
+                    .load(URL(channel.streamer.avatarUrl))
                     .circleCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(avatarImageView)
             }
 
-            if (channel.streamThumbnailUrl == null) {
+            if (channel.stream?.thumbnailUrl == null) {
                 Glide.with(itemView).clear(channelPreviewImageView)
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamThumbnailUrl))
+                    .load(URL(channel.stream.thumbnailUrl))
                     .transform(RoundedCorners(radius))
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(channelPreviewImageView)
@@ -133,7 +134,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             currentChannel = channel
 
             titleTextView.text = channel.title
-            displayNameTextView.text = channel.streamerDisplayName
+            displayNameTextView.text = channel.streamer.displayName
 
             if (channel.matureContent) {
                 chipMature.visibility = View.VISIBLE
@@ -165,23 +166,23 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 chipGroupTag.addView(view)
             }
 
-            if (channel.streamerAvatarUrl == null) {
+            if (channel.streamer.avatarUrl == null) {
                 Glide.with(itemView).clear(avatarImageView)
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamerAvatarUrl))
+                    .load(URL(channel.streamer.avatarUrl))
                     .circleCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(avatarImageView)
             }
 
-            if (channel.streamThumbnailUrl == null) {
+            if (channel.stream?.thumbnailUrl == null) {
                 Glide.with(itemView).clear(channelPreviewImageView)
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamThumbnailUrl))
+                    .load(URL(channel.stream.thumbnailUrl))
                     .transform(RoundedCorners(radius))
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(channelPreviewImageView)
@@ -287,19 +288,19 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
     }
 
     sealed class Item {
-        data class Channel(val channel: tv.glimesh.android.ui.home.Channel) : Item() {
-            override val id = channel.id
+        data class Channel(val channel: tv.glimesh.android.data.model.Channel) : Item() {
+            override val id = "Channel:${channel.id}"
         }
 
-        data class LargeChannel(val channel: tv.glimesh.android.ui.home.Channel) : Item() {
-            override val id = channel.id
+        data class LargeChannel(val channel: tv.glimesh.android.data.model.Channel) : Item() {
+            override val id = "LargeChannel:${channel.id}"
         }
 
         data class Header(val title: String) : Item() {
             override val id = "Header:$title"
         }
 
-        class Tagline() : Item() {
+        class Tagline : Item() {
             override val id = "Tagline"
         }
 

@@ -3,71 +3,33 @@ query Homepage {
     count
     edges {
       node {
-        id
-        category {
-          name
-        },
-        language,
-        matureContent,
-        status,
-        stream {
-          id,
-          countViewers,
-          peakViewers,
-          startedAt,
-          thumbnailUrl
-        },
-        streamer {
-          id,
-          avatarUrl,
-          displayname
-        }
-        subcategory {
-          name
-        },
-        tags {
-          name
-        },
-        title
-      }
-    }
-  }
-
-  myself {
-    id,
-    countFollowing,
-    followingLiveChannels {
-      count,
-      edges {
-        cursor,
-        node {
           id
           category {
-            name
-          },
-          language,
-          matureContent,
-          status,
+              name
+          }
+          language
+          matureContent
+          status
           stream {
-            id,
-            countViewers,
-            peakViewers,
-            startedAt,
-            thumbnailUrl
-          },
+              id
+              countViewers
+              peakViewers
+              startedAt
+              thumbnailUrl
+          }
           streamer {
-            id,
-            avatarUrl,
-            displayname
-          },
+              id
+              avatarUrl
+              displayname
+              username
+          }
           subcategory {
-            name
-          },
+              name
+          }
           tags {
-            name
-          },
+              name
+          }
           title
-        }
       }
     }
   }

@@ -3,6 +3,6 @@ package tv.glimesh.android.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class StreamId(val id: Long) {
-    override fun toString(): String = "StreamId($id)"
+data class Tag(val name: String) {
+    override fun toString(): String = "Tag($name)"
 }

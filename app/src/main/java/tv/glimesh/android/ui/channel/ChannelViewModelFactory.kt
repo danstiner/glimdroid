@@ -46,7 +46,7 @@ class ChannelViewModelFactory(
             return ChannelViewModel(
                 peerConnectionFactory = WrappedPeerConnectionFactory(factory),
                 glimesh = GlimeshDataSource(auth = auth),
-                glimeshSocket = GlimeshWebsocketDataSource(auth = auth),
+                glimeshSocket = GlimeshWebsocketDataSource.getInstance(auth = auth),
                 countryCode = countryCode,
             ) as T
         }

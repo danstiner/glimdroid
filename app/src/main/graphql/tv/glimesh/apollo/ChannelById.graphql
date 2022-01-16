@@ -21,7 +21,6 @@ query ChannelById($id: ID) {
           displayname
           username
       }
-
       subcategory {
           name
       }

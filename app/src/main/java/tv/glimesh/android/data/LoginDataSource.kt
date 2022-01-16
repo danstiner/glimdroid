@@ -6,9 +6,7 @@ import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
-import tv.glimesh.android.data.model.LoggedInUser
 import java.io.IOException
-import java.util.*
 
 const val CLIENT_ID = "34d2a4c6-e357-4132-881b-d64305853632"
 
@@ -22,7 +20,7 @@ class LoginDataSource(
     private val completionIntent: PendingIntent
 ) {
 
-    fun login(): Result<LoggedInUser> {
+    fun login(): Result<Unit> {
         try {
             val serviceConfig = AuthorizationServiceConfiguration(
                 Uri.parse("https://glimesh.tv/oauth/authorize"), // authorization endpoint
@@ -37,11 +35,9 @@ class LoginDataSource(
                 authRequest,
                 completionIntent
             )
-            // TODO: handle loggedInUser authentication
-            val fakeUser = LoggedInUser(UUID.randomUUID().toString(), "Jane Doe")
-            return Result.Success(fakeUser)
+            return Result.Ok(Unit)
         } catch (e: Throwable) {
-            return Result.Error(IOException("Error logging in", e))
+            return Result.Err(IOException("Error logging in", e))
         }
     }
 

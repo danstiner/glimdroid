@@ -1,0 +1,9 @@
+subscription StreamUpdates($channelId: ID!) {
+    channel(id: $channelId) {
+        stream {
+            id
+            countViewers
+            startedAt
+        }
+    }
+}

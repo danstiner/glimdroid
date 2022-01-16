@@ -1,3 +1,8 @@
 package tv.glimesh.android.data.model
 
-data class ChannelId(val id: Long)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ChannelId(val id: Long) {
+    override fun toString(): String = "ChannelId($id)"
+}

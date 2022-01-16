@@ -8,8 +8,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.internal.toImmutableList
 import tv.glimesh.android.data.GlimeshDataSource
 import tv.glimesh.android.data.GlimeshWebsocketDataSource
-import tv.glimesh.apollo.type.ChannelStatus
-import kotlin.math.ln
+import tv.glimesh.android.data.model.Channel
+import tv.glimesh.android.data.model.ChannelId
 
 class HomeViewModel(
     private val glimesh: GlimeshDataSource,
@@ -33,77 +33,16 @@ class HomeViewModel(
     }
 
     private suspend fun fetchHomeLiveChannels() {
-        val result = glimesh.homepageQuery()
+        val (homepage, followed) = glimesh.myHomepage()
 
-        followedLiveChannels = result
-            ?.myself
-            ?.followingLiveChannels
-            ?.edges
-            ?.mapNotNull { edge -> edge?.node }
-            ?.sortedBy { node -> node?.stream?.startedAt.toString() }
-            ?.reversed()
-            ?.map { node ->
-                Channel(
-                    id = node.id!!,
-                    title = node?.title!!,
-                    streamerDisplayName = node?.streamer?.displayname,
-                    streamerAvatarUrl = node?.streamer?.avatarUrl,
-                    streamId = node?.stream?.id,
-                    streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                    matureContent = node?.matureContent ?: false,
-                    language = node?.language,
-                    category = Category(node?.category?.name!!),
-                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } }
-                        ?: listOf(),
-                )
-            } ?: listOf()
-
-        homepageLiveChannels = result
-            ?.homepageChannels
-            ?.edges
-            ?.mapNotNull { edge -> edge?.node }
-            ?.filter { node -> node?.status == ChannelStatus.LIVE }
-            ?.map { node ->
-                Channel(
-                    id = node.id!!,
-                    title = node?.title!!,
-                    streamerDisplayName = node?.streamer?.displayname,
-                    streamerAvatarUrl = node?.streamer?.avatarUrl,
-                    streamId = node?.stream?.id,
-                    streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                    matureContent = node?.matureContent ?: false,
-                    language = node?.language,
-                    category = Category(node?.category?.name!!),
-                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
-                )
-            } ?: listOf()
+        homepageLiveChannels = homepage
+        followedLiveChannels = followed
 
         updateListItems()
     }
 
     private suspend fun fetchAllLiveChannels() {
-        allLiveChannels = glimesh.liveChannelsQuery()
-            ?.channels
-            ?.edges
-            ?.mapNotNull { edge -> edge?.node }
-            ?.filter { node -> node?.status == ChannelStatus.LIVE }
-            ?.sortedBy { node -> node?.stream?.countViewers?.let { (ln(it.toDouble() + 1) + 1) * Math.random() } }
-            ?.reversed()
-            ?.map { node ->
-                Channel(
-                    id = node.id!!,
-                    title = node?.title!!,
-                    streamerDisplayName = node?.streamer?.displayname,
-                    streamerAvatarUrl = node?.streamer?.avatarUrl,
-                    streamId = node?.stream?.id,
-                    streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                    matureContent = node?.matureContent ?: false,
-                    language = node?.language,
-                    category = Category(node?.category?.name!!),
-                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
-                )
-            } ?: listOf()
-
+        allLiveChannels = glimesh.liveChannels()
         updateListItems()
     }
 
@@ -119,7 +58,7 @@ class HomeViewModel(
         featuredChannels: List<Channel>,
         liveChannels: List<Channel>
     ): List<SectionedChannelAdapter.Item> {
-        var addedIds = mutableSetOf<String>()
+        var addedIds = mutableSetOf<ChannelId>()
         var items = mutableListOf<SectionedChannelAdapter.Item>()
 
         if (followingChannels.isNotEmpty()) {

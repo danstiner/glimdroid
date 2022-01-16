@@ -7,13 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import tv.glimesh.android.data.model.ChannelId
-import tv.glimesh.android.data.model.StreamId
+import tv.glimesh.android.data.model.Channel
 import tv.glimesh.android.databinding.FragmentHomeBinding
 import tv.glimesh.android.ui.channel.ChannelActivity
 
@@ -43,7 +40,7 @@ class HomeFragment : Fragment() {
 
         val channelAdapter = SectionedChannelAdapter { channel -> adapterOnClick(channel) }
 
-        homeViewModel.items.observe(viewLifecycleOwner, Observer {
+        homeViewModel.items.observe(viewLifecycleOwner, {
             channelAdapter.submitList(it)
         })
 
@@ -67,14 +64,14 @@ class HomeFragment : Fragment() {
     private fun adapterOnClick(channel: Channel) {
         Log.d(
             "HomeFragment",
-            "Starting stream activity; channel_id:${channel.id}, stream_id:${channel.streamId}"
+            "Starting stream activity; ${channel.id}, ${channel.stream?.id}"
         )
         startActivity(
             ChannelActivity.intent(
                 requireContext(),
-                ChannelId(channel.id.toLong()),
-                StreamId(channel.streamId?.toLong()!!),
-                channel.streamThumbnailUrl?.let { Uri.parse(it) }
+                channel.id,
+                channel.stream!!.id,
+                channel.stream?.thumbnailUrl?.let { Uri.parse(it) },
             )
         )
     }
@@ -84,27 +81,3 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 }
-
-@Serializable
-data class Channel(
-    val id: String,
-    val title: String,
-    val streamerDisplayName: String,
-    val streamerAvatarUrl: String?,
-    val streamId: String?,
-    val streamThumbnailUrl: String?,
-    val matureContent: Boolean,
-    val language: String?,
-    val category: Category,
-    val tags: List<Tag>,
-)
-
-@Serializable
-data class Category(
-    val name: String
-)
-
-@Serializable
-data class Tag(
-    val name: String
-)

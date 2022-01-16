@@ -19,7 +19,7 @@ class HomeViewModelFactory(private val context: Context) : ViewModelProvider.Fac
             val auth = AuthStateDataSource.getInstance(context)
             return HomeViewModel(
                 GlimeshDataSource(auth),
-                GlimeshWebsocketDataSource(auth)
+                GlimeshWebsocketDataSource.getInstance(auth)
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

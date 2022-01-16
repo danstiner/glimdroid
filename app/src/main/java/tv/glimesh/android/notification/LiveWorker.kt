@@ -26,12 +26,8 @@ import kotlinx.serialization.json.Json
 import tv.glimesh.android.R
 import tv.glimesh.android.data.AuthStateDataSource
 import tv.glimesh.android.data.GlimeshDataSource
-import tv.glimesh.android.data.model.ChannelId
-import tv.glimesh.android.data.model.StreamId
+import tv.glimesh.android.data.model.Channel
 import tv.glimesh.android.ui.channel.ChannelActivity
-import tv.glimesh.android.ui.home.Category
-import tv.glimesh.android.ui.home.Channel
-import tv.glimesh.android.ui.home.Tag
 import java.net.URL
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -39,7 +35,7 @@ import kotlin.coroutines.suspendCoroutine
 
 
 @Serializable
-data class State(val notifications: MutableMap<String, LiveNotification>)
+data class State(val notificationByChannelId: MutableMap<String, LiveNotification>)
 
 @Serializable
 data class LiveNotification(val id: Int, val channel: Channel)
@@ -90,29 +86,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             return Result.success()
         }
         Log.d(TAG, "doWork")
-        val data = glimesh.myFollowingLiveQuery()
-        val channels = data
-            ?.myself
-            ?.followingLiveChannels
-            ?.edges
-            ?.mapNotNull { edge -> edge?.node }
-            ?.map { node ->
-                Channel(
-                    id = node.id!!,
-                    title = node?.title!!,
-                    streamerDisplayName = node?.streamer?.displayname,
-                    streamerAvatarUrl = node?.streamer?.avatarUrl,
-                    streamId = node?.stream?.id,
-                    streamThumbnailUrl = node?.stream?.thumbnailUrl,
-                    matureContent = node?.matureContent ?: false,
-                    language = node?.language,
-                    category = Category(node?.category?.name!!),
-                    tags = node?.tags?.mapNotNull { tag -> tag?.name?.let { Tag(it) } } ?: listOf(),
-                )
-            } ?: listOf()
+        val channels = glimesh.myFollowedLiveChannels()
 
         // Check if any channels stopped being live and should be cleared
-        state.notifications.entries.removeIf { entry ->
+        state.notificationByChannelId.entries.removeIf { entry ->
             val notification = entry.value
 
             val isLive = channels.any { it.id == notification.channel.id }
@@ -127,15 +104,16 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Check if any channels newly went live
         for (channel in channels) {
-            if (channel.id in state.notifications) {
-                val notification = state.notifications[channel.id]
+            if (channel.id.toString() in state.notificationByChannelId) {
+                val notification = state.notificationByChannelId[channel.id.toString()]
                 // TODO update notification data if needed
             } else {
                 // Show notification
-                val notificationId = channel.id.toInt()
+                val notificationId = channel.id.id.toInt()
                 showNotification(notificationId, channel)
 
-                state.notifications[channel.id] = LiveNotification(notificationId, channel)
+                state.notificationByChannelId[channel.id.toString()] =
+                    LiveNotification(notificationId, channel)
             }
         }
 
@@ -148,8 +126,8 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         // Build intent to launch to the channel activity when notification is clicked
         val intent = ChannelActivity.intent(
             applicationContext,
-            ChannelId(channel.id.toLong()),
-            StreamId(channel.streamId?.toLong()!!)
+            channel.id,
+            channel.stream!!.id
         )
         val pendingIntent: PendingIntent? = TaskStackBuilder.create(applicationContext).run {
             // Add the intent, which inflates the back stack
@@ -167,7 +145,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
                     R.mipmap.ic_launcher_winter_foreground
                 )
             )
-            .setContentTitle("${channel.streamerDisplayName} is live")
+            .setContentTitle("${channel.streamer.displayName} is live")
             .setContentText(channel.title)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -178,7 +156,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             .notify(notificationId, notification.build())
 
         // Load avatar icon and replace large icon with it
-        channel.streamerAvatarUrl?.let { avatarUrl ->
+        channel.streamer.avatarUrl?.let { avatarUrl ->
             val avatarBitmap = loadBitmapUrl(URL(avatarUrl))
             Log.d(TAG, "Loaded large notification icon")
             NotificationManagerCompat.from(applicationContext)
@@ -209,6 +187,9 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         return try {
             State(Json.decodeFromString(currentState))
         } catch (ex: kotlinx.serialization.SerializationException) {
+            Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
+            State(mutableMapOf())
+        } catch (ex: java.lang.ClassCastException) {
             Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
             State(mutableMapOf())
         }
