@@ -33,9 +33,14 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-
 @Serializable
-data class State(val notifications: MutableMap<String, LiveNotification>)
+data class State(val notifications: MutableMap<String, LiveNotification>) {
+    fun encodeToString() = Json.encodeToString(this)
+
+    companion object {
+        fun decodeFromString(string: String) = Json.decodeFromString<State>(string)
+    }
+}
 
 @Serializable
 data class LiveNotification(val id: Int, val channel: Channel)
@@ -193,12 +198,12 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         val stateString = store.getString(KEY_STATE, null)
         try {
             if (stateString != null) {
-                return State(Json.decodeFromString(stateString))
+                return State.decodeFromString(stateString)
             }
         } catch (ex: kotlinx.serialization.SerializationException) {
-            Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
+            Log.w(TAG, "Failed to deserialize stored state - discarding", ex)
         } catch (ex: java.lang.ClassCastException) {
-            Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
+            Log.w(TAG, "Failed to deserialize stored state - discarding", ex)
         }
 
         return State(mutableMapOf())
@@ -209,7 +214,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         if (state == null) {
             editor.remove(KEY_STATE)
         } else {
-            editor.putString(KEY_STATE, Json.encodeToString(state))
+            editor.putString(KEY_STATE, state.encodeToString())
         }
         check(editor.commit()) { "Failed to write state to shared prefs" }
     }
