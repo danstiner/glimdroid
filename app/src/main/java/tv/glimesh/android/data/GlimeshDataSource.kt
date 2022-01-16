@@ -14,9 +14,6 @@ import tv.glimesh.apollo.type.ChatMessageInput
 import java.net.URL
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import kotlin.math.ln
 
 class GlimeshDataSource(
@@ -300,10 +297,8 @@ class GlimeshDataSource(
  * The timezone identifier is missing, e.g. '2011-12-03T10:15:30'
  */
 object GlimeshNaiveTimeToInstantAdapter : Adapter<Instant> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-
     override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): Instant {
-        return formatter.parse(reader.nextString()!!, LocalDateTime::from).toInstant(ZoneOffset.UTC)
+        return Instant.parse(reader.nextString()!! + "Z")
     }
 
     override fun toJson(

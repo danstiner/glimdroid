@@ -1,5 +1,7 @@
 package tv.glimesh.android.ui.channel
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnection
 import org.webrtc.SdpObserver
@@ -8,12 +10,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class WrappedPeerConnection(private val connection: PeerConnection) {
+class WrappedPeerConnection(
+    private val coroutineScope: CoroutineScope,
+    private val connection: PeerConnection
+) {
 
     val connectionState: PeerConnection.PeerConnectionState
         get() = connection.connectionState()
 
     fun close() {
+        coroutineScope.cancel()
         connection.close()
     }
 

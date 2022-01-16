@@ -92,6 +92,7 @@ class JanusRtcConnection(
 
             val peerConnection = peerConnectionFactory.createPeerConnection(
                 RTC_CONFIGURATION,
+                coroutineScope,
                 { candidate: IceCandidate ->
                     coroutineScope.launch {
                         janus.trickleIceCandidate(
@@ -110,13 +111,19 @@ class JanusRtcConnection(
             val connection = JanusRtcConnection(
                 janus, session, channel, peerConnection, coroutineContext,
             )
+//
+//                if (peerConnection.connectionState == PeerConnection.PeerConnectionState.CLOSED) {
+//                    return@launch
+//                }
+            // Setup peer connection
+            peerConnection.setRemoteDescription(offer)
+
+            val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
+
+
+            peerConnection.setLocalDescription(answer)
 
             coroutineScope.launch {
-                // Setup peer connection
-                peerConnection.setRemoteDescription(offer)
-                val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
-                peerConnection.setLocalDescription(answer)
-
                 // Tell janus we are ready to start the stream
                 janus.ftlStart(
                     session,

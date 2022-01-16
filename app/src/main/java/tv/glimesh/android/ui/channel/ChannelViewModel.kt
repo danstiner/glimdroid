@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.webrtc.VideoTrack
 import tv.glimesh.android.data.ChatMessage
@@ -81,8 +83,12 @@ class ChannelViewModel(
 
     val isWatching: Boolean get() = connection != null && (connection?.isClosed != true)
 
+    val mutex = Mutex()
+
     @MainThread
     fun watch(channel: ChannelId) {
+        Log.d(TAG, "Watch $channel, current:$currentChannel")
+
         if (currentChannel == channel) {
             return
         }
@@ -101,6 +107,7 @@ class ChannelViewModel(
 
     @MainThread
     fun stopWatching() {
+        Log.d(TAG, "Stop watching, current:$currentChannel")
         currentChannel = null
 
         // Close previous connection, if any
@@ -124,12 +131,13 @@ class ChannelViewModel(
             // Kick off loading critical in parallel to get user visible content on screen fast
             joinAll(
                 launch { connectRtc(channel) },
-                launch { fetchChannelInfo(channel) },
+                launch {
+                    fetchChannelInfo(channel)
+                    // Kept separate from fetchChannelInfo because fetching chat messages is slow,
+                    // likely due to inefficient joins on the server
+                    fetchRecentChatHistory(channel)
+                },
             )
-
-            // Kept separate from fetchChannelInfo because fetching chat messages is very slow
-            // (likely due to inefficient joins on the server)
-            fetchRecentChatHistory(channel)
 
             // After initial fetch is done, start subscriptions and background work
             joinAll(
@@ -143,13 +151,31 @@ class ChannelViewModel(
         // TODO, need to use the websocket connection here, keeping it open keeps presence
         val route = glimesh.watchChannel(channel, countryCode)
 
-        connection =
-            JanusRtcConnection.create(route.url, channel, peerConnectionFactory) { stream ->
-                viewModelScope.launch(Dispatchers.Main) {
-                    assert(stream.videoTracks.size == 1)
-                    _videoTrack.value = stream.videoTracks[0]
+        val con = JanusRtcConnection.create(route.url, channel, peerConnectionFactory) { stream ->
+            viewModelScope.launch(Dispatchers.Main) {
+                assert(stream.videoTracks.size == 1)
+                mutex.withLock {
+                    if (currentChannel == channel) {
+                        _videoTrack.value = stream.videoTracks[0]
+                    } else {
+                        Log.w(
+                            TAG,
+                            "Channel changed out from under us before RTC video track arrived"
+                        )
+                    }
                 }
+
             }
+        }
+
+        mutex.withLock {
+            if (currentChannel == channel) {
+                connection = con
+            } else {
+                Log.w(TAG, "Channel changed out from under us before RTC connection opened")
+                con.close()
+            }
+        }
     }
 
     private suspend fun fetchChannelInfo(channel: ChannelId) {
@@ -158,49 +184,89 @@ class ChannelViewModel(
 
     private suspend fun updateChannelLiveData(channel: Channel) {
         withContext(Dispatchers.Main) {
-            _channel.value = channel
-            _title.value = channel.title
-            _matureContent.value = channel.matureContent
-            _language.value = channel.language
-            _category.value = channel.category
-            _tags.value = channel.tags
-            _streamerDisplayname.value = channel.streamer.displayName
-            _streamerUsername.value = channel.streamer.username
-            _streamerAvatarUrl.value = channel.streamer.avatarUrl?.let { URL(it) }
-            _viewerCount.value = channel.stream?.viewerCount
-            _videoThumbnailUrl.value = channel.stream?.thumbnailUrl?.let { URL(it) }
-        }
-    }
-
-    private suspend fun fetchRecentChatHistory(channel: ChannelId) {
-        withContext(Dispatchers.Main) {
-            _messages.value = listOf()
-        }
-        val recentMessages = glimesh.recentChatMessages(channel)
-
-        withContext(Dispatchers.Main) {
-            _messages.value = recentMessages
-        }
-    }
-
-    private suspend fun watchChats(channel: ChannelId) {
-        chatSubscription = glimeshSocket.chatMessages(channel).apply {
-            data.collect { message ->
-                withContext(Dispatchers.Main) {
-                    _messages.value = buildList {
-                        addAll(_messages.value!!)
-                        add(message)
-                    }
+            mutex.let {
+                if (currentChannel == channel.id) {
+                    _channel.value = channel
+                    _title.value = channel.title
+                    _matureContent.value = channel.matureContent
+                    _language.value = channel.language
+                    _category.value = channel.category
+                    _tags.value = channel.tags
+                    _streamerDisplayname.value = channel.streamer.displayName
+                    _streamerUsername.value = channel.streamer.username
+                    _streamerAvatarUrl.value = channel.streamer.avatarUrl?.let { URL(it) }
+                    _viewerCount.value = channel.stream?.viewerCount
+                    _videoThumbnailUrl.value = channel.stream?.thumbnailUrl?.let { URL(it) }
                 }
             }
         }
     }
 
+    private suspend fun fetchRecentChatHistory(channel: ChannelId) {
+        withContext(Dispatchers.Main) {
+            mutex.withLock {
+                if (currentChannel == channel) {
+                    _messages.value = listOf()
+                } else {
+                    Log.w(TAG, "Channel changed out from under us before chats cleared")
+                }
+            }
+        }
+        val recentMessages = glimesh.recentChatMessages(channel)
+
+        withContext(Dispatchers.Main) {
+            mutex.withLock {
+                if (currentChannel == channel) {
+                    _messages.value = recentMessages
+                } else {
+                    Log.w(TAG, "Channel changed out from under us before recent chats fetched")
+                }
+            }
+        }
+    }
+
+    private suspend fun watchChats(channel: ChannelId) {
+        val sub = glimeshSocket.chatMessages(channel).apply {
+            data.collect { message ->
+                withContext(Dispatchers.Main) {
+                    mutex.withLock {
+                        if (currentChannel == channel) {
+                            _messages.value = buildList {
+                                addAll(_messages.value!!)
+                                add(message)
+                            }
+                        } else {
+                            Log.w(TAG, "Channel changed out from under us by time chat arrived")
+                        }
+                    }
+                }
+            }
+        }
+
+        mutex.withLock {
+            if (currentChannel == channel) {
+                chatSubscription = sub
+            } else {
+                Log.w(TAG, "Channel changed out from under us before chat watch started")
+                sub.cancel()
+            }
+        }
+    }
+
     private suspend fun watchChannelUpdates(channel: ChannelId) {
-        channelSubscription = glimeshSocket.channelUpdates(channel).apply {
+        val sub = glimeshSocket.channelUpdates(channel).apply {
             data.collect { channel ->
                 Log.d(TAG, "Channel update: $channel")
                 updateChannelLiveData(channel)
+            }
+        }
+
+        mutex.withLock {
+            if (currentChannel == channel) {
+                channelSubscription = sub
+            } else {
+                Log.w(TAG, "Channel changed out from under us before chat watch started")
+                sub.cancel()
             }
         }
     }

@@ -231,7 +231,7 @@ class JanusRestApi(baseUrl: URL) {
             jsep.sdp = jsep.sdp.replace("useinbandfec=1", "useinbandfec=1;stereo=1");
         }
          */
-        Log.d(TAG, "ftlStart $sdpAnswer")
+        Log.v(TAG, "ftlStart $sdpAnswer")
 
         val request = FtlStartRequest(Jsep(type = "answer", sdp = sdpAnswer))
         val response: FtlStartResponse = post(pluginUri, request)
@@ -246,7 +246,7 @@ class JanusRestApi(baseUrl: URL) {
         val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
 
-        Log.d(TAG, "trickleIceCandidate $candidate")
+        Log.v(TAG, "trickleIceCandidate $candidate")
 
         val request = TrickleRequest(candidate)
         val response: TrickleResponse = post(pluginUri, request)
@@ -279,15 +279,15 @@ class JanusRestApi(baseUrl: URL) {
             try {
                 urlConnection.requestMethod = "GET"
 
-                Log.d("Janus GET Request", "$uri")
+                Log.v("Janus GET Request", "$uri")
 
                 val responseBody = urlConnection.inputStream.bufferedReader().use { it.readText() }
 
-                Log.d("Janus GET Response", responseBody)
+                Log.v("Janus GET Response", responseBody)
 
                 return@withContext Json.decodeFromString<R>(responseBody)
             } finally {
-                Log.w(TAG, "Janus GET Complete: HTTP " + urlConnection.responseCode)
+                Log.v(TAG, "Janus GET Complete: HTTP " + urlConnection.responseCode)
                 urlConnection.disconnect()
             }
         }
@@ -301,17 +301,17 @@ class JanusRestApi(baseUrl: URL) {
                 urlConnection.doOutput = true
                 urlConnection.setChunkedStreamingMode(0)
 
-                Log.d("Janus POST Request", "$uri: ${Json.encodeToString(bodyJson)}")
+                Log.v("Janus POST Request", "$uri: ${Json.encodeToString(bodyJson)}")
 
                 urlConnection.outputStream.use { Json.encodeToStream(bodyJson, it) }
 
                 val responseBody = urlConnection.inputStream.bufferedReader().use { it.readText() }
 
-                Log.d("Janus POST Response", responseBody)
+                Log.v("Janus POST Response", responseBody)
 
                 return@withContext Json.decodeFromString<R>(responseBody)
             } finally {
-                Log.w(TAG, "Janus POST Complete: HTTP " + urlConnection.responseCode)
+                Log.v(TAG, "Janus POST Complete: HTTP " + urlConnection.responseCode)
                 urlConnection.disconnect()
             }
         }

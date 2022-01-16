@@ -20,6 +20,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.*
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -51,16 +52,15 @@ class ChannelActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val origStreamThumbnailUrl =
-            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-        origStreamThumbnailUrl?.let {
-            Log.d(TAG, "Stream thumbnail url: $it")
-            Glide
-                .with(this)
-                .load(it)
-                .onlyRetrieveFromCache(true)
-                .into(binding.videoPreview)
-        }
+        val origStreamThumbnailUrl = intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)
+            ?.let { Uri.parse(it) }
+            ?.also { uri ->
+                Glide
+                    .with(this)
+                    .load(uri)
+                    .onlyRetrieveFromCache(true)
+                    .into(binding.videoPreview)
+            }
 
         val eglBase = EglBase.create()
 
@@ -75,7 +75,7 @@ class ChannelActivity : AppCompatActivity() {
         binding.videoView.setZOrderOnTop(true);
         binding.videoView.holder.setFormat(PixelFormat.TRANSPARENT);
 
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             setPictureInPictureParams(pictureInPictureParams(binding.videoView))
         }
 
@@ -206,7 +206,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         // Ensure sourceRectHint is updated so exiting PiP animates smoothly to the original view
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             binding.videoView.addOnLayoutChangeListener { _, left, top, right, bottom,
                                                           oldLeft, oldTop, oldRight, oldBottom ->
                 if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
@@ -264,6 +264,7 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        Log.d(TAG, "onStart")
         watch(intent)
     }
 
@@ -274,7 +275,21 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        watch(intent)
+        Log.d(TAG, "onNewIntent: ${lifecycle.currentState}")
+        if (lifecycle.currentState == Lifecycle.State.STARTED) {
+            watch(intent)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+        // TODO: Check if playing but not entering PiP, if so stream should be paused
     }
 
     override fun onUserLeaveHint() {
@@ -316,7 +331,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         var channel = ChannelId(channelId)
-        Log.d(TAG, "onNewIntent: Watching $channel, current channel:${viewModel.currentChannel}")
+        Log.d(TAG, "watch: Watching $channel, current channel:${viewModel.currentChannel}")
         if (viewModel.currentChannel != channel) {
             binding.videoView.clearImage()
         }
@@ -324,7 +339,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun enterPictureInPicture() {
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             enterPictureInPictureMode(pictureInPictureParams(binding.videoView))
         }
     }
