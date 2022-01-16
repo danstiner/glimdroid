@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
@@ -16,22 +15,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.*
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.google.android.material.chip.Chip
 import org.webrtc.EglBase
-import org.webrtc.RendererCommon
+import org.webrtc.VideoFrame
+import org.webrtc.VideoSink
 import tv.glimesh.android.R
 import tv.glimesh.android.data.model.ChannelId
 import tv.glimesh.android.data.model.StreamId
 import tv.glimesh.android.databinding.ActivityChannelBinding
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val EXTRA_STREAM_ID = "tv.glimesh.android.extra.stream.id"
@@ -43,24 +53,14 @@ class ChannelActivity : AppCompatActivity() {
 
     private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
+    private lateinit var proxyVideoSink: ChannelActivity.ProxyVideoSink
+    private var videoPreviewUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        val origStreamThumbnailUrl = intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)
-            ?.let { Uri.parse(it) }
-            ?.also { uri ->
-                Glide
-                    .with(this)
-                    .load(uri)
-                    .onlyRetrieveFromCache(true)
-                    .into(binding.videoPreview)
-            }
 
         val eglBase = EglBase.create()
 
@@ -69,11 +69,15 @@ class ChannelActivity : AppCompatActivity() {
             ChannelViewModelFactory(applicationContext, eglBase.eglBaseContext)
         )[ChannelViewModel::class.java]
 
+        proxyVideoSink = ProxyVideoSink(binding.videoView)
+        loadVideoPreviewUri(
+            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+        )
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         binding.videoView.init(eglBase.eglBaseContext, null)
-        binding.videoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         binding.videoView.setEnableHardwareScaler(true)
-        binding.videoView.setZOrderOnTop(true);
-        binding.videoView.holder.setFormat(PixelFormat.TRANSPARENT);
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             setPictureInPictureParams(pictureInPictureParams(binding.videoView))
@@ -160,27 +164,8 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = ""
             }
         })
-        viewModel.videoThumbnailUrl.observe(this, {
-            val newWithoutQuery = Uri.parse(it.toString()).buildUpon().clearQuery().build()
-            val origWithoutQuery = origStreamThumbnailUrl?.buildUpon()?.clearQuery()?.build()
-            when {
-                newWithoutQuery == origWithoutQuery -> {
-                    return@observe
-                }
-                it != null -> {
-                    Glide
-                        .with(this)
-                        .load(it)
-                        .onlyRetrieveFromCache(true)
-                        .into(binding.videoPreview)
-                }
-                else -> {
-                    Glide.with(this).clear(binding.videoPreview)
-                }
-            }
-        })
         viewModel.videoTrack.observe(this, {
-            it.addSink(binding.videoView)
+            it?.addSink(proxyVideoSink)
         })
 
         val chatAdapter = ChatAdapter()
@@ -247,6 +232,32 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadVideoPreviewUri(uri: Uri?) {
+        val currentWithoutQuery = videoPreviewUri?.buildUpon()?.clearQuery()?.build()
+        val newWithoutQuery = uri?.buildUpon()?.clearQuery()?.build()
+
+        when {
+            newWithoutQuery == currentWithoutQuery -> {
+                proxyVideoSink.showPreview()
+            }
+            uri != null -> {
+                Glide.with(this).clear(binding.videoPreview)
+                proxyVideoSink.showPreview()
+                Glide
+                    .with(this)
+                    .asBitmap()
+                    .load(uri)
+                    .onlyRetrieveFromCache(true)
+                    .into(binding.videoPreview)
+            }
+            else -> {
+                Glide.with(this).clear(binding.videoPreview)
+            }
+        }
+
+        videoPreviewUri = uri
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun pictureInPictureParams(sourceView: View): PictureInPictureParams {
         val sourceRectHint = Rect()
@@ -270,7 +281,7 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        viewModel.stopWatching()
+        stopWatching()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -322,20 +333,71 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
+            animateConstraintLayout(
+                binding.root,
+                ConstraintSet().apply {
+                    clone(binding.root)
+                    connect(
+                        R.id.video_view,
+                        ConstraintSet.BOTTOM,
+                        R.id.parent,
+                        ConstraintSet.BOTTOM
+                    )
+                },
+                100
+            )
+        } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
+            animateConstraintLayout(
+                binding.root,
+                ConstraintSet().apply {
+                    clone(binding.root)
+                    clear(R.id.video_view, ConstraintSet.BOTTOM)
+                },
+                100
+            )
+        }
+    }
+
+    private fun animateConstraintLayout(
+        constraintLayout: ConstraintLayout,
+        set: ConstraintSet,
+        duration: Long
+    ) {
+        val trans = AutoTransition()
+        trans.duration = duration
+        trans.interpolator = AccelerateDecelerateInterpolator()
+        TransitionManager.beginDelayedTransition(constraintLayout, trans)
+        set.applyTo(constraintLayout)
+    }
+
     private fun watch(intent: Intent?) {
         var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
-        if (channelId == 0L) {
+        if (intent == null || channelId == 0L) {
             Log.w(TAG, "watch: No channel id to watch in given intent")
-            viewModel.stopWatching()
+            stopWatching()
             return
         }
 
         var channel = ChannelId(channelId)
         Log.d(TAG, "watch: Watching $channel, current channel:${viewModel.currentChannel}")
-        if (viewModel.currentChannel != channel) {
-            binding.videoView.clearImage()
+        if (viewModel.currentChannel == channel) {
+            viewModel.videoTrack.value?.addSink(proxyVideoSink)
+        } else {
+            stopWatching()
+            loadVideoPreviewUri(
+                intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+            )
+            viewModel.watch(channel)
         }
-        viewModel.watch(channel)
+    }
+
+    private fun stopWatching() {
+        viewModel.stopWatching()
+        viewModel.videoTrack.value?.removeSink(proxyVideoSink)
     }
 
     private fun enterPictureInPicture() {
@@ -361,5 +423,23 @@ class ChannelActivity : AppCompatActivity() {
                     )
                 }
             }
+    }
+
+    inner class ProxyVideoSink(private val sink: VideoSink) : VideoSink {
+        var previewShown = AtomicBoolean(true)
+        override fun onFrame(frame: VideoFrame) {
+            sink.onFrame(frame)
+            if (previewShown.get()) {
+                if (previewShown.getAndSet(false)) {
+                    runOnUiThread { binding.videoPreview.visibility = View.GONE }
+                }
+            }
+        }
+
+        fun showPreview() {
+            if (!previewShown.getAndSet(true)) {
+                runOnUiThread { binding.videoPreview.visibility = View.VISIBLE }
+            }
+        }
     }
 }

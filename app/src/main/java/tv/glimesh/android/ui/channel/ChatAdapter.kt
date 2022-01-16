@@ -61,12 +61,16 @@ class ChatAdapter :
                         }
 
                         override fun onResourceReady(
-                            res: Drawable,
+                            drawable: Drawable,
                             transition: Transition<in Drawable>?
                         ) {
-                            res.setBounds(0, 0, 38, 38)
+                            drawable.setBounds(0, 0, 38, 38)
                             textView.text = buildSpannedString {
-                                appendSpan("i", ImageSpan(res), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                appendSpan(
+                                    "i",
+                                    ImageSpan(drawable),
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                );
                                 append(" ")
                                 bold { append(chat.displayname) }
                                 append(": ")

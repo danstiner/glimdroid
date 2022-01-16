@@ -69,8 +69,8 @@ class ChannelViewModel(
     private val _videoThumbnailUrl = MutableLiveData<URL?>()
     val videoThumbnailUrl: LiveData<URL?> = _videoThumbnailUrl
 
-    private val _videoTrack = MutableLiveData<VideoTrack>()
-    val videoTrack: LiveData<VideoTrack> = _videoTrack
+    private val _videoTrack = MutableLiveData<VideoTrack?>()
+    val videoTrack: LiveData<VideoTrack?> = _videoTrack
 
     var connection: JanusRtcConnection? = null
     var currentChannel: ChannelId? = null
