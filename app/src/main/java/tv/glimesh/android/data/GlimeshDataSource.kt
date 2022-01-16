@@ -14,7 +14,7 @@ import tv.glimesh.apollo.type.ChatMessageInput
 import java.net.URL
 import java.time.Duration
 import java.time.Instant
-import kotlin.math.ln
+import kotlin.math.log10
 
 class GlimeshDataSource(
     private val auth: AuthStateDataSource
@@ -178,7 +178,7 @@ class GlimeshDataSource(
             .edges!!
             .filter { edge -> edge!!.node!!.status == ChannelStatus.LIVE }
             .map { edge -> Log.d(TAG, edge.toString()); edge }
-            .randomizedSortByDescending { edge -> edge!!.node!!.stream!!.countViewers!!.toDouble() }
+            .randomizedSortByDescending { edge -> edge!!.node!!.stream!!.countViewers ?: 0 }
             .map { edge ->
                 val node = edge!!.node!!
                 Channel(
@@ -310,8 +310,20 @@ object GlimeshNaiveTimeToInstantAdapter : Adapter<Instant> {
     }
 }
 
-private inline fun <T> Iterable<T>.randomizedSortByDescending(crossinline selector: (T) -> Double): List<T> {
-    return sortedByDescending { Math.random() * magnitude(selector(it)) }
+/**
+ * Randomize the order of the list, but with a slight bias
+ *
+ * For example, for a list with thirty items where one is value 100 and the others are value 0:
+ * - The 100 item has a 68% chance of being the first item, it's random value is in the range [0, 3)
+ * - Each  0 item has a ~1% chance of being the first item, it's random value is in the range [0, 1)
+ * - Each  0 item has a ~3% chance of being the second item (same for third position, fourth, etc)
+ *
+ * This gives a slight bias towards higher values while still giving lower values a decent chance
+ * of being first. The base10 log ensures even for higher values like 10,000 the bias does not
+ * change very much, there is still a distinct chance of a 0 item sorting first.
+ */
+private inline fun <T> Iterable<T>.randomizedSortByDescending(crossinline selector: (T) -> Int): List<T> {
+    return sortedByDescending { Math.random() * magnitude(selector(it).toDouble()) }
 }
 
-private inline fun magnitude(n: Double): Double = ln(n + 1.0) + 1.0
+private inline fun magnitude(n: Double): Double = log10(n + 1.0) + 1.0

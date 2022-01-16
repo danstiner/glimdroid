@@ -35,7 +35,7 @@ import kotlin.coroutines.suspendCoroutine
 
 
 @Serializable
-data class State(val notificationByChannelId: MutableMap<String, LiveNotification>)
+data class State(val notifications: MutableMap<String, LiveNotification>)
 
 @Serializable
 data class LiveNotification(val id: Int, val channel: Channel)
@@ -85,14 +85,16 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             Log.d(TAG, "Not authorized, skipping work")
             return Result.success()
         }
+
         Log.d(TAG, "doWork")
-        val channels = glimesh.myFollowedLiveChannels()
+
+        val liveChannels = glimesh.myFollowedLiveChannels()
 
         // Check if any channels stopped being live and should be cleared
-        state.notificationByChannelId.entries.removeIf { entry ->
+        state.notifications.entries.removeIf { entry ->
             val notification = entry.value
 
-            val isLive = channels.any { it.id == notification.channel.id }
+            val isLive = liveChannels.any { it.id == notification.channel.id }
 
             if (!isLive) {
                 NotificationManagerCompat.from(applicationContext).cancel(null, notification.id);
@@ -103,17 +105,16 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         }
 
         // Check if any channels newly went live
-        for (channel in channels) {
-            if (channel.id.toString() in state.notificationByChannelId) {
-                val notification = state.notificationByChannelId[channel.id.toString()]
+        for (channel in liveChannels) {
+            val id = channel.id.id.toString()
+            if (id in state.notifications) {
+                val notification = state.notifications[id]
                 // TODO update notification data if needed
             } else {
                 // Show notification
                 val notificationId = channel.id.id.toInt()
                 showNotification(notificationId, channel)
-
-                state.notificationByChannelId[channel.id.toString()] =
-                    LiveNotification(notificationId, channel)
+                state.notifications[id] = LiveNotification(notificationId, channel)
             }
         }
 
@@ -138,6 +139,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Build notification itself and display it
         val notification = NotificationCompat.Builder(applicationContext, LIVE_CHANNEL_ID)
+            .setContentTitle("${channel.streamer.displayName} is live")
+            .setContentText(channel.title)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setLargeIcon(
                 BitmapFactory.decodeResource(
@@ -145,12 +150,14 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
                     R.mipmap.ic_launcher_winter_foreground
                 )
             )
-            .setContentTitle("${channel.streamer.displayName} is live")
-            .setContentText(channel.title)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            notification
+                .setColor(applicationContext.getColor(R.color.md_theme_light_primary))
+                .setColorized(true)
+        }
 
         NotificationManagerCompat.from(applicationContext)
             .notify(notificationId, notification.build())
@@ -183,16 +190,18 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     private fun readState(): State {
-        val currentState = store.getString(KEY_STATE, null) ?: return State(mutableMapOf())
-        return try {
-            State(Json.decodeFromString(currentState))
+        val stateString = store.getString(KEY_STATE, null)
+        try {
+            if (stateString != null) {
+                return State(Json.decodeFromString(stateString))
+            }
         } catch (ex: kotlinx.serialization.SerializationException) {
             Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
-            State(mutableMapOf())
         } catch (ex: java.lang.ClassCastException) {
             Log.w(TAG, "Failed to deserialize stored state - discarding: ${ex.message}")
-            State(mutableMapOf())
         }
+
+        return State(mutableMapOf())
     }
 
     private fun writeState(@Nullable state: State?) {
