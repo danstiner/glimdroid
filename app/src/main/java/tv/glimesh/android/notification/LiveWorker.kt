@@ -160,7 +160,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Build notification itself and display it
         val notification = NotificationCompat.Builder(applicationContext, LIVE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_play_arrow_black_24dp)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setLargeIcon(
                 BitmapFactory.decodeResource(
                     applicationContext.resources,
