@@ -6,13 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.webrtc.VideoTrack
 import tv.glimesh.android.data.ChatMessage
 import tv.glimesh.android.data.GlimeshDataSource
@@ -170,7 +167,9 @@ class ChannelViewModel(
 
         mutex.withLock {
             if (currentChannel == channel) {
+                val oldConnection = connection
                 connection = con
+                oldConnection?.close()
             } else {
                 Log.w(TAG, "Channel changed out from under us before RTC connection opened")
                 con.close()
@@ -245,7 +244,9 @@ class ChannelViewModel(
 
         mutex.withLock {
             if (currentChannel == channel) {
+                val oldSubscription = chatSubscription
                 chatSubscription = sub
+                oldSubscription?.cancel()
             } else {
                 Log.w(TAG, "Channel changed out from under us before chat watch started")
                 sub.cancel()
@@ -254,21 +255,28 @@ class ChannelViewModel(
     }
 
     private suspend fun watchChannelUpdates(channel: ChannelId) {
-        val sub = glimeshSocket.channelUpdates(channel).apply {
-            data.collect { channel ->
-                Log.d(TAG, "Channel update: $channel")
-                updateChannelLiveData(channel)
-            }
+        // Simplistic approach because websocket subscriptions for a channel do not receive updates
+        // for stream metadata updates like number of viewers
+        while (currentChannel == channel) {
+            delay(30_000)
+            fetchChannelInfo(channel)
         }
 
-        mutex.withLock {
-            if (currentChannel == channel) {
-                channelSubscription = sub
-            } else {
-                Log.w(TAG, "Channel changed out from under us before chat watch started")
-                sub.cancel()
-            }
-        }
+//        val sub = glimeshSocket.channelUpdates(channel).apply {
+//            data.collect { channel ->
+//                Log.d(TAG, "Channel update: $channel")
+//                updateChannelLiveData(channel)
+//            }
+//        }
+//
+//        mutex.withLock {
+//            if (currentChannel == channel) {
+//                channelSubscription = sub
+//            } else {
+//                Log.w(TAG, "Channel changed out from under us before chat watch started")
+//                sub.cancel()
+//            }
+//        }
     }
 
     override fun onCleared() {
