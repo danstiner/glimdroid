@@ -11,12 +11,10 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Rational
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -181,13 +179,22 @@ class ChannelActivity : AppCompatActivity() {
 
         binding.chatInputEditText.setOnEditorActionListener { textView, id, _ ->
             when (id) {
-                EditorInfo.IME_ACTION_DONE -> {
-                    viewModel.sendMessage(textView.text)
-                    textView.text = ""
+                EditorInfo.IME_ACTION_SEND -> {
+                    viewModel.sendMessage(binding.chatInputEditText.text.toString())
+                    binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
                     true
                 }
                 else -> false
             }
+        }
+
+        binding.chatInputEditText.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
+                viewModel.sendMessage(binding.chatInputEditText.text.toString())
+                binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
+                return@setOnKeyListener true
+            }
+            return@setOnKeyListener false
         }
 
         // Ensure sourceRectHint is updated so exiting PiP animates smoothly to the original view
