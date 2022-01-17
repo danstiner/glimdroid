@@ -180,8 +180,7 @@ class ChannelActivity : AppCompatActivity() {
         binding.chatInputEditText.setOnEditorActionListener { textView, id, _ ->
             when (id) {
                 EditorInfo.IME_ACTION_SEND -> {
-                    viewModel.sendMessage(binding.chatInputEditText.text.toString())
-                    binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
+                    sendChatMessage()
                     true
                 }
                 else -> false
@@ -190,8 +189,7 @@ class ChannelActivity : AppCompatActivity() {
 
         binding.chatInputEditText.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
-                viewModel.sendMessage(binding.chatInputEditText.text.toString())
-                binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
+                sendChatMessage()
                 return@setOnKeyListener true
             }
             return@setOnKeyListener false
@@ -237,6 +235,11 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
+    }
+
+    private fun sendChatMessage() {
+        viewModel.sendMessage(binding.chatInputEditText.text.toString().trim())
+        binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
     }
 
     private fun loadVideoPreviewUri(uri: Uri?) {
