@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
@@ -152,12 +151,6 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setLargeIcon(
-                BitmapFactory.decodeResource(
-                    applicationContext.resources,
-                    R.mipmap.ic_launcher_winter_foreground
-                )
-            )
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
 
