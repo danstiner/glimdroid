@@ -139,7 +139,10 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             // Add the intent, which inflates the back stack
             addNextIntentWithParentStack(intent)
             // Get the PendingIntent containing the entire back stack
-            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            getPendingIntent(
+                notificationId,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
         // Build notification itself and display it
