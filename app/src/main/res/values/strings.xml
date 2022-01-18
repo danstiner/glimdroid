@@ -3,7 +3,7 @@
     <string name="title_following">Following</string>
     <string name="title_featured">Featured</string>
     <string name="title_categories">All Channels</string>
-    <string name="title_activity_login">Glimesh</string>
+    <string name="title_activity_login">GlimDroid</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>

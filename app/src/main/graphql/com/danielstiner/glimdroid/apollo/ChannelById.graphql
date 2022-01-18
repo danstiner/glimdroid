@@ -1,0 +1,31 @@
+query ChannelById($id: ID) {
+    channel(id: $id) {
+        id
+        title
+        category {
+            name
+        }
+        language
+        matureContent
+        status
+        stream {
+            id
+            countViewers
+            peakViewers
+            startedAt
+            thumbnailUrl
+        }
+        streamer {
+            id
+            avatarUrl
+            displayname
+            username
+        }
+        subcategory {
+            name
+        }
+        tags {
+            name
+        }
+    }
+}

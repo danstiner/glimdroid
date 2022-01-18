@@ -9,21 +9,21 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "tv.glimesh.android"
+        applicationId "com.danielstiner.glimdroid"
         minSdk 21
         targetSdk 32
-        versionCode 13
-        versionName "1.13"
+        versionCode 14
+        versionName "1.14"
 
         manifestPlaceholders = [
-            'appAuthRedirectScheme': 'tv.glimesh.android'
+            'appAuthRedirectScheme': 'com.danielstiner.glimdroid'
         ]
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     apollo {
-        packageName.set("tv.glimesh.apollo")
+        packageName.set("com.danielstiner.glimdroid.apollo")
     }
 
     buildTypes {

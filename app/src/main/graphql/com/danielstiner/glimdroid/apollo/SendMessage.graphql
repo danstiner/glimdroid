@@ -1,0 +1,5 @@
+mutation SendMessage($channelId: ID!, $message: ChatMessageInput!) {
+    createChatMessage(channelId: $channelId, message: $message) {
+        id
+    }
+}

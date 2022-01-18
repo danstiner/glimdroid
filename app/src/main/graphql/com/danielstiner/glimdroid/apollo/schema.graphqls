@@ -1,0 +1,1324 @@
+"""
+Categories are the containers for live streaming content.
+"""
+type Category {
+    """
+    Unique category identifier
+    """
+    id: ID
+
+    """
+    Category creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Name of the category
+    """
+    name: String
+
+    """
+    Slug of the category
+    """
+    slug: String
+
+    """
+    Subcategories within the category
+    """
+    subcategories(after: String, before: String, first: Int, last: Int): SubcategoryConnection
+
+    """
+    Tags associated with the category
+    """
+    tags(after: String, before: String, first: Int, last: Int): TagConnection
+
+    """
+    Category updated date
+    """
+    updatedAt: NaiveDateTime!
+}
+
+"""
+A channel is a user's actual container for live streaming.
+"""
+type Channel {
+    """
+    List of bans in the channel
+    """
+    bans(after: String, before: String, first: Int, last: Int): ChannelBanConnection
+
+    """
+    Toggle for blocking anyone from posting links
+    """
+    blockLinks: Boolean
+
+    """
+    Category the current stream is in
+    """
+    category: Category
+
+    """
+    Background URL for the Chat Box
+    """
+    chatBgUrl: String
+
+    """
+    List of chat messages sent in the channel
+    """
+    chatMessages(after: String, before: String, first: Int, last: Int): ChatMessageConnection
+
+    """
+    Chat rules in html
+    """
+    chatRulesHtml: String
+
+    """
+    Chat rules in markdown
+    """
+    chatRulesMd: String
+
+    """
+    Toggle for links automatically being clickable
+    """
+    disableHyperlinks: Boolean
+
+    """
+    Hash-based Message Authentication Code for the stream
+    """
+    hmacKey: String
+
+    """
+    Unique channel identifier
+    """
+    id: ID
+
+    """
+    Is the stream inaccessible?
+    """
+    inaccessible: Boolean
+
+    """
+    tv.glimesh.phoenix.channel.Channel creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    The language a user can expect in the stream
+    """
+    language: String
+
+    """
+    If the streamer has flagged this channel as only appropriate for Mature Audiences
+    """
+    matureContent: Boolean
+
+    """
+    Minimum account age length before chatting
+    """
+    minimumAccountAge: Int
+
+    """
+    List of moderation events in the channel
+    """
+    moderationLogs(after: String, before: String, first: Int, last: Int): ChannelModerationLogConnection
+
+    """
+    List of moderators in the channel
+    """
+    moderators(after: String, before: String, first: Int, last: Int): ChannelModeratorConnection
+
+    """
+    tv.glimesh.phoenix.channel.Channel poster URL
+    """
+    posterUrl: String
+
+    """
+    Toggle for requiring confirmed email before chatting
+    """
+    requireConfirmedEmail: Boolean
+
+    """
+    Toggle for homepage visibility
+    """
+    showOnHomepage: Boolean
+
+    """
+    Only show recent chat messages?
+    """
+    showRecentChatMessagesOnly: Boolean
+
+    """
+    The current status of the channnel
+    """
+    status: ChannelStatus
+
+    """
+    If the channel is live, this will be the current Stream
+    """
+    stream: Stream
+
+    """
+    Current streams unique stream key
+    """
+    streamKey: String
+
+    """
+    User associated with the channel
+    """
+    streamer: User!
+
+    streams(after: String, before: String, first: Int, last: Int): StreamConnection
+
+    """
+    Subcategory the current stream is in
+    """
+    subcategory: Subcategory
+
+    """
+    Tags associated with the current stream
+    """
+    tags: [Tag]
+
+    """
+    The title of the current stream, live or offline.
+    """
+    title: String
+
+    """
+    tv.glimesh.phoenix.channel.Channel updated date
+    """
+    updatedAt: NaiveDateTime!
+}
+
+"""
+A channel timeout or ban
+"""
+type ChannelBan {
+    """
+    tv.glimesh.phoenix.channel.Channel the ban affects
+    """
+    channel: Channel!
+
+    """
+    When the ban expires
+    """
+    expiresAt: NaiveDateTime
+
+    """
+    Unique channel ban identifier
+    """
+    id: ID!
+
+    """
+    tv.glimesh.phoenix.channel.Channel ban creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Reason for channel ban
+    """
+    reason: String
+
+    """
+    tv.glimesh.phoenix.channel.Channel ban updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    User the ban affects
+    """
+    user: User!
+}
+
+type ChannelBanConnection {
+    count: Int
+
+    edges: [ChannelBanEdge]
+
+    pageInfo: PageInfo!
+}
+
+type ChannelBanEdge {
+    cursor: String
+
+    node: ChannelBan
+}
+
+type ChannelConnection {
+    count: Int
+
+    edges: [ChannelEdge]
+
+    pageInfo: PageInfo!
+}
+
+type ChannelEdge {
+    cursor: String
+
+    node: Channel
+}
+
+"""
+A moderation event that happened
+"""
+type ChannelModerationLog {
+    """
+    Action performed
+    """
+    action: String
+
+    """
+    tv.glimesh.phoenix.channel.Channel the event occurred in
+    """
+    channel: Channel!
+
+    """
+    Unique moderation event identifier
+    """
+    id: ID!
+
+    """
+    Event creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Moderator that performed the event
+    """
+    moderator: User!
+
+    """
+    Event updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Receiving user of the event
+    """
+    user: User!
+}
+
+type ChannelModerationLogConnection {
+    count: Int
+
+    edges: [ChannelModerationLogEdge]
+
+    pageInfo: PageInfo!
+}
+
+type ChannelModerationLogEdge {
+    cursor: String
+
+    node: ChannelModerationLog
+}
+
+"""
+A channel moderator
+"""
+type ChannelModerator {
+    """
+    Can ban a user
+    """
+    canBan: Boolean
+
+    """
+    Can delete a message
+    """
+    canDelete: Boolean
+
+    """
+    Can perform a long timeout action
+    """
+    canLongTimeout: Boolean
+
+    """
+    Can perform a short timeout action
+    """
+    canShortTimeout: Boolean
+
+    """
+    Can untimeout a user
+    """
+    canUnTimeout: Boolean
+
+    """
+    Can unban a user
+    """
+    canUnban: Boolean
+
+    """
+    tv.glimesh.phoenix.channel.Channel the moderator can moderate in
+    """
+    channel: Channel!
+
+    """
+    Unique channel moderator identifier
+    """
+    id: ID!
+
+    """
+    Moderator creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Moderator updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Moderating User
+    """
+    user: User!
+}
+
+type ChannelModeratorConnection {
+    count: Int
+
+    edges: [ChannelModeratorEdge]
+
+    pageInfo: PageInfo!
+}
+
+type ChannelModeratorEdge {
+    cursor: String
+
+    node: ChannelModerator
+}
+
+"""
+Current channel status
+"""
+enum ChannelStatus {
+    LIVE
+
+    OFFLINE
+}
+
+"""
+A chat message sent to a channel by a user.
+"""
+type ChatMessage {
+    """
+    tv.glimesh.phoenix.channel.Channel where the chat message occurs
+    """
+    channel: Channel!
+
+    """
+    Unique chat message identifier
+    """
+    id: ID!
+
+    """
+    Chat message creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Was this message generated by our system for a follow
+    """
+    isFollowedMessage: Boolean @deprecated(reason: "We're going to replace this shortly after launch")
+
+    """
+    Was this message generated by our system for a subscription
+    """
+    isSubscriptionMessage: Boolean @deprecated(reason: "We're going to replace this shortly after launch")
+
+    """
+    The chat message contents, be careful to sanitize because any user input is allowed
+    """
+    message: String
+
+    """
+    List of chat message tokens used
+    """
+    tokens: [ChatMessageToken]
+
+    """
+    Chat message updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    User who sent the chat message
+    """
+    user: User!
+}
+
+type ChatMessageConnection {
+    count: Int
+
+    edges: [ChatMessageEdge]
+
+    pageInfo: PageInfo!
+}
+
+type ChatMessageEdge {
+    cursor: String
+
+    node: ChatMessage
+}
+
+input ChatMessageInput {
+    message: String
+}
+
+"""
+Chat Message Token Interface
+"""
+interface ChatMessageToken {
+    """
+    Token text
+    """
+    text: String
+
+    """
+    Token type
+    """
+    type: String
+}
+
+"""
+An edge to watch a FTL stream.
+"""
+type EdgeRoute {
+    """
+    Availability of edge for viewer traffic
+    """
+    available: Int
+
+    """
+    List of recommended country codes, used for latency
+    """
+    countryCodes: [String]
+
+    """
+    Edge hostname
+    """
+    hostname: String
+
+    """
+    ID of the edge route
+    """
+    id: ID
+
+    """
+    Edge created date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Edge priority
+    """
+    priority: Int
+
+    """
+    Edge updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Fully qualified edge URL
+    """
+    url: String
+}
+
+"""
+Chat Message Emote Token
+"""
+type EmoteToken implements ChatMessageToken {
+    """
+    Token src URL
+    """
+    src: String
+
+    """
+    Token text
+    """
+    text: String
+
+    """
+    Token type
+    """
+    type: String
+}
+
+"""
+A follower is a user who subscribes to notifications for a particular user's channel.
+"""
+type Follower {
+    """
+    Does this follower have live notifications enabled?
+    """
+    hasLiveNotifications: Boolean!
+
+    """
+    Unique follower identifier
+    """
+    id: ID!
+
+    """
+    Following creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    The streamer the user is following
+    """
+    streamer: User!
+
+    """
+    Following updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    The user that is following the streamer
+    """
+    user: User!
+}
+
+type FollowerConnection {
+    count: Int
+
+    edges: [FollowerEdge]
+
+    pageInfo: PageInfo!
+}
+
+type FollowerEdge {
+    cursor: String
+
+    node: Follower
+}
+
+type RootMutationType {
+    """
+    Ban a user from a chat channel.
+    """
+    banUser(channelId: ID!, userId: ID!): ChannelModerationLog
+
+    """
+    Create a chat message
+    """
+    createChatMessage(channelId: ID!, message: ChatMessageInput!): ChatMessage
+
+    """
+    Deletes a specific chat message from channel.
+    """
+    deleteChatMessage(channelId: ID!, messageId: ID!): ChannelModerationLog
+
+    """
+    End a stream
+    """
+    endStream(streamId: ID!): Stream
+
+    """
+    Update a stream's metadata
+    """
+    logStreamMetadata(metadata: StreamMetadataInput!, streamId: ID!): Stream
+
+    """
+    Long timeout (15 minutes) a user from a chat channel.
+    """
+    longTimeoutUser(channelId: ID!, userId: ID!): ChannelModerationLog
+
+    """
+    Short timeout (5 minutes) a user from a chat channel.
+    """
+    shortTimeoutUser(channelId: ID!, userId: ID!): ChannelModerationLog
+
+    """
+    Start a stream
+    """
+    startStream(channelId: ID!): Stream
+
+    """
+    Unban a user from a chat channel.
+    """
+    unbanUser(channelId: ID!, userId: ID!): ChannelModerationLog
+
+    """
+    Update a stream's thumbnail
+    """
+    uploadStreamThumbnail(streamId: ID!, thumbnail: Upload!): Stream
+
+    """
+    Watch a channel
+    """
+    watchChannel(channelId: ID!, country: String!): EdgeRoute
+}
+
+"""
+The `Naive DateTime` scalar type represents a naive date and time without
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string.
+"""
+scalar NaiveDateTime
+
+type PageInfo {
+    """
+    When paginating forwards, the cursor to continue.
+    """
+    endCursor: String
+
+    """
+    When paginating forwards, are there more items?
+    """
+    hasNextPage: Boolean!
+
+    """
+    When paginating backwards, are there more items?
+    """
+    hasPreviousPage: Boolean!
+
+    """
+    When paginating backwards, the cursor to continue.
+    """
+    startCursor: String
+}
+
+type RootQueryType {
+    """
+    List all categories
+    """
+    categories: [Category]
+
+    """
+    Query individual category
+    """
+    category(slug: String): Category
+
+    """
+    Query individual channel
+    """
+    channel(id: ID, streamerId: Int, streamerUsername: String): Channel
+
+    """
+    List all channels
+    """
+    channels(after: String, before: String, categorySlug: String, first: Int, last: Int, status: ChannelStatus): ChannelConnection
+
+    """
+    List all follows or followers
+    """
+    followers(after: String, before: String, first: Int, last: Int, streamerId: Int, userId: Int): FollowerConnection
+
+    """
+    List the channels currently on the homepage
+    """
+    homepageChannels(after: String, before: String, first: Int, last: Int): ChannelConnection
+
+    """
+    Get yourself
+    """
+    myself: User
+
+    """
+    Query individual user
+    """
+    user(id: Int, username: String): User
+
+    """
+    List all users
+    """
+    users(after: String, before: String, first: Int, last: Int): UserConnection
+}
+
+"""
+A stream is a single live stream in, either current or historical.
+"""
+type Stream {
+    """
+    The category the current stream is in
+    """
+    category: Category!
+
+    """
+    tv.glimesh.phoenix.channel.Channel running with the stream
+    """
+    channel: Channel!
+
+    """
+    Concurrent viewers during last snapshot
+    """
+    countViewers: Int
+
+    """
+    Datetime of when the stream was ended, or null if still going
+    """
+    endedAt: NaiveDateTime
+
+    """
+    Unique stream identifier
+    """
+    id: ID
+
+    """
+    Stream created date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Current stream metadata
+    """
+    metadata(after: String, before: String, first: Int, last: Int): StreamMetadataConnection
+
+    """
+    Peak concurrent viewers
+    """
+    peakViewers: Int
+
+    """
+    Datetime of when the stream was started
+    """
+    startedAt: NaiveDateTime!
+
+    """
+    Thumbnail URL of the stream
+    """
+    thumbnailUrl: String
+
+    """
+    The title of the channel when the stream was started
+    """
+    title: String
+
+    """
+    Stream updated date
+    """
+    updatedAt: NaiveDateTime!
+}
+
+type StreamConnection {
+    count: Int
+
+    edges: [StreamEdge]
+
+    pageInfo: PageInfo!
+}
+
+type StreamEdge {
+    cursor: String
+
+    node: Stream
+}
+
+"""
+A single instance of stream metadata.
+"""
+type StreamMetadata {
+    """
+    Stream audio codec
+    """
+    audioCodec: String
+
+    """
+    Unique stream metadata identifier
+    """
+    id: ID
+
+    """
+    Ingest Server URL
+    """
+    ingestServer: String
+
+    """
+    Viewers on the ingest
+    """
+    ingestViewers: String
+
+    """
+    Stream metadata created date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Lost stream input data packets
+    """
+    lostPackets: Int
+
+    """
+    Negative Acknowledged stream input data packets
+    """
+    nackPackets: Int
+
+    """
+    Received stream input data packets
+    """
+    recvPackets: Int
+
+    """
+    Bitrate at the source
+    """
+    sourceBitrate: Int
+
+    """
+    Ping to the source
+    """
+    sourcePing: Int
+
+    """
+    Current stream metadata references
+    """
+    stream: Stream!
+
+    """
+    Current Stream time in seconds
+    """
+    streamTimeSeconds: Int
+
+    """
+    Stream metadata updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Client vendor name
+    """
+    vendorName: String
+
+    """
+    Client vendor version
+    """
+    vendorVersion: String
+
+    """
+    Stream video codec
+    """
+    videoCodec: String
+
+    """
+    Stream video height
+    """
+    videoHeight: Int
+
+    """
+    Stream video width
+    """
+    videoWidth: Int
+}
+
+type StreamMetadataConnection {
+    count: Int
+
+    edges: [StreamMetadataEdge]
+
+    pageInfo: PageInfo!
+}
+
+type StreamMetadataEdge {
+    cursor: String
+
+    node: StreamMetadata
+}
+
+input StreamMetadataInput {
+    """
+    Stream audio codec
+    """
+    audioCodec: String
+
+    """
+    Ingest Server URL
+    """
+    ingestServer: String
+
+    """
+    Viewers on the ingest
+    """
+    ingestViewers: Int
+
+    """
+    Lost stream input data packets
+    """
+    lostPackets: Int
+
+    """
+    Negative Acknowledged stream input data packets
+    """
+    nackPackets: Int
+
+    """
+    Received stream input data packets
+    """
+    recvPackets: Int
+
+    """
+    Bitrate at the source
+    """
+    sourceBitrate: Int
+
+    """
+    Ping to the source
+    """
+    sourcePing: Int
+
+    """
+    Current Stream time in seconds
+    """
+    streamTimeSeconds: Int
+
+    """
+    Client vendor name
+    """
+    vendorName: String
+
+    """
+    Client vendor version
+    """
+    vendorVersion: String
+
+    """
+    Stream video codec
+    """
+    videoCodec: String
+
+    """
+    Stream video height
+    """
+    videoHeight: Int
+
+    """
+    Stream video width
+    """
+    videoWidth: Int
+}
+
+"""
+Subcategories are specific games, topics, or genre's that exist under a Category.
+"""
+type Subcategory {
+    """
+    Subcategory background image URL
+    """
+    backgroundImageUrl: String
+
+    """
+    Parent category
+    """
+    category: Category
+
+    """
+    Unique subcategory identifier
+    """
+    id: ID
+
+    """
+    Subcategory creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Name of the subcategory
+    """
+    name: String
+
+    """
+    URL friendly name of the subcategory
+    """
+    slug: String
+
+    """
+    Subcategory source
+    """
+    source: String
+
+    """
+    Subcategory source ID
+    """
+    sourceId: String
+
+    """
+    Subcategory updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Was the subcategory created by a user?
+    """
+    userCreated: Boolean
+}
+
+type SubcategoryConnection {
+    count: Int
+
+    edges: [SubcategoryEdge]
+
+    pageInfo: PageInfo!
+}
+
+type SubcategoryEdge {
+    cursor: String
+
+    node: Subcategory
+}
+
+type RootSubscriptionType {
+    channel(id: ID): Channel
+
+    chatMessage(channelId: ID): ChatMessage
+
+    followers(streamerId: ID): Follower
+}
+
+"""
+Tags are user created labels that are either global or category specific.
+"""
+type Tag {
+    """
+    Parent category
+    """
+    category: Category
+
+    """
+    The number of streams started with this tag
+    """
+    countUsage: Int
+
+    """
+    Unique tag identifier
+    """
+    id: ID
+
+    """
+    Tag creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Name of the tag
+    """
+    name: String
+
+    """
+    URL friendly name of the tag
+    """
+    slug: String
+
+    """
+    Tag updated date
+    """
+    updatedAt: NaiveDateTime!
+}
+
+type TagConnection {
+    count: Int
+
+    edges: [TagEdge]
+
+    pageInfo: PageInfo!
+}
+
+type TagEdge {
+    cursor: String
+
+    node: Tag
+}
+
+"""
+Chat Message Text Token
+"""
+type TextToken implements ChatMessageToken {
+    """
+    Token text
+    """
+    text: String
+
+    """
+    Token type
+    """
+    type: String
+}
+
+"""
+Represents an uploaded file.
+"""
+scalar Upload
+
+"""
+Chat Message URL Token
+"""
+type UrlToken implements ChatMessageToken {
+    """
+    Token text
+    """
+    text: String
+
+    """
+    Token type
+    """
+    type: String
+
+    """
+    Token URL
+    """
+    url: String
+}
+
+"""
+A user of Glimesh, can be a streamer, a viewer or both!
+"""
+type User {
+    allowGlimeshNewsletterEmails: Boolean!
+
+    allowLiveSubscriptionEmails: Boolean!
+
+    """
+    URL to the user's avatar
+    """
+    avatarUrl: String
+
+    """
+    A user's channel, if they have one
+    """
+    channel: Channel
+
+    """
+    Datetime the user confirmed their email address
+    """
+    confirmedAt: NaiveDateTime
+
+    countFollowers: Int
+
+    countFollowing: Int
+
+    """
+    Exactly the same as the username, but with casing the user prefers
+    """
+    displayname: String!
+
+    """
+    Email for the user, hidden behind a scope
+    """
+    email: String
+
+    followers(after: String, before: String, first: Int, last: Int): FollowerConnection
+
+    following(after: String, before: String, first: Int, last: Int): FollowerConnection
+
+    """
+    Shortcut to a user's followed channels
+    """
+    followingLiveChannels(after: String, before: String, first: Int, last: Int): ChannelConnection
+
+    """
+    Unique User identifier
+    """
+    id: ID!
+
+    """
+    Account creation date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    HTML version of the user's profile, should be safe for rendering directly
+    """
+    profileContentHtml: String
+
+    """
+    Markdown version of the user's profile
+    """
+    profileContentMd: String
+
+    """
+    Qualified URL for the user's Discord server
+    """
+    socialDiscord: String
+
+    """
+    Qualified URL for the user's Guilded server
+    """
+    socialGuilded: String
+
+    """
+    Qualified URL for the user's Instagram account
+    """
+    socialInstagram: String
+
+    """
+    Qualified URL for the user's YouTube account
+    """
+    socialYoutube: String
+
+    """
+    A list of linked social accounts for the user
+    """
+    socials: [UserSocial]
+
+    """
+    The primary role the user performs on the Glimesh team
+    """
+    teamRole: String
+
+    """
+    Account last updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Lowercase user identifier
+    """
+    username: String!
+
+    """
+    YouTube Intro URL for the user's profile
+    """
+    youtubeIntroUrl: String
+}
+
+type UserConnection {
+    count: Int
+
+    edges: [UserEdge]
+
+    pageInfo: PageInfo!
+}
+
+type UserEdge {
+    cursor: String
+
+    node: User
+}
+
+"""
+A linked social account for a Glimesh user.
+"""
+type UserSocial {
+    """
+    Unique social account identifier
+    """
+    id: ID!
+
+    """
+    Platform unique identifier, usually a ID, made into a string
+    """
+    identifier: String
+
+    """
+    User socials created date
+    """
+    insertedAt: NaiveDateTime!
+
+    """
+    Platform that is linked, eg: twitter
+    """
+    platform: String
+
+    """
+    User socials updated date
+    """
+    updatedAt: NaiveDateTime!
+
+    """
+    Username for the user on the linked platform
+    """
+    username: String
+}
+
+schema {
+    query: RootQueryType
+    mutation: RootMutationType
+    subscription: RootSubscriptionType
+}
