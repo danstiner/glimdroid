@@ -172,18 +172,19 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Load avatar icon and replace large icon with it
         channel.streamer.avatarUrl?.let { avatarUrl ->
-            val avatarBitmap = loadBitmapUrl(URL(avatarUrl))
+            val avatarBitmap = loadAvatarBitmap(URL(avatarUrl))
             Log.d(TAG, "Loaded large notification icon")
             NotificationManagerCompat.from(applicationContext)
                 .notify(notificationId, notification.setLargeIcon(avatarBitmap).build())
         }
     }
 
-    private suspend fun loadBitmapUrl(url: URL): Bitmap {
+    private suspend fun loadAvatarBitmap(url: URL): Bitmap {
         return suspendCoroutine { continuation ->
             Glide.with(applicationContext)
                 .asBitmap()
                 .load(url)
+                .circleCrop()
                 .into(object : CustomTarget<Bitmap?>() {
                     override fun onResourceReady(
                         resource: Bitmap,
