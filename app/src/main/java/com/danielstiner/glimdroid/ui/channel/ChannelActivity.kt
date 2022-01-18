@@ -148,7 +148,6 @@ class ChannelActivity : AppCompatActivity() {
                 Glide
                     .with(this)
                     .load(it)
-                    .fitCenter()
                     .circleCrop()
                     .into(binding.avatarImage)
             } else {

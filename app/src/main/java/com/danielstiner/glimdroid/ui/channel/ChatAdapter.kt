@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.request.Request
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.SizeReadyCallback
@@ -144,8 +145,8 @@ class GlideImageGetter(
                 Glide.with(context)
                     .asBitmap()
                     .load(source)
-                    .fitCenter()
-                    .optionalCircleCrop()
+                    .priority(Priority.LOW)
+                    .circleCrop()
                     .into(drawable)
             }
         }
