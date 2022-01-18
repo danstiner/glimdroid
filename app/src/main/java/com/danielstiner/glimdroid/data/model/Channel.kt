@@ -9,6 +9,7 @@ data class Channel(
     val matureContent: Boolean,
     val language: String?,
     val category: Category,
+    val subcategory: Subcategory?,
     val tags: List<Tag>,
     val streamer: Streamer,
     val stream: Stream?,

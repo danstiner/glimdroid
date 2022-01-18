@@ -109,6 +109,14 @@ class ChannelActivity : AppCompatActivity() {
                 binding.chipCategory.visibility = View.GONE
             }
         })
+        viewModel.subcategory.observe(this, {
+            if (it != null) {
+                binding.chipSubcategory.text = it.name
+                binding.chipSubcategory.visibility = View.VISIBLE
+            } else {
+                binding.chipSubcategory.visibility = View.GONE
+            }
+        })
         viewModel.tags.observe(this, {
             binding.chipGroupTag.removeAllViews()
             for (tag in it) {

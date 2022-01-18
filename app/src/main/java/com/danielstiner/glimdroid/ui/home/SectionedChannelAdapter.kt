@@ -34,9 +34,10 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         private val titleTextView: TextView = itemView.findViewById(R.id.title_text)
         private val avatarImageView: ImageView = itemView.findViewById(R.id.avatar_image)
         private val channelPreviewImageView: ImageView = itemView.findViewById(R.id.thumbnail_image)
+        private val chipCategory: Chip = itemView.findViewById(R.id.chip_category)
+        private val chipSubcategory: Chip = itemView.findViewById(R.id.chip_subcategory)
         private val chipMature: Chip = itemView.findViewById(R.id.chip_mature)
         private val chipLanguage: Chip = itemView.findViewById(R.id.chip_language)
-        private val chipCategory: Chip = itemView.findViewById(R.id.chip_category)
         private val radius = itemView.resources.getDimensionPixelSize(R.dimen.corner_radius)
         private var currentChannel: Channel? = null
 
@@ -55,10 +56,22 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamer.displayName
 
+            if (channel.category != null) {
+                chipCategory.text = channel.category.name
+                chipCategory.visibility = View.VISIBLE
+            } else {
+                chipCategory.visibility = View.GONE
+            }
+            if (channel.subcategory != null) {
+                chipSubcategory.text = channel.subcategory.name
+                chipSubcategory.visibility = View.VISIBLE
+            } else {
+                chipSubcategory.visibility = View.GONE
+            }
             if (channel.matureContent) {
                 chipMature.visibility = View.VISIBLE
             } else {
-                chipMature.visibility = View.INVISIBLE
+                chipMature.visibility = View.GONE
             }
             if (channel.language != null) {
                 val loc = Locale(channel.language)
@@ -66,13 +79,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 chipLanguage.text = name
                 chipLanguage.visibility = View.VISIBLE
             } else {
-                chipLanguage.visibility = View.INVISIBLE
-            }
-            if (channel.category != null) {
-                chipCategory.text = channel.category.name
-                chipCategory.visibility = View.VISIBLE
-            } else {
-                chipCategory.visibility = View.INVISIBLE
+                chipLanguage.visibility = View.GONE
             }
 
             if (channel.streamer.avatarUrl == null) {
@@ -120,6 +127,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         private val chipMature: Chip = itemView.findViewById(R.id.chip_mature)
         private val chipLanguage: Chip = itemView.findViewById(R.id.chip_language)
         private val chipCategory: Chip = itemView.findViewById(R.id.chip_category)
+        private val chipSubcategory: Chip = itemView.findViewById(R.id.chip_subcategory)
         private val chipGroupTag: ChipGroup = itemView.findViewById(R.id.chip_group_tag)
         private val radius = itemView.resources.getDimensionPixelSize(R.dimen.corner_radius)
         private var currentChannel: Channel? = null
@@ -139,6 +147,18 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamer.displayName
 
+            if (channel.category != null) {
+                chipCategory.text = channel.category.name
+                chipCategory.visibility = View.VISIBLE
+            } else {
+                chipCategory.visibility = View.GONE
+            }
+            if (channel.subcategory != null) {
+                chipSubcategory.text = channel.subcategory.name
+                chipSubcategory.visibility = View.VISIBLE
+            } else {
+                chipSubcategory.visibility = View.GONE
+            }
             if (channel.matureContent) {
                 chipMature.visibility = View.VISIBLE
             } else {
@@ -151,12 +171,6 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 chipLanguage.visibility = View.VISIBLE
             } else {
                 chipLanguage.visibility = View.GONE
-            }
-            if (channel.category != null) {
-                chipCategory.text = channel.category.name
-                chipCategory.visibility = View.VISIBLE
-            } else {
-                chipCategory.visibility = View.GONE
             }
 
             chipGroupTag.removeAllViews()

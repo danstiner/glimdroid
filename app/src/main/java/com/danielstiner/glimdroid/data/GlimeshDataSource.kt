@@ -51,6 +51,7 @@ class GlimeshDataSource(
                     matureContent = node.matureContent ?: false,
                     language = node.language,
                     category = Category(node.category?.name!!),
+                    subcategory = node.subcategory?.name?.let { Subcategory(it) },
                     tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
                     streamer = Streamer(
                         username = node.streamer.username,
@@ -78,6 +79,7 @@ class GlimeshDataSource(
                     matureContent = node.matureContent ?: false,
                     language = node.language,
                     category = Category(node.category?.name!!),
+                    subcategory = node.subcategory?.name?.let { Subcategory(it) },
                     tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
                     streamer = Streamer(
                         username = node.streamer.username,
@@ -116,6 +118,7 @@ class GlimeshDataSource(
                     matureContent = node.matureContent ?: false,
                     language = node.language,
                     category = Category(node.category?.name!!),
+                    subcategory = node.subcategory?.name?.let { Subcategory(it) },
                     tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
                     streamer = Streamer(
                         username = node.streamer.username,
@@ -149,6 +152,7 @@ class GlimeshDataSource(
                 matureContent = node.matureContent ?: false,
                 language = node.language,
                 category = Category(node.category!!.name!!),
+                subcategory = node.subcategory?.name?.let { Subcategory(it) },
                 tags = node.tags!!.mapNotNull { tag -> tag?.name?.let { Tag(it) } },
                 streamer = Streamer(
                     username = node.streamer.username,
@@ -187,6 +191,7 @@ class GlimeshDataSource(
                     matureContent = node.matureContent ?: false,
                     language = node.language,
                     category = Category(node.category!!.name!!),
+                    subcategory = node.subcategory?.name?.let { Subcategory(it) },
                     tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
                     streamer = Streamer(
                         username = node.streamer.username,
@@ -266,6 +271,7 @@ class GlimeshDataSource(
                 matureContent = node.matureContent ?: false,
                 language = node.language,
                 category = Category(node.category?.name!!),
+                subcategory = node.subcategory?.name?.let { Subcategory(it) },
                 tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
                 streamer = Streamer(
                     username = node.streamer.username,

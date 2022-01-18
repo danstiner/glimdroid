@@ -9,10 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.danielstiner.glimdroid.data.ChatMessage
 import com.danielstiner.glimdroid.data.GlimeshDataSource
 import com.danielstiner.glimdroid.data.GlimeshWebsocketDataSource
-import com.danielstiner.glimdroid.data.model.Category
-import com.danielstiner.glimdroid.data.model.Channel
-import com.danielstiner.glimdroid.data.model.ChannelId
-import com.danielstiner.glimdroid.data.model.Tag
+import com.danielstiner.glimdroid.data.model.*
 import com.danielstiner.phoenix.absinthe.Subscription
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -44,6 +41,9 @@ class ChannelViewModel(
 
     private val _category = MutableLiveData<Category>()
     val category: LiveData<Category> = _category
+
+    private val _subcategory = MutableLiveData<Subcategory?>()
+    val subcategory: LiveData<Subcategory?> = _subcategory
 
     private val _tags = MutableLiveData<List<Tag>>()
     val tags: LiveData<List<Tag>> = _tags
@@ -190,6 +190,7 @@ class ChannelViewModel(
                     _matureContent.value = channel.matureContent
                     _language.value = channel.language
                     _category.value = channel.category
+                    _subcategory.value = channel.subcategory
                     _tags.value = channel.tags
                     _streamerDisplayname.value = channel.streamer.displayName
                     _streamerUsername.value = channel.streamer.username

@@ -60,10 +60,10 @@
             android:focusable="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="invisible" />
+            android:visibility="gone" />
 
         <com.google.android.material.chip.Chip
-            android:id="@+id/chip_language"
+            android:id="@+id/chip_subcategory"
             style="@style/AppTheme.Chip.Tag"
             android:clickable="false"
             android:focusable="false"
@@ -80,6 +80,15 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:text="@string/mature" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_language"
+            style="@style/AppTheme.Chip.Tag"
+            android:clickable="false"
+            android:focusable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
     </com.google.android.material.chip.ChipGroup>
 
