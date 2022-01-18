@@ -43,6 +43,9 @@
     <string name="title_events">Events</string>
     <string name="title_home">Home</string>
     <string name="title_live">Live Channels</string>
-    <string name="tagline_description">"The first live streaming platform built around truly real time interactivity. Our streams are warp speed, our chat is blazing, and our community is thriving. "</string>
+    <string name="tagline_description">
+        With low latency streams and increased discoverability for streamers,
+        Glimesh.tv is the next generation of streaming platform. Find your new favorite streamer!
+    </string>
     <string name="mature">Mature</string>
 </resources>

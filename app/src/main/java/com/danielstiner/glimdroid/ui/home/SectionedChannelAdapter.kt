@@ -225,7 +225,6 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
     private class TaglineViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         private val aboutButton: Button = itemView.findViewById(R.id.button_about)
-        private val createButton: Button = itemView.findViewById(R.id.button_create)
 
         init {
             aboutButton.setOnClickListener {
@@ -233,14 +232,6 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                     Intent(
                         Intent.ACTION_VIEW,
                         Uri.parse("https://glimesh.tv/about")
-                    )
-                )
-            }
-            createButton.setOnClickListener {
-                itemView.context.startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/users/settings/stream")
                     )
                 )
             }

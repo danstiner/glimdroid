@@ -21,23 +21,12 @@
         android:layout_marginBottom="4dp">
 
         <TextView
-            android:id="@+id/text_nextgen"
+            android:id="@+id/text_nextgen_livestreaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Next-Gen"
+            android:text="Next-gen Streaming"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            android:textColor="#dc3545"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/text_livestreaming"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="4dp"
-            android:text="Live Streaming"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            app:layout_constraintStart_toEndOf="@id/text_nextgen"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
@@ -47,7 +36,7 @@
             android:text="@string/tagline_description"
             android:textAppearance="?attr/textAppearanceBodySmall"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_livestreaming" />
+            app:layout_constraintTop_toBottomOf="@id/text_nextgen_livestreaming" />
 
         <Button
             android:id="@+id/button_about"
@@ -56,15 +45,6 @@
             android:layout_height="wrap_content"
             android:text="Learn More"
             android:textColor="@android:color/primary_text_light"
-            app:layout_constraintEnd_toStartOf="@id/button_create"
-            app:layout_constraintTop_toBottomOf="@id/text_body" />
-
-        <Button
-            android:id="@+id/button_create"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Create Your Channel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_body" />
 
