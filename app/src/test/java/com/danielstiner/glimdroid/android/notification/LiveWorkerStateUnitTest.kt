@@ -1,9 +1,6 @@
 package com.danielstiner.glimdroid.android.notification
 
-import com.danielstiner.glimdroid.data.model.Category
-import com.danielstiner.glimdroid.data.model.Channel
-import com.danielstiner.glimdroid.data.model.ChannelId
-import com.danielstiner.glimdroid.data.model.Streamer
+import com.danielstiner.glimdroid.data.model.*
 import com.danielstiner.glimdroid.notification.LiveNotification
 import com.danielstiner.glimdroid.notification.State
 import org.junit.Assert.assertEquals
@@ -55,6 +52,7 @@ class LiveWorkerStateUnitTest {
         matureContent = false,
         language = null,
         category = Category(name = "Category"),
+        subcategory = Subcategory(name = "Subcategory"),
         tags = listOf(),
         streamer = Streamer(
             username = "username",
