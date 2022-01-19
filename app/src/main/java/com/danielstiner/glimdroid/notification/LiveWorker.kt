@@ -150,7 +150,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             .setContentText(channel.title)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_status_bar)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
 
