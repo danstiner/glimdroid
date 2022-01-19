@@ -89,7 +89,6 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                     .with(itemView)
                     .load(URL(channel.streamer.avatarUrl))
                     .circleCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(avatarImageView)
             }
 
@@ -99,7 +98,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 Glide
                     .with(itemView)
                     .load(URL(channel.stream.thumbnailUrl))
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .priority(Priority.LOW)
                     .transform(RoundedCorners(radius))
                     .transition(DrawableTransitionOptions.withCrossFade())
@@ -200,7 +199,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 Glide
                     .with(itemView)
                     .load(URL(channel.stream.thumbnailUrl))
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .transform(RoundedCorners(radius))
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(channelPreviewImageView)

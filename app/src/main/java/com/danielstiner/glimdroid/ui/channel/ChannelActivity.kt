@@ -264,7 +264,6 @@ class ChannelActivity : AppCompatActivity() {
                     .with(this)
                     .asBitmap()
                     .load(uri)
-                    .onlyRetrieveFromCache(true)
                     .into(binding.videoPreview)
             }
             else -> {
