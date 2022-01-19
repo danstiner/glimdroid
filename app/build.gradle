@@ -35,6 +35,13 @@ android {
                 debugSymbolLevel = 'FULL'
             }
         }
+
+        buildTypes.each {
+            it.buildConfigField 'String', 'OAUTH_CLIENT_ID', "\"${findProperty("com.danielstiner.glimdroid.oauth.client_id")}\""
+            it.buildConfigField 'String', 'OAUTH_REDIRECT_URL', "\"${findProperty("com.danielstiner.glimdroid.oauth.redirect_url")}\""
+            it.buildConfigField 'String', 'GLIMESH_BASE_URL', "\"${findProperty("com.danielstiner.glimdroid.glimesh.base_url")}\""
+            it.buildConfigField 'String', 'GLIMESH_WEBSOCKET_URL', "\"${findProperty("com.danielstiner.glimdroid.glimesh.websocket_url")}\""
+        }
     }
     compileOptions {
         coreLibraryDesugaringEnabled = true

@@ -86,12 +86,19 @@ class MainActivity : AppCompatActivity() {
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/users/settings/profile")
+                        USER_PROFILE_URI
                     )
                 )
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    companion object {
+        private val USER_PROFILE_URI =
+            Uri.parse(BuildConfig.GLIMESH_BASE_URL).buildUpon()
+                .appendEncodedPath("users/settings/profile")
+                .build()
     }
 }

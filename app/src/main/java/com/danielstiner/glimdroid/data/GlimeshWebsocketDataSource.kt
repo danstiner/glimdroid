@@ -1,9 +1,11 @@
 package com.danielstiner.glimdroid.data
 
+import android.net.Uri
 import android.util.Log
 import com.apollographql.apollo3.api.CustomScalarAdapters
 import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
+import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.apollo.*
 import com.danielstiner.glimdroid.apollo.type.ChatMessageInput
 import com.danielstiner.glimdroid.data.model.*
@@ -20,6 +22,10 @@ import java.net.URI
 import java.net.URL
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
+
+val WEBSOCKET_V2_URI: Uri =
+    Uri.parse(BuildConfig.GLIMESH_WEBSOCKET_URL).buildUpon().appendQueryParameter("vsn", "2.0.0")
+        .build()
 
 data class ChatMessage(
     val id: String,
@@ -177,7 +183,9 @@ class GlimeshWebsocketDataSource private constructor(
 
             if (con == null) {
                 val socket = Socket.open(
-                    URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&client_id=$CLIENT_ID"),
+                    WEBSOCKET_V2_URI.buildUpon()
+                        .appendQueryParameter("client_id", CLIENT_ID)
+                        .build().toURI(),
                     scope = scope
                 )
                 con = Connection.create(
@@ -199,7 +207,9 @@ class GlimeshWebsocketDataSource private constructor(
 
             if (con == null) {
                 val socket = Socket.open(
-                    URI.create("wss://glimesh.tv/api/socket/websocket?vsn=2.0.0&token=${auth.freshAccessToken()}"),
+                    WEBSOCKET_V2_URI.buildUpon()
+                        .appendQueryParameter("token", auth.freshAccessToken())
+                        .build().toURI(),
                     scope = scope
                 )
                 con = Connection.create(
@@ -236,3 +246,5 @@ class GlimeshWebsocketDataSource private constructor(
         }
     }
 }
+
+private fun Uri.toURI(): URI = URI.create(this.toString())

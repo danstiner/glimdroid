@@ -16,6 +16,7 @@ import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.Channel
 import com.google.android.material.chip.Chip
@@ -244,7 +245,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 itemView.context.startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/about")
+                        ABOUT_URI
                     )
                 )
             }
@@ -332,5 +333,10 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         private const val ITEM_VIEW_TYPE_LARGE_CHANNEL = 2
         private const val ITEM_VIEW_TYPE_HEADER = 3
         private const val ITEM_VIEW_TYPE_TAGLINE = 4
+
+        private val ABOUT_URI =
+            Uri.parse(BuildConfig.GLIMESH_BASE_URL).buildUpon()
+                .appendPath("about")
+                .build()
     }
 }

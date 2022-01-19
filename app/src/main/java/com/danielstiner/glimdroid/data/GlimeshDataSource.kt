@@ -16,11 +16,14 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.math.log10
 
+val GLIMESH_GRAPH_API_ENDPOINT: String =
+    GLIMESH_BASE_URI.buildUpon().appendEncodedPath("api/graph").build().toString()
+
 class GlimeshDataSource(
     private val auth: AuthStateDataSource
 ) {
     private val apolloClient = ApolloClient.Builder()
-        .serverUrl("https://glimesh.tv/api/graph")
+        .serverUrl(GLIMESH_GRAPH_API_ENDPOINT)
         .addCustomScalarAdapter(
             CustomScalarType("NaiveDateTime", Instant::javaClass.name),
             GlimeshNaiveTimeToInstantAdapter

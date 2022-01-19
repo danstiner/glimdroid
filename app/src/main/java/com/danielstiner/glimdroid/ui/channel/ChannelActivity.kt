@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
+import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.StreamId
@@ -134,7 +135,7 @@ class ChannelActivity : AppCompatActivity() {
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/").buildUpon()
+                        BASE_URI.buildUpon()
                             .appendPath(username)
                             .appendPath("profile").build()
                     )
@@ -144,7 +145,7 @@ class ChannelActivity : AppCompatActivity() {
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://glimesh.tv/").buildUpon()
+                        BASE_URI.buildUpon()
                             .appendPath(username)
                             .appendPath("profile").build()
                     )
@@ -423,6 +424,8 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     companion object {
+        private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
+
         fun intent(
             context: Context,
             channel: ChannelId,
