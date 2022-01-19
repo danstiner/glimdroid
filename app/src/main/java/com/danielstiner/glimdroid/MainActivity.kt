@@ -27,8 +27,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setTitle(R.string.title_live)
 
         mainViewModel = ViewModelProvider(
@@ -54,9 +54,6 @@ class MainActivity : AppCompatActivity() {
             R.string.navigation_drawer_close
         )
         drawerLayout.addDrawerListener(drawerToggle)
-
-        // TODO link to liveview
-//        showFollowingCount(2)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
