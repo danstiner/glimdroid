@@ -6,13 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
-    suppressUnsupportedCompileSdk 32
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.danielstiner.glimdroid"
         minSdk 21
-        targetSdk 32
+        targetSdk 31
         versionCode 16
         versionName "1.16"
 
@@ -22,11 +21,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
-    apollo {
-        packageName.set("com.danielstiner.glimdroid.apollo")
-    }
-
     buildTypes {
         release {
             minifyEnabled true
@@ -58,6 +52,8 @@ android {
 }
 
 apollo {
+    packageName.set("com.danielstiner.glimdroid.apollo")
+
     customScalarsMapping = [
             'NaiveDateTime' : 'java.time.Instant',
     ]
