@@ -53,11 +53,9 @@ class ChannelActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-// Remember that you should never show the action bar if the
-// status bar is hidden, so hide that too if necessary.
-        actionBar?.hide()
-
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            hideStatusBar()
+        }
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -356,6 +354,16 @@ class ChannelActivity : AppCompatActivity() {
         } else {
             // Restore the normal UI
             binding.group.visibility = View.VISIBLE
+        }
+    }
+
+    private fun hideStatusBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
         }
     }
 
