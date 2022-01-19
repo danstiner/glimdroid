@@ -282,7 +282,7 @@ class ChannelActivity : AppCompatActivity() {
             .setAspectRatio(Rational(16, 9))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(true);
+            builder.setAutoEnterEnabled(true)
         }
 
         return builder.build()
@@ -302,10 +302,10 @@ class ChannelActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-//
-//        viewModel.videoTrack.value?.let { track ->
-//            track.removeSink(proxyVideoSink)
-//        }
+
+        viewModel.videoTrack.value?.let { track ->
+            track.removeSink(proxyVideoSink)
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
