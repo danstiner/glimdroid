@@ -63,7 +63,7 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers ?: 0,
+                        viewerCount = node.stream!!.countViewers,
                         thumbnailUrl = node.stream!!.thumbnailUrl,
                         startedAt = node.stream!!.startedAt
                     )
@@ -91,7 +91,7 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers ?: 0,
+                        viewerCount = node.stream!!.countViewers,
                         thumbnailUrl = node.stream!!.thumbnailUrl,
                         startedAt = node.stream!!.startedAt,
                     )
@@ -130,7 +130,7 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers ?: 0,
+                        viewerCount = node.stream!!.countViewers,
                         thumbnailUrl = node.stream!!.thumbnailUrl,
                         startedAt = node.stream!!.startedAt,
                     )
@@ -165,7 +165,7 @@ class GlimeshDataSource(
                 stream = node.stream?.let { stream ->
                     Stream(
                         id = StreamId(stream.id!!.toLong()),
-                        viewerCount = stream.countViewers ?: 0,
+                        viewerCount = stream.countViewers,
                         thumbnailUrl = stream.thumbnailUrl,
                         startedAt = node.stream!!.startedAt,
                     )
@@ -204,7 +204,7 @@ class GlimeshDataSource(
                     stream = node.stream?.let { stream ->
                         Stream(
                             id = StreamId(stream.id!!.toLong()),
-                            viewerCount = stream.countViewers ?: 0,
+                            viewerCount = stream.countViewers,
                             thumbnailUrl = stream.thumbnailUrl,
                             startedAt = node.stream!!.startedAt,
                         )
@@ -284,7 +284,7 @@ class GlimeshDataSource(
                 stream = node.stream?.let { stream ->
                     Stream(
                         id = StreamId(stream.id!!.toLong()),
-                        viewerCount = stream.countViewers ?: 0,
+                        viewerCount = stream.countViewers,
                         thumbnailUrl = stream.thumbnailUrl,
                         startedAt = stream.startedAt,
                     )

@@ -145,7 +145,7 @@ class GlimeshWebsocketDataSource private constructor(
                 stream = node.stream?.let { stream ->
                     Stream(
                         id = StreamId(stream.id!!.toLong()),
-                        viewerCount = stream.countViewers ?: 0,
+                        viewerCount = stream.countViewers,
                         thumbnailUrl = null, // Channel view does not care about thumbnail updates
                         startedAt = stream.startedAt
                     )
@@ -163,7 +163,7 @@ class GlimeshWebsocketDataSource private constructor(
             response.dataAssertNoErrors.channel!!.stream?.let { stream ->
                 Stream(
                     id = StreamId(stream.id!!.toLong()),
-                    viewerCount = stream.countViewers ?: 0,
+                    viewerCount = stream.countViewers,
                     thumbnailUrl = null, // Channel view does not care about thumbnail updates
                     startedAt = stream.startedAt
                 )
