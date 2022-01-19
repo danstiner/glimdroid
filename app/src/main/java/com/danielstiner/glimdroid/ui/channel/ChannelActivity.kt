@@ -132,24 +132,10 @@ class ChannelActivity : AppCompatActivity() {
         })
         viewModel.streamerUsername.observe(this, { username ->
             binding.textviewStreamerDisplayName.setOnClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        BASE_URI.buildUpon()
-                            .appendPath(username)
-                            .appendPath("profile").build()
-                    )
-                )
+                openStreamerProfile(username)
             }
             binding.avatarImage.setOnClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        BASE_URI.buildUpon()
-                            .appendPath(username)
-                            .appendPath("profile").build()
-                    )
-                )
+                openStreamerProfile(username)
             }
         })
         viewModel.streamerAvatarUrl.observe(this, {
@@ -185,7 +171,7 @@ class ChannelActivity : AppCompatActivity() {
             binding.chatRecyclerView.smoothScrollToPosition(it.size)
         })
 
-        binding.chatInputEditText.setOnEditorActionListener { textView, id, _ ->
+        binding.chatInputEditText.setOnEditorActionListener { _, id, _ ->
             when (id) {
                 EditorInfo.IME_ACTION_SEND -> {
                     sendChatMessage()
@@ -243,6 +229,18 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
+    }
+
+    private fun openStreamerProfile(username: String) {
+        enterPictureInPicture()
+        startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                BASE_URI.buildUpon()
+                    .appendPath(username)
+                    .appendPath("profile").build()
+            )
+        )
     }
 
     private fun sendChatMessage() {
