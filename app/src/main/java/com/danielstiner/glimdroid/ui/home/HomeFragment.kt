@@ -55,9 +55,13 @@ class HomeFragment : Fragment() {
             }
         }
 
-        lifecycleScope.launch { homeViewModel.fetchAsync() }
-
         return root
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        lifecycleScope.launch { homeViewModel.fetchAsync() }
     }
 
     /* Opens channel when RecyclerView item is clicked. */
