@@ -4,6 +4,7 @@
     android:id="@+id/activity_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="@color/black">
 
     <org.webrtc.SurfaceViewRenderer
@@ -33,6 +34,7 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:background="#88000000"
+        android:visibility="invisible"
         app:layout_constraintEnd_toStartOf="@id/chat_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/streamer_info_layout">
@@ -115,6 +117,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:visibility="gone"
         android:background="#88000000"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
@@ -224,14 +227,12 @@
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:constraint_referenced_ids="group_info,chat_layout" />
+        app:constraint_referenced_ids="chat_layout" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:constraint_referenced_ids="stream_info_layout,streamer_info_layout" />
+        app:constraint_referenced_ids="" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

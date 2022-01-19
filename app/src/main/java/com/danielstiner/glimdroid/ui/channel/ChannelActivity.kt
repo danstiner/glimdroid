@@ -3,6 +3,7 @@ package com.danielstiner.glimdroid.ui.channel
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
@@ -12,13 +13,10 @@ import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.*
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,8 +24,6 @@ import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
@@ -35,7 +31,6 @@ import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
 import com.google.android.material.chip.Chip
-import org.webrtc.EglBase
 import org.webrtc.VideoFrame
 import org.webrtc.VideoSink
 import java.util.*
@@ -57,6 +52,12 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+// Remember that you should never show the action bar if the
+// status bar is hidden, so hide that too if necessary.
+        actionBar?.hide()
+
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -198,7 +199,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         // Hide stream/streamer info when ime keyboard is visible, to leave more room to see chats
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
             ViewCompat.setOnApplyWindowInsetsListener(binding.activityContainer) { view, windowInsets ->
                 val imeVisible =
