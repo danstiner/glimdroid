@@ -72,8 +72,13 @@ class ChannelViewModel(
     private val _videoTrack = MutableLiveData<VideoTrack?>()
     val videoTrack: LiveData<VideoTrack?> = _videoTrack
 
-    var connection: JanusRtcConnection? = null
-    var currentChannel: ChannelId? = null
+    @Volatile
+    private var connection: JanusRtcConnection? = null
+
+    @Volatile
+    internal var currentChannel: ChannelId? = null
+    @Volatile
+    private var cleared = false
 
     private var chatSubscription: Subscription<ChatMessage>? = null
     private var channelSubscription: Subscription<Channel>? = null
@@ -115,8 +120,10 @@ class ChannelViewModel(
         val channelSub = channelSubscription
 
         viewModelScope.launch(Dispatchers.IO) {
-            chatSub?.cancel()
-            channelSub?.cancel()
+            mutex.withLock {
+                chatSub?.cancel()
+                channelSub?.cancel()
+            }
         }
     }
 
@@ -183,7 +190,7 @@ class ChannelViewModel(
 
     private suspend fun updateChannelLiveData(channel: Channel) {
         withContext(Dispatchers.Main) {
-            mutex.let {
+            mutex.withLock {
                 if (currentChannel == channel.id) {
                     _channel.value = channel
                     _title.value = channel.title
@@ -258,7 +265,7 @@ class ChannelViewModel(
     private suspend fun watchChannelUpdates(channel: ChannelId) {
         // Simplistic approach because websocket subscriptions for a channel do not receive updates
         // for stream metadata updates like number of viewers
-        while (currentChannel == channel) {
+        while (currentChannel == channel && !cleared) {
             delay(30_000)
             fetchChannelInfo(channel)
         }
@@ -281,8 +288,8 @@ class ChannelViewModel(
     }
 
     override fun onCleared() {
-        stopWatching()
-
         super.onCleared()
+        cleared = true
+        stopWatching()
     }
 }
