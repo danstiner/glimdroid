@@ -21,6 +21,7 @@ across the layout configurations
         android:id="@+id/video_preview"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/video_view"
         app:layout_constraintEnd_toEndOf="@id/video_view"
         app:layout_constraintStart_toStartOf="@id/video_view"
@@ -178,34 +179,42 @@ across the layout configurations
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chat_recycler_view"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/chat_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layoutManager="LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="@id/chat_input_layout"
-        app:layout_constraintEnd_toEndOf="@id/guideline_right"
-        app:layout_constraintStart_toStartOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@id/barrier_chat" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/chat_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/guideline_right"
         app:layout_constraintStart_toStartOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@id/chat_recycler_view">
+        app:layout_constraintTop_toBottomOf="@id/barrier_chat">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/chat_input_edit_text"
-            style="@style/AppTheme.TextInputEditText.Message"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chat_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layoutManager="LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/chat_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Send a message"
-            android:inputType="textShortMessage"
-            android:imeOptions="actionSend" />
-    </com.google.android.material.textfield.TextInputLayout>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/chat_input_edit_text"
+                style="@style/AppTheme.TextInputEditText.Message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Send a message"
+                android:inputType="textShortMessage"
+                android:imeOptions="actionSend" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_left"
@@ -234,7 +243,7 @@ across the layout configurations
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        app:constraint_referenced_ids="group_info,chat_recycler_view,chat_input_layout" />
+        app:constraint_referenced_ids="group_info,chat_layout" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_info"

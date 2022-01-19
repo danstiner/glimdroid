@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.webrtc.EglBase
 import org.webrtc.VideoTrack
 import java.net.URL
 
@@ -25,7 +26,8 @@ class ChannelViewModel(
     private val peerConnectionFactory: WrappedPeerConnectionFactory,
     private val glimesh: GlimeshDataSource,
     private val glimeshSocket: GlimeshWebsocketDataSource,
-    private val countryCode: String
+    private val countryCode: String,
+    val eglBase: EglBase
 ) : ViewModel() {
     private val _channel = MutableLiveData<Channel>()
     val channel: LiveData<Channel> = _channel
@@ -109,15 +111,16 @@ class ChannelViewModel(
 
     @MainThread
     fun stopWatching() {
-        Log.d(TAG, "Stop watching, current:$currentChannel")
-        currentChannel = null
-
-        // Close previous connection, if any
-        connection?.close()
+        Log.d(TAG, "Stop watching, channel:$currentChannel")
 
         // Capture subscriptions in thread-safe way for async cancellation
         val chatSub = chatSubscription
         val channelSub = channelSubscription
+
+        currentChannel = null
+
+        // Close previous connection, if any
+        connection?.close()
 
         viewModelScope.launch(Dispatchers.IO) {
             mutex.withLock {
@@ -176,6 +179,7 @@ class ChannelViewModel(
             if (currentChannel == channel) {
                 val oldConnection = connection
                 connection = con
+                Log.d(TAG, "Closing old connection:$oldConnection")
                 oldConnection?.close()
             } else {
                 Log.w(TAG, "Channel changed out from under us before RTC connection opened")

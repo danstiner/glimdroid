@@ -61,11 +61,9 @@ class ChannelActivity : AppCompatActivity() {
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val eglBase = EglBase.create()
-
         viewModel = ViewModelProvider(
             this,
-            ChannelViewModelFactory(applicationContext, eglBase.eglBaseContext)
+            ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
 
         proxyVideoSink = ProxyVideoSink(binding.videoView)
@@ -75,7 +73,7 @@ class ChannelActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        binding.videoView.init(eglBase.eglBaseContext, null)
+        binding.videoView.init(viewModel.eglBase.eglBaseContext, null)
         binding.videoView.setEnableHardwareScaler(true)
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -253,6 +251,9 @@ class ChannelActivity : AppCompatActivity() {
         val newWithoutQuery = uri?.buildUpon()?.clearQuery()?.build()
 
         when {
+            viewModel.videoTrack.value != null -> {
+                Log.v(TAG, "Already have video track, not showing preview thumbnail")
+            }
             newWithoutQuery == currentWithoutQuery -> {
                 proxyVideoSink.showPreview()
             }
@@ -296,7 +297,16 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        stopWatching()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+//
+//        viewModel.videoTrack.value?.let { track ->
+//            track.removeSink(proxyVideoSink)
+//        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -346,47 +356,6 @@ class ChannelActivity : AppCompatActivity() {
             // Restore the normal UI
             binding.group.visibility = View.VISIBLE
         }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-
-        if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
-            animateConstraintLayout(
-                binding.root,
-                ConstraintSet().apply {
-                    clone(binding.root)
-                    connect(
-                        R.id.video_view,
-                        ConstraintSet.BOTTOM,
-                        R.id.parent,
-                        ConstraintSet.BOTTOM
-                    )
-                },
-                100
-            )
-        } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
-            animateConstraintLayout(
-                binding.root,
-                ConstraintSet().apply {
-                    clone(binding.root)
-                    clear(R.id.video_view, ConstraintSet.BOTTOM)
-                },
-                100
-            )
-        }
-    }
-
-    private fun animateConstraintLayout(
-        constraintLayout: ConstraintLayout,
-        set: ConstraintSet,
-        duration: Long
-    ) {
-        val trans = AutoTransition()
-        trans.duration = duration
-        trans.interpolator = AccelerateDecelerateInterpolator()
-        TransitionManager.beginDelayedTransition(constraintLayout, trans)
-        set.applyTo(constraintLayout)
     }
 
     private fun watch(intent: Intent?) {
