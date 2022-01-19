@@ -1,0 +1,17 @@
+name: Build
+
+on:
+  # Trigger on every pull request and on push
+  # to the `main` branch.
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew build test lint
+

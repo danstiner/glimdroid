@@ -63,9 +63,9 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers,
-                        thumbnailUrl = node.stream!!.thumbnailUrl,
-                        startedAt = node.stream!!.startedAt
+                        viewerCount = node.stream.countViewers,
+                        thumbnailUrl = node.stream.thumbnailUrl,
+                        startedAt = node.stream.startedAt
                     )
                 )
             }
@@ -91,9 +91,9 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers,
-                        thumbnailUrl = node.stream!!.thumbnailUrl,
-                        startedAt = node.stream!!.startedAt,
+                        viewerCount = node.stream.countViewers,
+                        thumbnailUrl = node.stream.thumbnailUrl,
+                        startedAt = node.stream.startedAt,
                     )
                 )
             }
@@ -130,9 +130,9 @@ class GlimeshDataSource(
                     ),
                     stream = Stream(
                         id = StreamId(node.stream!!.id!!.toLong()),
-                        viewerCount = node.stream!!.countViewers,
-                        thumbnailUrl = node.stream!!.thumbnailUrl,
-                        startedAt = node.stream!!.startedAt,
+                        viewerCount = node.stream.countViewers,
+                        thumbnailUrl = node.stream.thumbnailUrl,
+                        startedAt = node.stream.startedAt,
                     )
                 )
             }
@@ -167,7 +167,7 @@ class GlimeshDataSource(
                         id = StreamId(stream.id!!.toLong()),
                         viewerCount = stream.countViewers,
                         thumbnailUrl = stream.thumbnailUrl,
-                        startedAt = node.stream!!.startedAt,
+                        startedAt = node.stream.startedAt,
                     )
                 }
             )
@@ -335,4 +335,4 @@ private inline fun <T> Iterable<T>.randomizedSortByDescending(crossinline select
     return sortedByDescending { Math.random() * magnitude(selector(it).toDouble()) }
 }
 
-private inline fun magnitude(n: Double): Double = log10(n + 1.0) + 1.0
+private fun magnitude(n: Double): Double = log10(n + 1.0) + 1.0
