@@ -51,6 +51,7 @@ class ChannelActivity : AppCompatActivity() {
     private var videoPreviewUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -226,15 +227,17 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
-//
-//        if (savedInstanceState != null) {
-//            with(savedInstanceState) {
-//                val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
-//                watch(channelId)
-//            }
-//        } else {
-//            watch(intent)
-//        }
+
+        if (savedInstanceState != null) {
+            with(savedInstanceState) {
+                val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
+                val thumbnailUri = getString(STATE_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+                Log.d(TAG, "Restoring saved instance state")
+                watch(channelId, thumbnailUri)
+            }
+        } else {
+            watch(intent)
+        }
     }
 
     private fun openStreamerProfile(username: String) {
@@ -300,8 +303,6 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
-
-        watch(intent)
     }
 
     override fun onStop() {
@@ -321,14 +322,23 @@ class ChannelActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.run {
             viewModel.currentChannel?.id?.let { putLong(STATE_CHANNEL_ID, it) }
+            viewModel.videoThumbnailUrl.value?.let {
+                putString(
+                    STATE_STREAM_THUMBNAIL_URL,
+                    it.toString()
+                )
+            }
         }
 
         super.onSaveInstanceState(outState)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d(TAG, "onNewIntent: ${lifecycle.currentState}")
+        Log.d(
+            TAG,
+            "onNewIntent: ${intent.getLongExtra(EXTRA_CHANNEL_ID, 0)} ${lifecycle.currentState}"
+        )
         if (lifecycle.currentState == Lifecycle.State.STARTED) {
             watch(intent)
         }
@@ -385,28 +395,25 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
-    private fun watch(intent: Intent?) {
-        var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
-        watch(channelId?.let { ChannelId(it) })
-    }
+    private fun watch(intent: Intent) {
+        var channel = ChannelId(intent.getLongExtra(EXTRA_CHANNEL_ID, 0))
+        val thumbnailUri = intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
 
-    private fun watch(channel: ChannelId) {
-        var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
-        if (intent == null || channelId == 0L) {
+        if (channel.id == 0L) {
             Log.w(TAG, "watch: No channel id to watch in given intent")
-            stopWatching()
             return
         }
 
-        var channel = ChannelId(channelId)
-        Log.d(TAG, "watch: Watching $channel, current channel:${viewModel.currentChannel}")
+        watch(channel, thumbnailUri)
+    }
+
+    private fun watch(channel: ChannelId, thumbnailUri: Uri?) {
+        Log.d(TAG, "watch: Switching to $channel, current channel:${viewModel.currentChannel}")
         if (viewModel.currentChannel == channel) {
             viewModel.videoTrack.value?.addSink(proxyVideoSink)
         } else {
             stopWatching()
-            loadVideoPreviewUri(
-                intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-            )
+            loadVideoPreviewUri(thumbnailUri)
             viewModel.watch(channel)
         }
     }
@@ -425,6 +432,7 @@ class ChannelActivity : AppCompatActivity() {
     companion object {
         private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
         private const val STATE_CHANNEL_ID = EXTRA_CHANNEL_ID
+        private const val STATE_STREAM_THUMBNAIL_URL = EXTRA_STREAM_THUMBNAIL_URL
 
         fun intent(
             context: Context,
