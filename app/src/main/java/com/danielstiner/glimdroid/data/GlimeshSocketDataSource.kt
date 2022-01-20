@@ -2,9 +2,12 @@ package com.danielstiner.glimdroid.data
 
 import android.net.Uri
 import android.util.Log
+import com.apollographql.apollo3.api.Adapter
 import com.apollographql.apollo3.api.CustomScalarAdapters
 import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
+import com.apollographql.apollo3.api.json.JsonReader
+import com.apollographql.apollo3.api.json.JsonWriter
 import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.apollo.*
 import com.danielstiner.glimdroid.apollo.type.ChatMessageInput
@@ -19,24 +22,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.lang.ref.WeakReference
 import java.net.URI
-import java.net.URL
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
 val WEBSOCKET_V2_URI: Uri =
     Uri.parse(BuildConfig.GLIMESH_WEBSOCKET_URL).buildUpon().appendQueryParameter("vsn", "2.0.0")
         .build()
-
-data class ChatMessage(
-    val id: String,
-    val message: String,
-    val displayname: String,
-    val username: String,
-    val avatarUrl: String?,
-    val timestamp: Instant,
-)
-
-data class EdgeRoute(val id: String, val url: URL)
 
 /**
  * Query and subscribe to data from glimesh.tv
@@ -47,82 +38,64 @@ data class EdgeRoute(val id: String, val url: URL)
  * https://glimesh.github.io/api-docs/docs/api/live-updates/channels/
  * http://graemehill.ca/websocket-clients-and-phoenix-channels/
  */
-class GlimeshWebsocketDataSource private constructor(
+class GlimeshSocketDataSource private constructor(
     private val auth: AuthStateDataSource,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var connection: Connection? = null
+    private var connection = WeakReference<Connection>(null)
     private var authenticatedConnection: Connection? = null
     private val mutex = Mutex()
 
-    suspend fun channelQuery(channel: ChannelId): ChannelByIdQuery.Data {
-        return connection().query(
+    suspend fun channelQuery(channel: ChannelId) =
+        connection().query(
             ChannelByIdQuery(
                 Optional.Present(
                     channel.id.toString()
                 )
             )
         ).dataAssertNoErrors
-    }
 
-    suspend fun homepageQuery(): HomepageQuery.Data {
-        return authenticatedConnection().query(
-            HomepageQuery()
-        ).dataAssertNoErrors
-    }
+    suspend fun myHomepageQuery() =
+        authenticatedConnection().query(MyHomepageQuery()).dataAssertNoErrors
 
-    suspend fun myFollowingLiveQuery(): MyFollowingLiveQuery.Data {
-        return authenticatedConnection().query(
-            MyFollowingLiveQuery()
-        ).dataAssertNoErrors
-    }
+    suspend fun homepageQuery() =
+        connection().query(HomepageQuery()).dataAssertNoErrors
 
-    suspend fun liveChannelsQuery(): LiveChannelsQuery.Data {
-        return connection().query(
-            LiveChannelsQuery()
-        ).dataAssertNoErrors
-    }
+    suspend fun myFollowingLiveQuery() =
+        authenticatedConnection().query(MyFollowingLiveQuery()).dataAssertNoErrors
 
-    suspend fun watchChannel(channel: ChannelId, countryCode: String): EdgeRoute {
-        val data = connection().mutation(
+    suspend fun liveChannelsQuery() =
+        connection().query(LiveChannelsQuery()).dataAssertNoErrors
+
+    suspend fun watchChannel(channel: ChannelId, countryCode: String) =
+        connection().mutation(
             WatchChannelMutation(channel.id.toString(), countryCode)
         ).dataAssertNoErrors.watchChannel!!
 
-        return EdgeRoute(data.id!!, URL(data.url!!))
-    }
+    suspend fun recentMessagesQuery(channel: ChannelId) =
+        connection().query(RecentMessagesQuery(channel.id.toString())).dataAssertNoErrors
 
-    suspend fun sendMessage(channel: ChannelId, text: CharSequence) {
+    suspend fun sendMessageMutation(channel: ChannelId, text: CharSequence) =
         authenticatedConnection().mutation(
             SendMessageMutation(
-                channel.id.toString(), ChatMessageInput(
+                channel.id.toString(),
+                ChatMessageInput(
                     Optional.Present(
                         text.toString()
                     )
                 )
             )
         ).dataAssertNoErrors.createChatMessage
-    }
 
-    suspend fun chatMessages(channel: ChannelId): Subscription<ChatMessage> {
-        return connection().subscription(
+
+    suspend fun messagesSubscription(channel: ChannelId) =
+        connection().subscription(
             MessagesSubscription(
                 channel.id.toString()
             )
-        ).map { response ->
-            Log.d("ChatMessage", response.data?.toString() ?: "null")
-            val message = response.dataAssertNoErrors.chatMessage!!
-            ChatMessage(
-                id = message.id,
-                message = message.message!!,
-                displayname = message.user.displayname,
-                username = message.user.username,
-                avatarUrl = message.user.avatarUrl,
-                timestamp = message.insertedAt,
-            )
-        }
-    }
+        ).map { response -> response.dataAssertNoErrors }
 
-    suspend fun channelUpdates(channel: ChannelId): Subscription<Channel> {
+    suspend fun channelUpdatesSubscription(channel: ChannelId): Subscription<Channel> {
         return connection().subscription(
             ChannelUpdatesSubscription(
                 channel.id.toString()
@@ -171,7 +144,6 @@ class GlimeshWebsocketDataSource private constructor(
         }
     }
 
-    @Synchronized
     private suspend fun connection(): Connection {
         if (auth.getCurrent().isAuthorized) {
             // TODO maybe close unauthenticated connection
@@ -179,7 +151,7 @@ class GlimeshWebsocketDataSource private constructor(
         }
 
         mutex.withLock {
-            var con = connection
+            var con = connection.get()
 
             if (con == null) {
                 val socket = Socket.open(
@@ -193,14 +165,13 @@ class GlimeshWebsocketDataSource private constructor(
                     scope,
                     CUSTOM_SCALAR_ADAPTERS
                 )
-                connection = con
+                connection = WeakReference(con)
             }
 
             return con
         }
     }
 
-    @Synchronized
     private suspend fun authenticatedConnection(): Connection {
         mutex.withLock {
             var con = authenticatedConnection
@@ -232,19 +203,41 @@ class GlimeshWebsocketDataSource private constructor(
             GlimeshNaiveTimeToInstantAdapter
         ).build()
 
-        private val INSTANCE_REF = AtomicReference(WeakReference<GlimeshWebsocketDataSource>(null))
+        private val INSTANCE_REF = AtomicReference(WeakReference<GlimeshSocketDataSource>(null))
 
         @Synchronized
-        fun getInstance(auth: AuthStateDataSource): GlimeshWebsocketDataSource {
-            var instance: GlimeshWebsocketDataSource? = INSTANCE_REF.get().get()
+        fun getInstance(auth: AuthStateDataSource): GlimeshSocketDataSource {
+            var instance: GlimeshSocketDataSource? = INSTANCE_REF.get().get()
             if (instance == null) {
                 Log.d(TAG, "Constructing GlimeshWebsocketDataSource")
-                instance = GlimeshWebsocketDataSource(auth)
+                instance = GlimeshSocketDataSource(auth)
                 INSTANCE_REF.set(WeakReference(instance))
             }
             return instance
         }
     }
 }
+
+
+/**
+ * The Glimesh GraphQL endpoint says it's NaiveDateTime is ISO8601, but it's not actually, hence the
+ * custom adapter
+ *
+ * The timezone identifier is missing, e.g. '2011-12-03T10:15:30'
+ */
+internal object GlimeshNaiveTimeToInstantAdapter : Adapter<Instant> {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): Instant {
+        return Instant.parse(reader.nextString()!! + "Z")
+    }
+
+    override fun toJson(
+        writer: JsonWriter,
+        customScalarAdapters: CustomScalarAdapters,
+        value: Instant
+    ) {
+        TODO()
+    }
+}
+
 
 private fun Uri.toURI(): URI = URI.create(this.toString())

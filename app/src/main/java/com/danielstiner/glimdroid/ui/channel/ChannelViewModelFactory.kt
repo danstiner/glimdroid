@@ -8,8 +8,9 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.danielstiner.glimdroid.data.AuthStateDataSource
-import com.danielstiner.glimdroid.data.GlimeshDataSource
-import com.danielstiner.glimdroid.data.GlimeshWebsocketDataSource
+import com.danielstiner.glimdroid.data.ChannelRepository
+import com.danielstiner.glimdroid.data.ChatRepository
+import com.danielstiner.glimdroid.data.GlimeshSocketDataSource
 import org.webrtc.DefaultVideoDecoderFactory
 import org.webrtc.EglBase
 import org.webrtc.Logging
@@ -41,12 +42,13 @@ class ChannelViewModelFactory(
 
             val factory = buildPeerConnectionFactory()
             val auth = AuthStateDataSource(applicationContext)
+            val socket = GlimeshSocketDataSource.getInstance(auth = auth)
             val countryCode = getCountryCode()
 
             return ChannelViewModel(
                 peerConnectionFactory = WrappedPeerConnectionFactory(factory),
-                glimesh = GlimeshDataSource(auth = auth),
-                glimeshSocket = GlimeshWebsocketDataSource.getInstance(auth = auth),
+                channels = ChannelRepository(socket),
+                chats = ChatRepository(socket),
                 countryCode = countryCode,
             ) as T
         }

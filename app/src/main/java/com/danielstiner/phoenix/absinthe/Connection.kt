@@ -22,7 +22,7 @@ class Connection private constructor(
     suspend fun <D : Query.Data> query(query: Query<D>): ApolloResponse<D> {
         when (val reply = pushDoc(query)) {
             is Result.Ok -> {
-                return query.parseJsonResponse(reply.value.jsonReader())
+                return query.parseJsonResponse(reply.value.jsonObject, customScalarAdapters)
             }
         }
         TODO("Failed")
@@ -35,7 +35,7 @@ class Connection private constructor(
         val result = pushDoc(mutation)
 
         if (result is Result.Ok) {
-            return mutation.parseJsonResponse(result.value.jsonReader())
+            return mutation.parseJsonResponse(result.value.jsonObject, customScalarAdapters)
         }
         TODO("Failed")
     }
@@ -47,7 +47,7 @@ class Connection private constructor(
         when (val result = pushDoc(subscription)) {
             is Result.Ok -> {
                 val id =
-                    SubscriptionId(result.value.jsonObject["subscriptionId"]!!.jsonPrimitive!!.contentOrNull!!)
+                    SubscriptionId(result.value.jsonObject["subscriptionId"]!!.jsonPrimitive.contentOrNull!!)
                 val topic = id.asTopic()
                 val data = socket.messages
                     .filter { message -> message.joinRef == null && message.ref == null && message.event == SUBSCRIPTION_DATA && message.topic == topic }
