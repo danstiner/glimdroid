@@ -62,6 +62,7 @@ class LoginActivity : AppCompatActivity() {
         })
 
         buttonLogin.setOnClickListener {
+            finish()
             loginViewModel.login()
         }
     }
