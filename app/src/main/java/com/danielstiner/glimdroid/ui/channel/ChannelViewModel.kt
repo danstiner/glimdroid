@@ -6,9 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.danielstiner.glimdroid.data.ChatMessage
-import com.danielstiner.glimdroid.data.GlimeshDataSource
-import com.danielstiner.glimdroid.data.GlimeshWebsocketDataSource
+import com.danielstiner.glimdroid.data.ChannelRepository
+import com.danielstiner.glimdroid.data.ChatRepository
 import com.danielstiner.glimdroid.data.model.*
 import com.danielstiner.phoenix.absinthe.Subscription
 import kotlinx.coroutines.*
@@ -24,10 +23,10 @@ const val TAG = "ChannelViewModel"
 
 class ChannelViewModel(
     private val peerConnectionFactory: WrappedPeerConnectionFactory,
-    private val glimesh: GlimeshDataSource,
-    private val glimeshSocket: GlimeshWebsocketDataSource,
+    private val channels: ChannelRepository,
+    private val chats: ChatRepository,
     private val countryCode: String,
-    val eglBase: EglBase
+    val eglBase: EglBase,
 ) : ViewModel() {
     private val _channel = MutableLiveData<Channel>()
     val channel: LiveData<Channel> = _channel
@@ -79,6 +78,7 @@ class ChannelViewModel(
 
     @Volatile
     internal var currentChannel: ChannelId? = null
+
     @Volatile
     private var cleared = false
 
@@ -105,7 +105,7 @@ class ChannelViewModel(
     fun sendMessage(text: CharSequence?) {
         val channel = currentChannel!!
         viewModelScope.launch(Dispatchers.IO) {
-            glimesh.sendMessage(channel, text!!)
+            chats.sendMessage(channel, text!!)
         }
     }
 
@@ -156,7 +156,7 @@ class ChannelViewModel(
 
     private suspend fun connectRtc(channel: ChannelId) {
         // TODO, need to use the websocket connection here, keeping it open keeps presence
-        val route = glimesh.watchChannel(channel, countryCode)
+        val route = channels.watch(channel, countryCode)
 
         val con = JanusRtcConnection.create(route.url, channel, peerConnectionFactory) { stream ->
             viewModelScope.launch(Dispatchers.Main) {
@@ -189,7 +189,7 @@ class ChannelViewModel(
     }
 
     private suspend fun fetchChannelInfo(channel: ChannelId) {
-        updateChannelLiveData(glimesh.channel(channel))
+        updateChannelLiveData(channels.get(channel))
     }
 
     private suspend fun updateChannelLiveData(channel: Channel) {
@@ -223,7 +223,7 @@ class ChannelViewModel(
                 }
             }
         }
-        val recentMessages = glimesh.recentChatMessages(channel)
+        val recentMessages = chats.recentMessages(channel)
 
         withContext(Dispatchers.Main) {
             mutex.withLock {
@@ -237,8 +237,8 @@ class ChannelViewModel(
     }
 
     private suspend fun watchChats(channel: ChannelId) {
-        val sub = glimeshSocket.chatMessages(channel).apply {
-            data.collect { message ->
+        val sub = chats.subscribe(channel).apply {
+            this.data.collect { message ->
                 withContext(Dispatchers.Main) {
                     mutex.withLock {
                         if (currentChannel == channel) {

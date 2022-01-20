@@ -21,7 +21,7 @@ class JanusRtcConnection(
 
     fun close() {
         Log.d(TAG, "Closing connection $peerConnection")
-        peerConnection?.close()
+        peerConnection.close()
         coroutineContext.cancel()
     }
 
