@@ -228,6 +228,11 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
+            // Hide the normal UI (controls, etc.) while in picture-in-picture mode
+            binding.group.visibility = View.INVISIBLE
+        }
+
         if (savedInstanceState != null) {
             with(savedInstanceState) {
                 val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
