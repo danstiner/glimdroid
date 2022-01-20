@@ -135,7 +135,7 @@ class ChannelActivity : AppCompatActivity() {
                 openStreamerProfile(username)
             }
         })
-        viewModel.streamerAvatarUrl.observe(this, {
+        viewModel.streamerAvatarUri.observe(this, {
             if (it != null) {
                 Glide
                     .with(this)
@@ -326,11 +326,8 @@ class ChannelActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.run {
             viewModel.currentChannel?.id?.let { putLong(STATE_CHANNEL_ID, it) }
-            viewModel.videoThumbnailUrl.value?.let {
-                putString(
-                    STATE_STREAM_THUMBNAIL_URL,
-                    it.toString()
-                )
+            viewModel.videoThumbnailUri.value?.let {
+                putString(STATE_STREAM_THUMBNAIL_URL, it.toString())
             }
         }
 

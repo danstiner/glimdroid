@@ -1,5 +1,6 @@
 package com.danielstiner.glimdroid.ui.channel
 
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
@@ -16,7 +17,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.webrtc.EglBase
 import org.webrtc.VideoTrack
-import java.net.URL
 
 
 const val TAG = "ChannelViewModel"
@@ -55,8 +55,8 @@ class ChannelViewModel(
     private val _streamerUsername = MutableLiveData<String>()
     val streamerUsername: LiveData<String> = _streamerUsername
 
-    private val _streamerAvatarUrl = MutableLiveData<URL?>()
-    val streamerAvatarUrl: LiveData<URL?> = _streamerAvatarUrl
+    private val _streamerAvatarUri = MutableLiveData<Uri?>()
+    val streamerAvatarUri: LiveData<Uri?> = _streamerAvatarUri
 
     private val _messagesMutable: MutableList<ChatMessage> = mutableListOf()
     private val _messages = MutableLiveData<List<ChatMessage>>().apply {
@@ -67,8 +67,8 @@ class ChannelViewModel(
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
 
-    private val _videoThumbnailUrl = MutableLiveData<URL?>()
-    val videoThumbnailUrl: LiveData<URL?> = _videoThumbnailUrl
+    private val _videoThumbnailUri = MutableLiveData<Uri?>()
+    val videoThumbnailUri: LiveData<Uri?> = _videoThumbnailUri
 
     private val _videoTrack = MutableLiveData<VideoTrack?>()
     val videoTrack: LiveData<VideoTrack?> = _videoTrack
@@ -205,9 +205,9 @@ class ChannelViewModel(
                     _tags.value = channel.tags
                     _streamerDisplayname.value = channel.streamer.displayName
                     _streamerUsername.value = channel.streamer.username
-                    _streamerAvatarUrl.value = channel.streamer.avatarUrl?.let { URL(it) }
+                    _streamerAvatarUri.value = channel.streamer.avatarUrl?.let { Uri.parse(it) }
                     _viewerCount.value = channel.stream?.viewerCount
-                    _videoThumbnailUrl.value = channel.stream?.thumbnailUrl?.let { URL(it) }
+                    _videoThumbnailUri.value = channel.stream?.thumbnailUrl?.let { Uri.parse(it) }
                 }
             }
         }
