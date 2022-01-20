@@ -11,9 +11,8 @@ import com.apollographql.apollo3.api.json.JsonWriter
 import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.apollo.*
 import com.danielstiner.glimdroid.apollo.type.ChatMessageInput
-import com.danielstiner.glimdroid.data.model.*
+import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.phoenix.absinthe.Connection
-import com.danielstiner.phoenix.absinthe.Subscription
 import com.danielstiner.phoenix.channels.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,58 +94,8 @@ class GlimeshSocketDataSource private constructor(
             )
         ).map { response -> response.dataAssertNoErrors }
 
-    suspend fun channelUpdatesSubscription(channel: ChannelId): Subscription<Channel> {
-        return connection().subscription(
-            ChannelUpdatesSubscription(
-                channel.id.toString()
-            )
-        ).map { response ->
-            val node = response.dataAssertNoErrors.channel!!
-            Channel(
-                id = ChannelId(node.id!!.toLong()),
-                title = node.title!!,
-                matureContent = node.matureContent ?: false,
-                language = node.language,
-                category = Category(node.category!!.name!!),
-                subcategory = node.subcategory?.name?.let { Subcategory(it) },
-                tags = node.tags!!.mapNotNull { tag -> Tag(tag!!.name!!) },
-                streamer = Streamer(
-                    username = node.streamer.username,
-                    displayName = node.streamer.displayname,
-                    avatarUrl = node.streamer.avatarUrl,
-                ),
-                stream = node.stream?.let { stream ->
-                    Stream(
-                        id = StreamId(stream.id!!.toLong()),
-                        viewerCount = stream.countViewers,
-                        thumbnailUrl = null, // Channel view does not care about thumbnail updates
-                        startedAt = stream.startedAt
-                    )
-                }
-            )
-        }
-    }
-
-    suspend fun streamUpdates(channel: ChannelId): Subscription<Stream?> {
-        return connection().subscription(
-            StreamUpdatesSubscription(
-                channel.id.toString()
-            )
-        ).map { response ->
-            response.dataAssertNoErrors.channel!!.stream?.let { stream ->
-                Stream(
-                    id = StreamId(stream.id!!.toLong()),
-                    viewerCount = stream.countViewers,
-                    thumbnailUrl = null, // Channel view does not care about thumbnail updates
-                    startedAt = stream.startedAt
-                )
-            }
-        }
-    }
-
     private suspend fun connection(): Connection {
         if (auth.getCurrent().isAuthorized) {
-            // TODO maybe close unauthenticated connection
             return authenticatedConnection()
         }
 

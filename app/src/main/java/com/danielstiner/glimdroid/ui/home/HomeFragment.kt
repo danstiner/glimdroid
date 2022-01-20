@@ -60,10 +60,6 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    override fun onStart() {
-        super.onStart()
-    }
-
     /* Opens channel when RecyclerView item is clicked. */
     private fun adapterOnClick(channel: Channel) {
         Log.d(
