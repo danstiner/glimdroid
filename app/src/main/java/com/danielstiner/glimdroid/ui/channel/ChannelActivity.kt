@@ -3,6 +3,7 @@ package com.danielstiner.glimdroid.ui.channel
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
@@ -12,13 +13,10 @@ import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import android.view.*
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,8 +24,6 @@ import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
@@ -35,7 +31,6 @@ import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
 import com.google.android.material.chip.Chip
-import org.webrtc.EglBase
 import org.webrtc.VideoFrame
 import org.webrtc.VideoSink
 import java.util.*
@@ -56,16 +51,19 @@ class ChannelActivity : AppCompatActivity() {
     private var videoPreviewUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
+
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            hideStatusBar()
+        }
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val eglBase = EglBase.create()
-
         viewModel = ViewModelProvider(
             this,
-            ChannelViewModelFactory(applicationContext, eglBase.eglBaseContext)
+            ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
 
         proxyVideoSink = ProxyVideoSink(binding.videoView)
@@ -75,7 +73,7 @@ class ChannelActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        binding.videoView.init(eglBase.eglBaseContext, null)
+        binding.videoView.init(viewModel.eglBase.eglBaseContext, null)
         binding.videoView.setEnableHardwareScaler(true)
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -200,7 +198,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         // Hide stream/streamer info when ime keyboard is visible, to leave more room to see chats
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
             ViewCompat.setOnApplyWindowInsetsListener(binding.activityContainer) { view, windowInsets ->
                 val imeVisible =
@@ -229,6 +227,22 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
+            // Hide the normal UI (controls, etc.) while in picture-in-picture mode
+            binding.group.visibility = View.INVISIBLE
+        }
+
+        if (savedInstanceState != null) {
+            with(savedInstanceState) {
+                val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
+                val thumbnailUri = getString(STATE_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+                Log.d(TAG, "Restoring saved instance state")
+                watch(channelId, thumbnailUri)
+            }
+        } else {
+            watch(intent)
+        }
     }
 
     private fun openStreamerProfile(username: String) {
@@ -253,6 +267,9 @@ class ChannelActivity : AppCompatActivity() {
         val newWithoutQuery = uri?.buildUpon()?.clearQuery()?.build()
 
         when {
+            viewModel.videoTrack.value != null -> {
+                Log.v(TAG, "Already have video track, not showing preview thumbnail")
+            }
             newWithoutQuery == currentWithoutQuery -> {
                 proxyVideoSink.showPreview()
             }
@@ -282,7 +299,7 @@ class ChannelActivity : AppCompatActivity() {
             .setAspectRatio(Rational(16, 9))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(true);
+            builder.setAutoEnterEnabled(true)
         }
 
         return builder.build()
@@ -291,17 +308,42 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
-        watch(intent)
     }
 
     override fun onStop() {
         super.onStop()
-        stopWatching()
+        Log.d(TAG, "onStop")
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+
+        viewModel.videoTrack.value?.let { track ->
+            track.removeSink(proxyVideoSink)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.run {
+            viewModel.currentChannel?.id?.let { putLong(STATE_CHANNEL_ID, it) }
+            viewModel.videoThumbnailUrl.value?.let {
+                putString(
+                    STATE_STREAM_THUMBNAIL_URL,
+                    it.toString()
+                )
+            }
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d(TAG, "onNewIntent: ${lifecycle.currentState}")
+        Log.d(
+            TAG,
+            "onNewIntent: ${intent.getLongExtra(EXTRA_CHANNEL_ID, 0)} ${lifecycle.currentState}"
+        )
         if (lifecycle.currentState == Lifecycle.State.STARTED) {
             watch(intent)
         }
@@ -348,64 +390,35 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-
-        if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
-            animateConstraintLayout(
-                binding.root,
-                ConstraintSet().apply {
-                    clone(binding.root)
-                    connect(
-                        R.id.video_view,
-                        ConstraintSet.BOTTOM,
-                        R.id.parent,
-                        ConstraintSet.BOTTOM
-                    )
-                },
-                100
-            )
-        } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
-            animateConstraintLayout(
-                binding.root,
-                ConstraintSet().apply {
-                    clone(binding.root)
-                    clear(R.id.video_view, ConstraintSet.BOTTOM)
-                },
-                100
-            )
+    private fun hideStatusBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
         }
     }
 
-    private fun animateConstraintLayout(
-        constraintLayout: ConstraintLayout,
-        set: ConstraintSet,
-        duration: Long
-    ) {
-        val trans = AutoTransition()
-        trans.duration = duration
-        trans.interpolator = AccelerateDecelerateInterpolator()
-        TransitionManager.beginDelayedTransition(constraintLayout, trans)
-        set.applyTo(constraintLayout)
-    }
+    private fun watch(intent: Intent) {
+        var channel = ChannelId(intent.getLongExtra(EXTRA_CHANNEL_ID, 0))
+        val thumbnailUri = intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
 
-    private fun watch(intent: Intent?) {
-        var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
-        if (intent == null || channelId == 0L) {
+        if (channel.id == 0L) {
             Log.w(TAG, "watch: No channel id to watch in given intent")
-            stopWatching()
             return
         }
 
-        var channel = ChannelId(channelId)
-        Log.d(TAG, "watch: Watching $channel, current channel:${viewModel.currentChannel}")
+        watch(channel, thumbnailUri)
+    }
+
+    private fun watch(channel: ChannelId, thumbnailUri: Uri?) {
+        Log.d(TAG, "watch: Switching to $channel, current channel:${viewModel.currentChannel}")
         if (viewModel.currentChannel == channel) {
             viewModel.videoTrack.value?.addSink(proxyVideoSink)
         } else {
             stopWatching()
-            loadVideoPreviewUri(
-                intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-            )
+            loadVideoPreviewUri(thumbnailUri)
             viewModel.watch(channel)
         }
     }
@@ -423,6 +436,8 @@ class ChannelActivity : AppCompatActivity() {
 
     companion object {
         private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
+        private const val STATE_CHANNEL_ID = EXTRA_CHANNEL_ID
+        private const val STATE_STREAM_THUMBNAIL_URL = EXTRA_STREAM_THUMBNAIL_URL
 
         fun intent(
             context: Context,

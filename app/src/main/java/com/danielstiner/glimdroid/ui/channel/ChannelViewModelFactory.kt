@@ -23,8 +23,7 @@ import org.webrtc.audio.JavaAudioDeviceModule
  * Required given StreamViewModel has a non-empty constructor
  */
 class ChannelViewModelFactory(
-    private val applicationContext: Context,
-    private val eglContext: EglBase.Context
+    private val applicationContext: Context
 ) : ViewModelProvider.Factory {
 
     private val TAG = "ChannelViewModelFactory"
@@ -33,6 +32,8 @@ class ChannelViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
 
+            val eglBase = EglBase.create()
+
             Log.d(TAG, "Initialize WebRTC.")
             PeerConnectionFactory.initialize(
                 PeerConnectionFactory.InitializationOptions.builder(applicationContext)
@@ -40,7 +41,7 @@ class ChannelViewModelFactory(
                     .createInitializationOptions()
             )
 
-            val factory = buildPeerConnectionFactory()
+            val factory = buildPeerConnectionFactory(eglBase.eglBaseContext)
             val auth = AuthStateDataSource(applicationContext)
             val socket = GlimeshSocketDataSource.getInstance(auth = auth)
             val countryCode = getCountryCode()
@@ -50,13 +51,14 @@ class ChannelViewModelFactory(
                 channels = ChannelRepository(socket),
                 chats = ChatRepository(socket),
                 countryCode = countryCode,
+                eglBase = eglBase,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 
-    private fun buildPeerConnectionFactory(): PeerConnectionFactory {
-        val videoEncoderFactory = DefaultVideoDecoderFactory(eglContext)
+    private fun buildPeerConnectionFactory(eglBaseContext: EglBase.Context): PeerConnectionFactory {
+        val videoEncoderFactory = DefaultVideoDecoderFactory(eglBaseContext)
 
         val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
             .setUseStereoOutput(true)
@@ -87,7 +89,6 @@ class ChannelViewModelFactory(
         if (networkCountryIso == null) {
             Log.w(TAG, "No network country code available, defaulting to US")
         }
-        val countryCode = networkCountryIso ?: "US"
-        return countryCode
+        return networkCountryIso ?: "US"
     }
 }
