@@ -226,6 +226,15 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
+//
+//        if (savedInstanceState != null) {
+//            with(savedInstanceState) {
+//                val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
+//                watch(channelId)
+//            }
+//        } else {
+//            watch(intent)
+//        }
     }
 
     private fun openStreamerProfile(username: String) {
@@ -291,6 +300,7 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
+
         watch(intent)
     }
 
@@ -306,6 +316,14 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.videoTrack.value?.let { track ->
             track.removeSink(proxyVideoSink)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.run {
+            viewModel.currentChannel?.id?.let { putLong(STATE_CHANNEL_ID, it) }
+        }
+
+        super.onSaveInstanceState(outState)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -369,6 +387,11 @@ class ChannelActivity : AppCompatActivity() {
 
     private fun watch(intent: Intent?) {
         var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
+        watch(channelId?.let { ChannelId(it) })
+    }
+
+    private fun watch(channel: ChannelId) {
+        var channelId = intent?.getLongExtra(EXTRA_CHANNEL_ID, 0) ?: 0
         if (intent == null || channelId == 0L) {
             Log.w(TAG, "watch: No channel id to watch in given intent")
             stopWatching()
@@ -401,6 +424,7 @@ class ChannelActivity : AppCompatActivity() {
 
     companion object {
         private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
+        private const val STATE_CHANNEL_ID = EXTRA_CHANNEL_ID
 
         fun intent(
             context: Context,
