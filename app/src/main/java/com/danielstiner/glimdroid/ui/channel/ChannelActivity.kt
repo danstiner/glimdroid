@@ -53,6 +53,8 @@ class ChannelActivity : AppCompatActivity() {
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             hideStatusBar()
+        } else {
+            showStatusBar()
         }
 
         binding = ActivityChannelBinding.inflate(layoutInflater)
@@ -391,6 +393,12 @@ class ChannelActivity : AppCompatActivity() {
         ViewCompat.getWindowInsetsController(window.decorView)?.apply {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             hide(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
+    private fun showStatusBar() {
+        ViewCompat.getWindowInsetsController(window.decorView)?.apply {
+            show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
