@@ -42,7 +42,7 @@ class GlimeshSocketDataSource private constructor(
     private val auth: AuthStateDataSource,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var connection: Connection? = null
+    private var connection = WeakReference<Connection>(null)
     private var authenticatedConnection: Connection? = null
     private val mutex = Mutex()
 
@@ -151,7 +151,7 @@ class GlimeshSocketDataSource private constructor(
         }
 
         mutex.withLock {
-            var con = connection
+            var con = connection.get()
 
             if (con == null) {
                 val socket = Socket.open(
@@ -165,7 +165,7 @@ class GlimeshSocketDataSource private constructor(
                     scope,
                     CUSTOM_SCALAR_ADAPTERS
                 )
-                connection = con
+                connection = WeakReference(con)
             }
 
             return con
