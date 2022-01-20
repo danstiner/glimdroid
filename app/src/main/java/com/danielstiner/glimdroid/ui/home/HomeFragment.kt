@@ -75,7 +75,7 @@ class HomeFragment : Fragment() {
                 requireContext(),
                 channel.id,
                 channel.stream!!.id,
-                channel.stream?.thumbnailUrl?.let { Uri.parse(it) },
+                channel.stream.thumbnailUrl?.let { Uri.parse(it) },
             )
         )
     }
