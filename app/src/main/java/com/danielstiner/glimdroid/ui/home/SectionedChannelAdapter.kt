@@ -21,8 +21,6 @@ import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.Channel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import java.net.URL
-import java.util.*
 
 class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
     ListAdapter<SectionedChannelAdapter.Item, RecyclerView.ViewHolder>(
@@ -57,30 +55,19 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamer.displayName
 
-            if (channel.category != null) {
-                chipCategory.text = channel.category.name
-                chipCategory.visibility = View.VISIBLE
-            } else {
-                chipCategory.visibility = View.GONE
+            with(chipCategory) {
+                text = channel.category.name
             }
-            if (channel.subcategory != null) {
-                chipSubcategory.text = channel.subcategory.name
-                chipSubcategory.visibility = View.VISIBLE
-            } else {
-                chipSubcategory.visibility = View.GONE
+            with(chipSubcategory) {
+                text = channel.subcategory?.name
+                visibility = if (channel.subcategory != null) View.VISIBLE else View.GONE
             }
-            if (channel.matureContent) {
-                chipMature.visibility = View.VISIBLE
-            } else {
-                chipMature.visibility = View.GONE
+            with(chipMature) {
+                visibility = if (channel.matureContent) View.VISIBLE else View.GONE
             }
-            if (channel.language != null) {
-                val loc = Locale(channel.language)
-                val name: String = loc.getDisplayLanguage(loc)
-                chipLanguage.text = name
-                chipLanguage.visibility = View.VISIBLE
-            } else {
-                chipLanguage.visibility = View.GONE
+            with(chipLanguage) {
+                text = channel.displayLanguage()
+                visibility = if (channel.language != null) View.VISIBLE else View.GONE
             }
 
             if (channel.streamer.avatarUrl == null) {
@@ -88,7 +75,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamer.avatarUrl))
+                    .load(Uri.parse(channel.streamer.avatarUrl))
                     .circleCrop()
                     .into(avatarImageView)
             }
@@ -98,7 +85,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.stream.thumbnailUrl))
+                    .load(Uri.parse(channel.stream.thumbnailUrl))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .priority(Priority.LOW)
                     .transform(RoundedCorners(radius))
@@ -147,30 +134,19 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             titleTextView.text = channel.title
             displayNameTextView.text = channel.streamer.displayName
 
-            if (channel.category != null) {
-                chipCategory.text = channel.category.name
-                chipCategory.visibility = View.VISIBLE
-            } else {
-                chipCategory.visibility = View.GONE
+            with(chipCategory) {
+                text = channel.category.name
             }
-            if (channel.subcategory != null) {
-                chipSubcategory.text = channel.subcategory.name
-                chipSubcategory.visibility = View.VISIBLE
-            } else {
-                chipSubcategory.visibility = View.GONE
+            with(chipSubcategory) {
+                text = channel.subcategory?.name
+                visibility = if (channel.subcategory != null) View.VISIBLE else View.GONE
             }
-            if (channel.matureContent) {
-                chipMature.visibility = View.VISIBLE
-            } else {
-                chipMature.visibility = View.GONE
+            with(chipMature) {
+                visibility = if (channel.matureContent) View.VISIBLE else View.GONE
             }
-            if (channel.language != null) {
-                val loc = Locale(channel.language)
-                val name: String = loc.getDisplayLanguage(loc)
-                chipLanguage.text = name
-                chipLanguage.visibility = View.VISIBLE
-            } else {
-                chipLanguage.visibility = View.GONE
+            with(chipLanguage) {
+                text = channel.displayLanguage()
+                visibility = if (channel.language != null) View.VISIBLE else View.GONE
             }
 
             chipGroupTag.removeAllViews()
@@ -188,7 +164,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.streamer.avatarUrl))
+                    .load(Uri.parse(channel.streamer.avatarUrl))
                     .circleCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(avatarImageView)
@@ -199,7 +175,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
             } else {
                 Glide
                     .with(itemView)
-                    .load(URL(channel.stream.thumbnailUrl))
+                    .load(Uri.parse(channel.stream.thumbnailUrl))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .transform(RoundedCorners(radius))
                     .transition(DrawableTransitionOptions.withCrossFade())
@@ -208,13 +184,12 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
 
         companion object {
-            fun inflate(parent: ViewGroup, onClick: (Channel) -> Unit): LargeChannelViewHolder {
-                return LargeChannelViewHolder(
+            fun inflate(parent: ViewGroup, onClick: (Channel) -> Unit) =
+                LargeChannelViewHolder(
                     LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_channel_large, parent, false),
                     onClick
                 )
-            }
         }
     }
 
@@ -227,12 +202,10 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
         }
 
         companion object {
-            fun inflate(parent: ViewGroup): HeaderViewHolder {
-                return HeaderViewHolder(
-                    LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_channel_header, parent, false)
-                )
-            }
+            fun inflate(parent: ViewGroup) = HeaderViewHolder(
+                LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_channel_header, parent, false)
+            )
         }
     }
 
@@ -242,12 +215,7 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
 
         init {
             aboutButton.setOnClickListener {
-                itemView.context.startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        ABOUT_URI
-                    )
-                )
+                itemView.context.startActivity(Intent(Intent.ACTION_VIEW, ABOUT_URI))
             }
         }
 
@@ -319,13 +287,8 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
     }
 
     object DiffCallback : DiffUtil.ItemCallback<Item>() {
-        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean {
-            return oldItem == newItem
-        }
-
-        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
-            return oldItem.id == newItem.id
-        }
+        override fun areItemsTheSame(oldItem: Item, newItem: Item) = oldItem === newItem
+        override fun areContentsTheSame(oldItem: Item, newItem: Item) = oldItem.id == newItem.id
     }
 
     companion object {
