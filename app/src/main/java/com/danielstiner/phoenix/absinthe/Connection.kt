@@ -75,21 +75,32 @@ class Connection private constructor(
     private suspend fun <D : Operation.Data> pushDoc(operation: Operation<D>) =
         controlChannel.push(DOC, buildJsonObject {
             put("query", operation.document())
-            put("variables", buildVariables(operation.variables(customScalarAdapters)))
+            put("variables", toJson(operation.variables(customScalarAdapters)))
         })
 
-    private fun buildVariables(variables: Executable.Variables): JsonObject =
-        buildJsonObject {
-            variables.valueMap.forEach { (key, value) ->
-                when (value) {
-                    is Int -> put(key, value)
-                    is String -> put(key, value)
-                    null -> TODO("Unsupported variable value: null")
-                    else -> TODO("Unsupported variable value: ${value.javaClass}")
+    private fun toJson(variables: Executable.Variables): JsonElement {
+
+        fun toJson(value: Any?): JsonElement =
+            when (value) {
+                is String -> JsonPrimitive(value)
+                is Int -> JsonPrimitive(value)
+                is Double -> JsonPrimitive(value)
+                null -> JsonNull
+                is Map<*, *> -> buildJsonObject {
+                    value.forEach { (key, value) ->
+                        put(key as String, toJson(value))
+                    }
                 }
+                is List<Any?> -> buildJsonArray {
+                    value.forEach { value ->
+                        add(toJson(value))
+                    }
+                }
+                else -> TODO("Unsupported variable value: ${value.javaClass}")
             }
 
-        }
+        return toJson(variables.valueMap)
+    }
 
     companion object {
         private val DOC = Event("doc")
