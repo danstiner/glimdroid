@@ -20,6 +20,10 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# WebRTC
+-keep class org.webrtc.** { *; }
+-keepclasseswithmembernames class * { native <methods>; }
+
 # OkHTTP
 -dontwarn org.bouncycastle.jsse.BCSSLSocket
 -dontwarn org.bouncycastle.jsse.BCSSLParameters
