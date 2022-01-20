@@ -3,8 +3,7 @@ package com.danielstiner.glimdroid.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.danielstiner.glimdroid.data.GlimeshDataSource
-import com.danielstiner.glimdroid.data.GlimeshWebsocketDataSource
+import com.danielstiner.glimdroid.data.ChannelRepository
 import com.danielstiner.glimdroid.data.model.Channel
 import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.coroutines.Dispatchers
@@ -12,8 +11,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.internal.toImmutableList
 
 class HomeViewModel(
-    private val glimesh: GlimeshDataSource,
-    private val glimeshSocket: GlimeshWebsocketDataSource,
+    private val channels: ChannelRepository,
 ) : ViewModel() {
 
     private val _items = MutableLiveData<List<SectionedChannelAdapter.Item>>().apply {
@@ -33,16 +31,16 @@ class HomeViewModel(
     }
 
     private suspend fun fetchHomeLiveChannels() {
-        val (homepage, followed) = glimesh.myHomepage()
+        val (followed, homepage) = channels.myFollowedAndHomepage()
 
-        homepageLiveChannels = homepage
         followedLiveChannels = followed
+        homepageLiveChannels = homepage
 
         updateListItems()
     }
 
     private suspend fun fetchAllLiveChannels() {
-        allLiveChannels = glimesh.liveChannels()
+        allLiveChannels = channels.live()
         updateListItems()
     }
 

@@ -93,8 +93,8 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            TODO()
             this@Socket._state = State.UNKNOWN
+            TODO("onFailure")
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {

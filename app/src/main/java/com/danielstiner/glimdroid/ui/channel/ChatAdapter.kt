@@ -17,7 +17,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.danielstiner.glimdroid.R
-import com.danielstiner.glimdroid.data.ChatMessage
+import com.danielstiner.glimdroid.data.model.ChatMessage
 import java.net.URL
 
 class ChatAdapter :
