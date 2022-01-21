@@ -268,21 +268,23 @@ class ChannelActivity : AppCompatActivity() {
         when {
             viewModel.videoTrack.value != null -> {
                 Log.v(TAG, "Already have video track, not showing preview thumbnail")
+                proxyVideoSink.showProgressBarOnly()
             }
             newWithoutQuery == currentWithoutQuery -> {
                 proxyVideoSink.showPreviewAndProgressBar()
             }
             uri != null -> {
                 Glide.with(this).clear(binding.videoPreview)
-                proxyVideoSink.showPreviewAndProgressBar()
                 Glide
                     .with(this)
                     .asBitmap()
                     .load(uri)
                     .into(binding.videoPreview)
+                proxyVideoSink.showPreviewAndProgressBar()
             }
             else -> {
                 Glide.with(this).clear(binding.videoPreview)
+                proxyVideoSink.showProgressBarOnly()
             }
         }
 
@@ -472,7 +474,16 @@ class ChannelActivity : AppCompatActivity() {
 
         fun showPreviewAndProgressBar() {
             runOnUiThread {
+                binding.videoView.clearImage()
                 binding.videoPreview.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.VISIBLE
+                waitingForFirstFrame.set(true)
+            }
+        }
+
+        fun showProgressBarOnly() {
+            runOnUiThread {
+                binding.videoView.clearImage()
                 binding.progressBar.visibility = View.VISIBLE
                 waitingForFirstFrame.set(true)
             }
