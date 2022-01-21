@@ -1,7 +1,7 @@
 query RecentMessages($channelId: ID!) {
     channel(id: $channelId) {
         id
-        chatMessages(last: 20) {
+        chatMessages(last: 50) {
             edges {
                 node {
                     id
@@ -11,6 +11,10 @@ query RecentMessages($channelId: ID!) {
                         username
                         displayname
                         avatarUrl
+                    }
+                    tokens {
+                        text
+                        type
                     }
                 }
             }

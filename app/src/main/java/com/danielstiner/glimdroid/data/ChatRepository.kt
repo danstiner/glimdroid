@@ -26,6 +26,12 @@ class ChatRepository(
                     username = message.user.username,
                     avatarUrl = message.user.avatarUrl,
                     timestamp = message.insertedAt,
+                    tokens = message.tokens!!.map { token ->
+                        ChatMessage.Token(
+                            token!!.text!!,
+                            token.type!!
+                        )
+                    },
                 )
             }.filter { it.timestamp.isAfter(oneHourAgo) }
     }
@@ -40,6 +46,12 @@ class ChatRepository(
                 username = message.user.username,
                 avatarUrl = message.user.avatarUrl,
                 timestamp = message.insertedAt,
+                tokens = message.tokens!!.map { token ->
+                    ChatMessage.Token(
+                        token!!.text!!,
+                        token.type!!
+                    )
+                },
             )
         }
     }

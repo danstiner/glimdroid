@@ -9,4 +9,8 @@ data class ChatMessage(
     val username: String,
     val avatarUrl: String?,
     val timestamp: Instant,
-)
+    val tokens: List<Token>,
+) {
+
+    data class Token(val text: String, val type: String)
+}

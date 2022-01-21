@@ -8,5 +8,9 @@ subscription Messages($id: ID!) {
             displayname
             avatarUrl
         }
+        tokens {
+            text
+            type
+        }
     }
 }

@@ -1,14 +1,17 @@
 package com.danielstiner.glimdroid.ui.channel
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.recyclerview.widget.DiffUtil
@@ -25,14 +28,13 @@ class ChatAdapter :
 
     class ChatViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
+        private val iconSize = itemView.resources.getDimensionPixelSize(R.dimen.chat_icon_size)
         private val textView: TextView = itemView.findViewById(R.id.text)
 
         fun bind(chat: ChatMessage) {
             textView.text = buildSpannedString {
-                append("  ")
-                bold { append(chat.displayname) }
-                append(": ")
-                append(chat.message)
+                append("   ") // Placeholder for avatar image
+                appendChatBody(chat, itemView.context)
             }
 
             if (chat.avatarUrl != null) {
@@ -40,13 +42,11 @@ class ChatAdapter :
                     .with(itemView)
                     .load(Uri.parse(chat.avatarUrl))
                     .circleCrop()
-                    .into(object : CustomTarget<Drawable>(38, 38) {
+                    .into(object : CustomTarget<Drawable>(iconSize, iconSize) {
                         override fun onLoadCleared(res: Drawable?) {
                             textView.text = buildSpannedString {
-                                append("  ")
-                                bold { append(chat.displayname) }
-                                append(": ")
-                                append(chat.message)
+                                append("   ") // Placeholder for avatar image
+                                appendChatBody(chat, itemView.context)
                             }
                         }
 
@@ -54,17 +54,15 @@ class ChatAdapter :
                             drawable: Drawable,
                             transition: Transition<in Drawable>?
                         ) {
-                            drawable.setBounds(0, 0, 38, 38)
+                            drawable.setBounds(0, 0, iconSize, iconSize)
                             textView.text = buildSpannedString {
                                 appendSpan(
                                     "i",
-                                    ImageSpan(drawable),
+                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BASELINE),
                                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                                );
+                                )
                                 append(" ")
-                                bold { append(chat.displayname) }
-                                append(": ")
-                                append(chat.message)
+                                appendChatBody(chat, itemView.context)
                             }
                         }
                     })
@@ -83,6 +81,49 @@ class ChatAdapter :
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+}
+
+private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Context) {
+    bold { append(chat.displayname) }
+    append(": ")
+    for (token in chat.tokens) {
+        when (token.type) {
+            "text" -> append(token.text)
+            "emote" -> {
+                val resId = getEmoteDrawableResId(token.text)
+                if (resId != null) {
+                    appendSpan(
+                        "e",
+                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_BASELINE),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                } else {
+                    append(token.text)
+                }
+            }
+        }
+
+    }
+}
+
+@DrawableRes
+fun getEmoteDrawableResId(name: String) = when (name) {
+    ":glimangry:" -> R.drawable.ic_emote_glimangry
+    ":glimart:" -> R.drawable.ic_emote_glimart
+    ":glimbacon:" -> R.drawable.ic_emote_glimbacon
+    ":glimburrito:" -> R.drawable.ic_emote_glimburrito
+    ":glimheart:" -> R.drawable.ic_emote_glimheart
+    ":glimhype:" -> R.drawable.ic_emote_glimhype
+    ":glimlol:" -> R.drawable.ic_emote_glimlol
+    ":glimlove:" -> R.drawable.ic_emote_glimlove
+    ":glimsad:" -> R.drawable.ic_emote_glimsad
+    ":glimsleepy:" -> R.drawable.ic_emote_glimsleepy
+    ":glimsmile:" -> R.drawable.ic_emote_glimsmile
+    ":glimtongue:" -> R.drawable.ic_emote_glimtongue
+    ":glimuwu:" -> R.drawable.ic_emote_glimuwu
+    ":glimwink:" -> R.drawable.ic_emote_glimwink
+    ":glimwow:" -> R.drawable.ic_emote_glimwow
+    else -> null
 }
 
 object ChatDiffCallback : DiffUtil.ItemCallback<ChatMessage>() {
