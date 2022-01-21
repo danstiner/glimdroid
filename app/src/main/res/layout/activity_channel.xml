@@ -27,6 +27,17 @@ across the layout configurations
         app:layout_constraintStart_toStartOf="@id/video_view"
         app:layout_constraintTop_toTopOf="@id/video_view" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/video_view"
+        app:layout_constraintEnd_toEndOf="@id/video_view"
+        app:layout_constraintStart_toStartOf="@id/video_view"
+        app:layout_constraintTop_toTopOf="@id/video_view" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/stream_info_layout"
         android:layout_width="0dp"

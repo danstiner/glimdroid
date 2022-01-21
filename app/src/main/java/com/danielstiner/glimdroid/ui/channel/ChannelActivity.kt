@@ -270,11 +270,11 @@ class ChannelActivity : AppCompatActivity() {
                 Log.v(TAG, "Already have video track, not showing preview thumbnail")
             }
             newWithoutQuery == currentWithoutQuery -> {
-                proxyVideoSink.showPreview()
+                proxyVideoSink.showPreviewAndProgressBar()
             }
             uri != null -> {
                 Glide.with(this).clear(binding.videoPreview)
-                proxyVideoSink.showPreview()
+                proxyVideoSink.showPreviewAndProgressBar()
                 Glide
                     .with(this)
                     .asBitmap()
@@ -457,19 +457,24 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     inner class ProxyVideoSink(private val sink: VideoSink) : VideoSink {
-        var previewShown = AtomicBoolean(true)
+        var waitingForFirstFrame = AtomicBoolean(true)
         override fun onFrame(frame: VideoFrame) {
             sink.onFrame(frame)
-            if (previewShown.get()) {
-                if (previewShown.getAndSet(false)) {
-                    runOnUiThread { binding.videoPreview.visibility = View.GONE }
+            if (waitingForFirstFrame.get()) {
+                runOnUiThread {
+                    if (waitingForFirstFrame.getAndSet(false)) {
+                        binding.videoPreview.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
+                    }
                 }
             }
         }
 
-        fun showPreview() {
-            if (!previewShown.getAndSet(true)) {
-                runOnUiThread { binding.videoPreview.visibility = View.VISIBLE }
+        fun showPreviewAndProgressBar() {
+            runOnUiThread {
+                binding.videoPreview.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.VISIBLE
+                waitingForFirstFrame.set(true)
             }
         }
     }

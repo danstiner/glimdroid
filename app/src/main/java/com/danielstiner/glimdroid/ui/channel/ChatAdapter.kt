@@ -1,6 +1,7 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ImageSpan
@@ -18,7 +19,6 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChatMessage
-import java.net.URL
 
 class ChatAdapter :
     ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDiffCallback) {
@@ -38,7 +38,7 @@ class ChatAdapter :
             if (chat.avatarUrl != null) {
                 Glide
                     .with(itemView)
-                    .load(URL(chat.avatarUrl))
+                    .load(Uri.parse(chat.avatarUrl))
                     .circleCrop()
                     .into(object : CustomTarget<Drawable>(38, 38) {
                         override fun onLoadCleared(res: Drawable?) {
@@ -95,7 +95,7 @@ object ChatDiffCallback : DiffUtil.ItemCallback<ChatMessage>() {
     }
 }
 
-inline fun SpannableStringBuilder.appendSpan(
+fun SpannableStringBuilder.appendSpan(
     text: String, what: Any, flags: Int
 ): SpannableStringBuilder {
     val start = length

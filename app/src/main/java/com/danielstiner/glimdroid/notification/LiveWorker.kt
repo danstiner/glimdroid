@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.Nullable
@@ -27,7 +28,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.net.URL
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -165,18 +165,18 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Load avatar icon and replace large icon with it
         channel.streamer.avatarUrl?.let { avatarUrl ->
-            val avatarBitmap = loadAvatarBitmap(URL(avatarUrl))
+            val avatarBitmap = loadAvatarBitmap(Uri.parse(avatarUrl))
             Log.d(TAG, "Loaded large notification icon")
             NotificationManagerCompat.from(applicationContext)
                 .notify(notificationId, notification.setLargeIcon(avatarBitmap).build())
         }
     }
 
-    private suspend fun loadAvatarBitmap(url: URL): Bitmap {
+    private suspend fun loadAvatarBitmap(uri: Uri): Bitmap {
         return suspendCoroutine { continuation ->
             Glide.with(applicationContext)
                 .asBitmap()
-                .load(url)
+                .load(uri)
                 .circleCrop()
                 .into(object : CustomTarget<Bitmap?>() {
                     override fun onResourceReady(
