@@ -111,7 +111,6 @@ class ChannelViewModel(
     inner class Sub(val channel: ChannelId) {
 
         private var chatSubscription: Subscription<ChatMessage>? = null
-        private var channelSubscription: Subscription<Channel>? = null
 
         @Volatile
         private var cleared = false
@@ -220,7 +219,7 @@ class ChannelViewModel(
                                     add(message)
                                 }
                             } else {
-                                Log.w(TAG, "Channel changed out from under us by time chat arrived")
+                                Log.w(TAG, "Sub cleared by time chat arrived")
                             }
                         }
                     }
@@ -228,13 +227,11 @@ class ChannelViewModel(
             }
 
             mutex.withLock {
-                if (!cleared) {
-                    val oldSubscription = chatSubscription
-                    chatSubscription = sub
-                    oldSubscription?.cancel()
-                } else {
-                    Log.w(TAG, "Channel changed out from under us before chat watch started")
+                if (cleared) {
+                    Log.w(TAG, "Sub cleared before chat watch started")
                     sub.cancel()
+                } else {
+                    chatSubscription = sub
                 }
             }
         }
@@ -253,7 +250,6 @@ class ChannelViewModel(
                 mutex.withLock {
                     cleared = true
                     chatSubscription?.cancel()
-                    channelSubscription?.cancel()
                 }
             }
         }
