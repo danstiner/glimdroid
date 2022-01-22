@@ -169,7 +169,12 @@ data class TrickleRequest(
 )
 
 @Serializable
-data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
+data class TrickleResponse(
+    val janus: String,
+    val transaction: String,
+    val session_id: Long,
+    val error: JanusError? = null,
+)
 
 @Serializable
 data class DestroyRequest(
