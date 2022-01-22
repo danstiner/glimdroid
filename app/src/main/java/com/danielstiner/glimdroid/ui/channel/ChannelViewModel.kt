@@ -110,7 +110,6 @@ class ChannelViewModel(
 
     inner class Sub(val channel: ChannelId) {
 
-        lateinit var session: JanusFtlSession
         private var chatSubscription: Subscription<ChatMessage>? = null
         private var channelSubscription: Subscription<Channel>? = null
 
@@ -253,7 +252,6 @@ class ChannelViewModel(
             viewModelScope.launch(Dispatchers.IO) {
                 mutex.withLock {
                     cleared = true
-                    session.close()
                     chatSubscription?.cancel()
                     channelSubscription?.cancel()
                 }
