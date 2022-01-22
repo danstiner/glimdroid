@@ -94,7 +94,7 @@ private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Co
                 if (resId != null) {
                     appendSpan(
                         "e",
-                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_BASELINE),
+                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_CENTER),
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 } else {
@@ -111,7 +111,15 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimangry:" -> R.drawable.ic_emote_glimangry
     ":glimart:" -> R.drawable.ic_emote_glimart
     ":glimbacon:" -> R.drawable.ic_emote_glimbacon
+    ":glimbanhammer:" -> R.drawable.ic_emote_glimbanhammer
+    ":glimbday:" -> R.drawable.ic_emote_glimbday
+    ":glimbeholder:" -> R.drawable.ic_emote_glimbeholder
     ":glimburrito:" -> R.drawable.ic_emote_glimburrito
+    ":glimcat:" -> R.drawable.ic_emote_glimcat
+    ":glimchef:" -> R.drawable.ic_emote_glimchef
+    ":glimchicken:" -> R.drawable.ic_emote_glimchicken
+    ":glimchu:" -> R.drawable.ic_emote_glimchu
+    ":glimcry:" -> R.drawable.ic_emote_glimcry
     ":glimheart:" -> R.drawable.ic_emote_glimheart
     ":glimhype:" -> R.drawable.ic_emote_glimhype
     ":glimlol:" -> R.drawable.ic_emote_glimlol
