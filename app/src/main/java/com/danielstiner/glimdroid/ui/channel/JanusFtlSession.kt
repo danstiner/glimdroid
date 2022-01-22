@@ -72,8 +72,8 @@ class JanusFtlSession(
             )
         )
 
-    suspend fun close() {
-        TODO("Not yet implemented")
+    suspend fun destroy() {
+        janus.destroy(session)
     }
 
     private suspend fun loop() {

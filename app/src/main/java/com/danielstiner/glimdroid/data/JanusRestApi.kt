@@ -171,6 +171,20 @@ data class TrickleRequest(
 @Serializable
 data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
 
+@Serializable
+data class DestroyRequest(
+    @Required val janus: String = "destroy",
+    val transaction: String = transactionId()
+)
+
+@Serializable
+data class DestroyResponse(
+    val janus: String,
+    val transaction: String,
+    val session_id: Long? = null,
+    val error: JanusError? = null,
+)
+
 class JanusRestApi(baseUrl: URL) {
 
     private var baseUri: Uri = Uri.parse(baseUrl.toString())
@@ -273,6 +287,15 @@ class JanusRestApi(baseUrl: URL) {
         val request = MessageRequest(body)
         val response: MessageResponse = post(pluginUri, request)
         assert(response.janus == "ack")
+        assert(response.transaction == request.transaction)
+        assert(response.session_id == session.id)
+    }
+
+    suspend fun destroy(session: SessionId) {
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
+        val request = DestroyRequest()
+        val response: DestroyResponse = post(sessionUri, request)
+        assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)
     }

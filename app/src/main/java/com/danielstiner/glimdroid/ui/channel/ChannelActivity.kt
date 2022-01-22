@@ -169,7 +169,7 @@ class ChannelActivity : AppCompatActivity() {
             ioScope.launch {
                 val ses = JanusFtlSession.create(watchSession.edgeRoute.url, watchSession.channel)
                 if (viewModel.watchSession.value !== watchSession) {
-                    ses.close()
+                    ses.destroy()
                     return@launch
                 }
                 val con =
@@ -178,13 +178,21 @@ class ChannelActivity : AppCompatActivity() {
                             stream.videoTracks.single().addSink(proxyVideoSink)
                         }
                     }
-                withContext(Dispatchers.Main) {
-                    session?.close()
-                    session = ses
-                    connection?.close()
-                    connection = con
-                }
+
                 con.start()
+
+                withContext(Dispatchers.Main) {
+                    if (viewModel.watchSession.value === watchSession) {
+
+                        session?.destroy()
+                        session = ses
+                        connection?.close()
+                        connection = con
+                    } else {
+                        con.close()
+                        ses.destroy()
+                    }
+                }
             }
         })
 
@@ -355,8 +363,14 @@ class ChannelActivity : AppCompatActivity() {
             track.removeSink(proxyVideoSink)
         }
 
-        connection?.close()
-        ioContext.cancel()
+        val ses = session
+        val con = connection
+
+        ioScope.launch {
+            ses?.destroy()
+            con?.close()
+            ioContext.cancel()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
