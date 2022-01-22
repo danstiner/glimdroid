@@ -1,21 +1,20 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
-import com.danielstiner.glimdroid.data.JanusRestApi
-import com.danielstiner.glimdroid.data.SessionId
-import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.coroutines.*
-import org.webrtc.*
-import java.net.URL
+import org.webrtc.IceCandidate
+import org.webrtc.MediaConstraints
+import org.webrtc.MediaStream
+import org.webrtc.PeerConnection
 import kotlin.coroutines.CoroutineContext
 
 class JanusRtcConnection(
-    private val janus: JanusRestApi,
-    private val session: SessionId,
-    private val channel: ChannelId,
+    private val session: JanusFtlSession,
     private val peerConnection: WrappedPeerConnection,
     private val coroutineContext: CoroutineContext
 ) {
+
+    val coroutineScope = CoroutineScope(coroutineContext)
     val isClosed: Boolean
         get() = peerConnection.connectionState == PeerConnection.PeerConnectionState.CLOSED
 
@@ -25,29 +24,23 @@ class JanusRtcConnection(
         coroutineContext.cancel()
     }
 
-    suspend fun loop() {
-        // Long poll janus for events while the connection is alive
-        while (peerConnection.connectionState != PeerConnection.PeerConnectionState.CLOSED) {
-            Log.d(TAG, "Polling Janus; channel:$channel, state:${peerConnection.connectionState}")
-            try {
-                val events = janus.longPollSession(session)
-                // TODO do something with events
-            } catch (ex: java.io.FileNotFoundException) {
-                Log.w(TAG, "Janus session done, closing connection: $ex")
-                break
-            }
 
-            // Short wait to avoid spamming server, technically not
-            // needed since this is a long poll request
-            delay(1_000)
+    fun start() {
+        coroutineScope.launch {
+            startAsync()
         }
+    }
 
-        // TODO forcibly end stream
-        Log.d(
-            TAG,
-            "Stream finished, letting it timeout on the janus side"
-        )
-        close()
+    private suspend fun startAsync() {
+        peerConnection.setRemoteDescription(session.getSdpOffer())
+
+        val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
+        peerConnection.setLocalDescription(answer)
+
+        if (!session.isStarted) {
+            // Tell janus we are ready to start the stream
+            session.start(answer, coroutineScope)
+        }
     }
 
     companion object {
@@ -70,71 +63,28 @@ class JanusRtcConnection(
             optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
         }
 
-        suspend fun create(
-            janusBaseUrl: URL,
-            channel: ChannelId,
+        fun create(
+            session: JanusFtlSession,
             peerConnectionFactory: WrappedPeerConnectionFactory,
+            coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.IO,
             onAddStream: (stream: MediaStream) -> Unit
         ): JanusRtcConnection {
-            val coroutineContext = SupervisorJob() + Dispatchers.IO
             val coroutineScope = CoroutineScope(coroutineContext)
-
-            val janus = JanusRestApi(janusBaseUrl)
-            val session = janus.createSession()
-            val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
-
-            janus.ftlWatchChannel(session, plugin, channel)
-
-            // Wait for sdp offer
-            val offer = SessionDescription(
-                SessionDescription.Type.OFFER, janus.waitForSdpOffer(session)
-            )
 
             val peerConnection = peerConnectionFactory.createPeerConnection(
                 RTC_CONFIGURATION,
                 coroutineScope,
                 { candidate: IceCandidate ->
                     coroutineScope.launch {
-                        janus.trickleIceCandidate(
-                            session,
-                            plugin,
-                            com.danielstiner.glimdroid.data.IceCandidate(
-                                candidate = candidate.sdp,
-                                sdpMid = candidate.sdpMid,
-                                sdpMLineIndex = candidate.sdpMLineIndex
-                            )
-                        )
+                        // todo check for cleared?
+                        session.trickleIceCandidate(candidate)
                     }
                 },
+                // todo check for cleared
                 onAddStream,
             )
-            val connection = JanusRtcConnection(
-                janus, session, channel, peerConnection, coroutineContext,
-            )
-//
-//                if (peerConnection.connectionState == PeerConnection.PeerConnectionState.CLOSED) {
-//                    return@launch
-//                }
-            // Setup peer connection
-            peerConnection.setRemoteDescription(offer)
 
-            val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
-
-
-            peerConnection.setLocalDescription(answer)
-
-            coroutineScope.launch {
-                // Tell janus we are ready to start the stream
-                janus.ftlStart(
-                    session,
-                    plugin,
-                    answer.description
-                )
-
-                connection.loop()
-            }
-
-            return connection
+            return JanusRtcConnection(session, peerConnection, coroutineContext)
         }
     }
 }

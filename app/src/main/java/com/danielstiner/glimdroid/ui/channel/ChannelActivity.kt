@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -28,8 +29,9 @@ import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
 import com.google.android.material.chip.Chip
-import org.webrtc.VideoFrame
-import org.webrtc.VideoSink
+import kotlinx.coroutines.*
+import org.webrtc.*
+import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -40,11 +42,17 @@ const val EXTRA_STREAM_THUMBNAIL_URL = "tv.glimesh.android.extra.stream.url"
 
 class ChannelActivity : AppCompatActivity() {
 
-    private val TAG = "ChannelActivity"
-
     private lateinit var viewModel: ChannelViewModel
     private lateinit var binding: ActivityChannelBinding
     private lateinit var proxyVideoSink: ProxyVideoSink
+    private lateinit var peerConnectionFactory: WrappedPeerConnectionFactory
+
+
+    private val ioContext = SupervisorJob() + Dispatchers.IO
+    private val ioScope = CoroutineScope(ioContext)
+
+    private var session: JanusFtlSession? = null
+    private var connection: JanusRtcConnection? = null
     private var videoPreviewUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +80,11 @@ class ChannelActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        binding.videoView.init(viewModel.eglBase.eglBaseContext, null)
+        val eglBase = EglBase.create()
+        val factory = buildPeerConnectionFactory(eglBase.eglBaseContext)
+        peerConnectionFactory = WrappedPeerConnectionFactory(factory)
+
+        binding.videoView.init(eglBase.eglBaseContext, null)
         binding.videoView.setEnableHardwareScaler(true)
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -153,8 +165,27 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = ""
             }
         })
-        viewModel.videoTrack.observe(this, {
-            it?.addSink(proxyVideoSink)
+        viewModel.watchSession.observe(this, { watchSession ->
+            ioScope.launch {
+                val ses = JanusFtlSession.create(watchSession.edgeRoute.url, watchSession.channel)
+                if (viewModel.watchSession.value !== watchSession) {
+                    ses.close()
+                    return@launch
+                }
+                val con =
+                    JanusRtcConnection.create(ses, peerConnectionFactory, ioContext) { stream ->
+                        runOnUiThread {
+                            stream.videoTracks.single().addSink(proxyVideoSink)
+                        }
+                    }
+                withContext(Dispatchers.Main) {
+                    session?.close()
+                    session = ses
+                    connection?.close()
+                    connection = con
+                }
+                con.start()
+            }
         })
 
         val chatAdapter = ChatAdapter()
@@ -323,6 +354,9 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.videoTrack.value?.let { track ->
             track.removeSink(proxyVideoSink)
         }
+
+        connection?.close()
+        ioContext.cancel()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -435,7 +469,32 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    private fun buildPeerConnectionFactory(eglBaseContext: EglBase.Context): PeerConnectionFactory {
+        val videoEncoderFactory = DefaultVideoDecoderFactory(eglBaseContext)
+
+        val audioDeviceModule = JavaAudioDeviceModule.builder(applicationContext)
+            .setUseStereoOutput(true)
+            .setAudioAttributes(
+                AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                    .setUsage(AudioAttributes.USAGE_MEDIA).build()
+            )
+            .createAudioDeviceModule()
+
+        val factory = PeerConnectionFactory.builder()
+            .setVideoDecoderFactory(videoEncoderFactory)
+            .setAudioDeviceModule(audioDeviceModule)
+            .setOptions(PeerConnectionFactory.Options())
+            .createPeerConnectionFactory()
+
+        // Set libjingle logging level
+        // NOTE: this _must_ happen while |factory| is alive!
+        Logging.enableLogToDebugOutput(Logging.Severity.LS_WARNING)
+
+        return factory
+    }
+
     companion object {
+        private val TAG = "ChannelActivity"
         private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
         private const val STATE_CHANNEL_ID = EXTRA_CHANNEL_ID
         private const val STATE_STREAM_THUMBNAIL_URL = EXTRA_STREAM_THUMBNAIL_URL

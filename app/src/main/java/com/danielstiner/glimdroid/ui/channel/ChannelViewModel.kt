@@ -15,18 +15,16 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.webrtc.EglBase
 import org.webrtc.VideoTrack
+import java.util.concurrent.atomic.AtomicReference
 
 
 const val TAG = "ChannelViewModel"
 
 class ChannelViewModel(
-    private val peerConnectionFactory: WrappedPeerConnectionFactory,
     private val channels: ChannelRepository,
     private val chats: ChatRepository,
     private val countryCode: String,
-    val eglBase: EglBase,
 ) : ViewModel() {
     private val _channel = MutableLiveData<Channel>()
     val channel: LiveData<Channel> = _channel
@@ -73,227 +71,195 @@ class ChannelViewModel(
     private val _videoTrack = MutableLiveData<VideoTrack?>()
     val videoTrack: LiveData<VideoTrack?> = _videoTrack
 
-    @Volatile
-    private var connection: JanusRtcConnection? = null
+    private val _watchSession = MutableLiveData<WatchSession>()
+    val watchSession: LiveData<WatchSession> = _watchSession
 
-    @Volatile
-    internal var currentChannel: ChannelId? = null
+    private var sub = AtomicReference<Sub?>(null)
 
-    @Volatile
-    private var cleared = false
+    val isWatching: Boolean get() = sub.get() != null
 
-    private var chatSubscription: Subscription<ChatMessage>? = null
-    private var channelSubscription: Subscription<Channel>? = null
-
-    val isWatching: Boolean get() = connection != null && (connection?.isClosed != true)
-
-    val mutex = Mutex()
+    val currentChannel: ChannelId? get() = sub.get()?.channel
 
     @MainThread
     fun watch(channel: ChannelId) {
-        Log.d(TAG, "Watch $channel, current:$currentChannel")
+        val currentChannel = sub.get()?.channel
+        Log.d(TAG, "Watch $channel, current:${currentChannel}")
 
         if (currentChannel == channel) {
             return
         }
 
-        stopWatching()
-        startWatching(channel)
-    }
-
-    @MainThread
-    fun sendMessage(text: CharSequence?) {
-        val channel = currentChannel!!
-        viewModelScope.launch(Dispatchers.IO) {
-            chats.sendMessage(channel, text!!)
-        }
+        sub.getAndSet(Sub(channel))?.clear()
     }
 
     @MainThread
     fun stopWatching() {
+        val oldSub = sub.getAndSet(null)
+        val currentChannel = oldSub?.channel
         Log.d(TAG, "Stop watching, channel:$currentChannel")
-
-        // Capture subscriptions in thread-safe way for async cancellation
-        val chatSub = chatSubscription
-        val channelSub = channelSubscription
-
-        currentChannel = null
-
-        // Close previous connection, if any
-        connection?.close()
-
-        viewModelScope.launch(Dispatchers.IO) {
-            mutex.withLock {
-                chatSub?.cancel()
-                channelSub?.cancel()
-            }
-        }
+        oldSub?.clear()
     }
 
     @MainThread
-    private fun startWatching(channel: ChannelId) {
-        currentChannel = channel
+    fun sendMessage(text: CharSequence?) = sub.get()!!.sendMessage(text!!)
 
-        viewModelScope.launch(Dispatchers.IO) {
-            // Kick off loading critical in parallel to get user visible content on screen fast
-            joinAll(
-                launch { connectRtc(channel) },
-                launch {
-                    fetchChannelInfo(channel)
-                    // Kept separate from fetchChannelInfo because fetching chat messages is slow,
-                    // likely due to inefficient joins on the server
-                    fetchRecentChatHistory(channel)
-                },
-            )
-
-            // After initial fetch is done, start subscriptions and background work
-            joinAll(
-                launch { watchChats(channel) },
-                launch { watchChannelUpdates(channel) },
-            )
-        }
+    override fun onCleared() {
+        super.onCleared()
+        stopWatching()
     }
 
-    private suspend fun connectRtc(channel: ChannelId) {
-        // TODO, need to use the websocket connection here, keeping it open keeps presence
-        val route = channels.watch(channel, countryCode)
+    inner class Sub(val channel: ChannelId) {
 
-        val con = JanusRtcConnection.create(route.url, channel, peerConnectionFactory) { stream ->
-            viewModelScope.launch(Dispatchers.Main) {
-                assert(stream.videoTracks.size == 1)
+        lateinit var session: JanusFtlSession
+        private var chatSubscription: Subscription<ChatMessage>? = null
+        private var channelSubscription: Subscription<Channel>? = null
+
+        @Volatile
+        private var cleared = false
+        private val mutex = Mutex()
+
+        init {
+            startWatching()
+        }
+
+        fun sendMessage(text: CharSequence) {
+            viewModelScope.launch(Dispatchers.IO) {
+                chats.sendMessage(channel, text)
+            }
+        }
+
+        private fun startWatching() {
+            viewModelScope.launch(Dispatchers.IO) {
+                // Kick off loading critical in parallel to get user visible content on screen fast
+                joinAll(
+                    launch { janus(channel) },
+                    launch {
+                        fetchChannelInfo(channel)
+                        // Kept separate from fetchChannelInfo because fetching chat messages is slow,
+                        // likely due to inefficient joins on the server
+                        fetchRecentChatHistory(channel)
+                    },
+                )
+
+                // After initial fetch is done, start subscriptions and background work
+                joinAll(
+                    launch { watchChats(channel) },
+                    launch { watchChannelUpdates(channel) },
+                )
+            }
+        }
+
+        private suspend fun janus(channel: ChannelId) {
+            val edgeRoute = channels.watch(channel, countryCode)
+
+            withContext(Dispatchers.Main) {
                 mutex.withLock {
-                    if (currentChannel == channel) {
-                        _videoTrack.value = stream.videoTracks[0]
-                    } else {
-                        Log.w(
-                            TAG,
-                            "Channel changed out from under us before RTC video track arrived"
-                        )
+                    if (!cleared) {
+                        _watchSession.value = WatchSession(channel, edgeRoute)
                     }
                 }
-
             }
         }
 
-        mutex.withLock {
-            if (currentChannel == channel) {
-                val oldConnection = connection
-                connection = con
-                Log.d(TAG, "Closing old connection:$oldConnection")
-                oldConnection?.close()
-            } else {
-                Log.w(TAG, "Channel changed out from under us before RTC connection opened")
-                con.close()
-            }
+        private suspend fun fetchChannelInfo(channel: ChannelId) {
+            updateChannelLiveData(channels.get(channel))
         }
-    }
 
-    private suspend fun fetchChannelInfo(channel: ChannelId) {
-        updateChannelLiveData(channels.get(channel))
-    }
-
-    private suspend fun updateChannelLiveData(channel: Channel) {
-        withContext(Dispatchers.Main) {
-            mutex.withLock {
-                if (currentChannel == channel.id) {
-                    _channel.value = channel
-                    _title.value = channel.title
-                    _matureContent.value = channel.matureContent
-                    _language.value = channel.language
-                    _category.value = channel.category
-                    _subcategory.value = channel.subcategory
-                    _tags.value = channel.tags
-                    _streamerDisplayname.value = channel.streamer.displayName
-                    _streamerUsername.value = channel.streamer.username
-                    _streamerAvatarUri.value = channel.streamer.avatarUrl?.let { Uri.parse(it) }
-                    _viewerCount.value = channel.stream?.viewerCount
-                    _videoThumbnailUri.value = channel.stream?.thumbnailUrl?.let { Uri.parse(it) }
+        private suspend fun updateChannelLiveData(channel: Channel) {
+            withContext(Dispatchers.Main) {
+                mutex.withLock {
+                    if (!cleared) {
+                        _channel.value = channel
+                        _title.value = channel.title
+                        _matureContent.value = channel.matureContent
+                        _language.value = channel.language
+                        _category.value = channel.category
+                        _subcategory.value = channel.subcategory
+                        _tags.value = channel.tags
+                        _streamerDisplayname.value = channel.streamer.displayName
+                        _streamerUsername.value = channel.streamer.username
+                        _streamerAvatarUri.value = channel.streamer.avatarUrl?.let { Uri.parse(it) }
+                        _viewerCount.value = channel.stream?.viewerCount
+                        _videoThumbnailUri.value =
+                            channel.stream?.thumbnailUrl?.let { Uri.parse(it) }
+                    }
                 }
             }
         }
-    }
 
-    private suspend fun fetchRecentChatHistory(channel: ChannelId) {
-        withContext(Dispatchers.Main) {
-            mutex.withLock {
-                if (currentChannel == channel) {
-                    _messages.value = listOf()
-                } else {
-                    Log.w(TAG, "Channel changed out from under us before chats cleared")
+        private suspend fun fetchRecentChatHistory(channel: ChannelId) {
+            withContext(Dispatchers.Main) {
+                mutex.withLock {
+                    if (!cleared) {
+                        _messages.value = listOf()
+                    } else {
+                        Log.w(TAG, "Channel changed out from under us before chats cleared")
+                    }
+                }
+            }
+            val recentMessages = chats.recentMessages(channel)
+
+            withContext(Dispatchers.Main) {
+                mutex.withLock {
+                    if (!cleared) {
+                        _messages.value = recentMessages
+                    } else {
+                        Log.w(TAG, "Channel changed out from under us before recent chats fetched")
+                    }
                 }
             }
         }
-        val recentMessages = chats.recentMessages(channel)
 
-        withContext(Dispatchers.Main) {
-            mutex.withLock {
-                if (currentChannel == channel) {
-                    _messages.value = recentMessages
-                } else {
-                    Log.w(TAG, "Channel changed out from under us before recent chats fetched")
-                }
-            }
-        }
-    }
-
-    private suspend fun watchChats(channel: ChannelId) {
-        val sub = chats.subscribe(channel).apply {
-            this.data.collect { message ->
-                withContext(Dispatchers.Main) {
-                    mutex.withLock {
-                        if (currentChannel == channel) {
-                            _messages.value = buildList {
-                                addAll(_messages.value!!)
-                                add(message)
+        private suspend fun watchChats(channel: ChannelId) {
+            val sub = chats.subscribe(channel).apply {
+                this.data.collect { message ->
+                    withContext(Dispatchers.Main) {
+                        mutex.withLock {
+                            if (!cleared) {
+                                _messages.value = buildList {
+                                    addAll(_messages.value!!)
+                                    add(message)
+                                }
+                            } else {
+                                Log.w(TAG, "Channel changed out from under us by time chat arrived")
                             }
-                        } else {
-                            Log.w(TAG, "Channel changed out from under us by time chat arrived")
                         }
                     }
                 }
             }
+
+            mutex.withLock {
+                if (!cleared) {
+                    val oldSubscription = chatSubscription
+                    chatSubscription = sub
+                    oldSubscription?.cancel()
+                } else {
+                    Log.w(TAG, "Channel changed out from under us before chat watch started")
+                    sub.cancel()
+                }
+            }
         }
 
-        mutex.withLock {
-            if (currentChannel == channel) {
-                val oldSubscription = chatSubscription
-                chatSubscription = sub
-                oldSubscription?.cancel()
-            } else {
-                Log.w(TAG, "Channel changed out from under us before chat watch started")
-                sub.cancel()
+        private suspend fun watchChannelUpdates(channel: ChannelId) {
+            // Simplistic approach because websocket subscriptions for a channel do not receive updates
+            // for stream metadata updates like number of viewers
+            while (!cleared) {
+                delay(30_000)
+                fetchChannelInfo(channel)
+            }
+        }
+
+        fun clear() {
+            viewModelScope.launch(Dispatchers.IO) {
+                mutex.withLock {
+                    cleared = true
+                    session.close()
+                    chatSubscription?.cancel()
+                    channelSubscription?.cancel()
+                }
             }
         }
     }
 
-    private suspend fun watchChannelUpdates(channel: ChannelId) {
-        // Simplistic approach because websocket subscriptions for a channel do not receive updates
-        // for stream metadata updates like number of viewers
-        while (currentChannel == channel && !cleared) {
-            delay(30_000)
-            fetchChannelInfo(channel)
-        }
-
-//        val sub = glimeshSocket.channelUpdates(channel).apply {
-//            data.collect { channel ->
-//                Log.d(TAG, "Channel update: $channel")
-//                updateChannelLiveData(channel)
-//            }
-//        }
-//
-//        mutex.withLock {
-//            if (currentChannel == channel) {
-//                channelSubscription = sub
-//            } else {
-//                Log.w(TAG, "Channel changed out from under us before chat watch started")
-//                sub.cancel()
-//            }
-//        }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cleared = true
-        stopWatching()
-    }
+    data class WatchSession(val channel: ChannelId, val edgeRoute: EdgeRoute)
 }

@@ -156,7 +156,10 @@ data class FtlStartRequest(
 data class FtlStartRequestBody(@Required val request: String = "start")
 
 @Serializable
-data class FtlStartResponse(val janus: String, val transaction: String, val session_id: Long)
+data class FtlStartResponse(
+    val janus: String, val transaction: String, val session_id: Long,
+    val error: JanusError? = null
+)
 
 @Serializable
 data class TrickleRequest(
@@ -239,6 +242,7 @@ class JanusRestApi(baseUrl: URL) {
         assert(response.janus == "ack")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)
+        assert(response.error == null)
     }
 
     suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
