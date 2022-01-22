@@ -74,9 +74,6 @@ class ChannelActivity : AppCompatActivity() {
         )[ChannelViewModel::class.java]
 
         proxyVideoSink = ProxyVideoSink(binding.videoView)
-        loadVideoPreviewUri(
-            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-        )
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -301,30 +298,16 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun loadVideoPreviewUri(uri: Uri?) {
-        val currentWithoutQuery = videoPreviewUri?.buildUpon()?.clearQuery()?.build()
-        val newWithoutQuery = uri?.buildUpon()?.clearQuery()?.build()
-
-        when {
-            viewModel.videoTrack.value != null -> {
-                Log.v(TAG, "Already have video track, not showing preview thumbnail")
-                proxyVideoSink.showProgressBarOnly()
-            }
-            newWithoutQuery == currentWithoutQuery -> {
-                proxyVideoSink.showPreviewAndProgressBar()
-            }
-            uri != null -> {
-                Glide.with(this).clear(binding.videoPreview)
-                Glide
-                    .with(this)
-                    .asBitmap()
-                    .load(uri)
-                    .into(binding.videoPreview)
-                proxyVideoSink.showPreviewAndProgressBar()
-            }
-            else -> {
-                Glide.with(this).clear(binding.videoPreview)
-                proxyVideoSink.showProgressBarOnly()
-            }
+        if (uri != null) {
+            Glide
+                .with(this)
+                .asBitmap()
+                .load(uri.buildUpon().clearQuery().build())
+                .into(binding.videoPreview)
+            proxyVideoSink.showPreviewAndProgressBar()
+        } else {
+            Glide.with(this).clear(binding.videoPreview)
+            proxyVideoSink.showProgressBarOnly()
         }
 
         videoPreviewUri = uri
@@ -358,26 +341,22 @@ class ChannelActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-
-        viewModel.videoTrack.value?.let { track ->
-            track.removeSink(proxyVideoSink)
-        }
-
-        val ses = session
-        val con = connection
-
-        ioScope.launch {
-            ses?.destroy()
-            con?.close()
-            ioContext.cancel()
-        }
+        stopVideo()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.run {
-            viewModel.currentChannel?.id?.let { putLong(STATE_CHANNEL_ID, it) }
-            viewModel.videoThumbnailUri.value?.let {
-                putString(STATE_STREAM_THUMBNAIL_URL, it.toString())
+            val channel = viewModel.currentChannel
+            val thumbnailUri = videoPreviewUri
+            if (channel == null) {
+                assert(getLong(STATE_CHANNEL_ID, 0L) == 0L)
+            } else {
+                putLong(STATE_CHANNEL_ID, channel.id)
+            }
+            if (thumbnailUri == null) {
+                assert(getString(STATE_STREAM_THUMBNAIL_URL) == null)
+            } else {
+                putString(STATE_STREAM_THUMBNAIL_URL, thumbnailUri.toString())
             }
         }
 
@@ -473,8 +452,23 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun stopWatching() {
+        stopVideo()
         viewModel.stopWatching()
-        viewModel.videoTrack.value?.removeSink(proxyVideoSink)
+    }
+
+    private fun stopVideo() {
+        viewModel.videoTrack.value?.let { track ->
+            track.removeSink(proxyVideoSink)
+        }
+
+        val ses = session
+        val con = connection
+
+        ioScope.launch {
+            ses?.destroy()
+            con?.close()
+            ioContext.cancel()
+        }
     }
 
     private fun enterPictureInPicture() {
