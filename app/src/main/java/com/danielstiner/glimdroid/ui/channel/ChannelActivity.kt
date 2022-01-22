@@ -302,7 +302,7 @@ class ChannelActivity : AppCompatActivity() {
             Glide
                 .with(this)
                 .asBitmap()
-                .load(uri.buildUpon().clearQuery().build())
+                .load(uri)
                 .into(binding.videoPreview)
             proxyVideoSink.showPreviewAndProgressBar()
         } else {
@@ -446,8 +446,8 @@ class ChannelActivity : AppCompatActivity() {
             viewModel.videoTrack.value?.addSink(proxyVideoSink)
         } else {
             stopWatching()
-            loadVideoPreviewUri(thumbnailUri)
             viewModel.watch(channel)
+            loadVideoPreviewUri(thumbnailUri)
         }
     }
 
