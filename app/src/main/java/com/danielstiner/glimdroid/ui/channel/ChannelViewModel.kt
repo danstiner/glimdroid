@@ -59,8 +59,8 @@ class ChannelViewModel(
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
 
-    private val _channelWatch = MutableLiveData<ChannelWatch>()
-    val channelWatch: LiveData<ChannelWatch> = _channelWatch
+    private val _channelWatch = MutableLiveData<ChannelWatch?>()
+    val channelWatch: LiveData<ChannelWatch?> = _channelWatch
 
     private val _thumbnailUri = MutableLiveData<Uri?>()
     val thumbnailUri: LiveData<Uri?> = _thumbnailUri
@@ -80,9 +80,11 @@ class ChannelViewModel(
             return
         }
 
-        _thumbnailUri.value = thumbnailUri
-
         current?.close()
+
+        _thumbnailUri.value = thumbnailUri
+        _channelWatch.value = null
+
         current = ChannelWatcher(channel)
     }
 

@@ -16,11 +16,10 @@ class JanusFtlSession(
     private val janus: JanusRestApi,
     private val session: SessionId,
     private val plugin: PluginId,
-    private val channel: ChannelId,
+    internal val channel: ChannelId,
 ) {
     @Volatile
     var isStarted: Boolean = false
-    private var answer: SessionDescription? = null
     private var offer: SessionDescription? = null
 
     @Volatile
@@ -38,14 +37,9 @@ class JanusFtlSession(
         return offer!!
     }
 
-    fun getSdpAnswer(): SessionDescription {
-        return answer!!
-    }
-
     suspend fun start(answer: SessionDescription, coroutineScope: CoroutineScope) {
         assert(answer.type == SessionDescription.Type.ANSWER)
-
-        this.answer = answer
+        assert(!destroyed)
 
         // Tell janus we are ready to start the stream
         janus.ftlStart(
@@ -73,6 +67,7 @@ class JanusFtlSession(
         )
 
     suspend fun destroy() {
+        Log.d(TAG, "Destroying janus session; channel:$channel")
         destroyed = true
         janus.destroy(session)
     }
@@ -95,6 +90,8 @@ class JanusFtlSession(
             // needed since this is a long poll request
             delay(1_000)
         }
+
+        Log.d(TAG, "Looper stopped for janus session; channel:$channel")
     }
 
     companion object {

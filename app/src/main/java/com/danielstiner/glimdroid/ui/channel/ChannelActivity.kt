@@ -60,6 +60,8 @@ class ChannelActivity : AppCompatActivity() {
             showStatusBar()
         }
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -68,7 +70,8 @@ class ChannelActivity : AppCompatActivity() {
             ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
 
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Start watching that channel!
+        watch(intent)
 
         val eglBase = EglBase.create()
         val factory = buildPeerConnectionFactory(eglBase.eglBaseContext)
@@ -93,9 +96,9 @@ class ChannelActivity : AppCompatActivity() {
                 }
             }
 
-            when (watchSession) {
-                null -> janusMedia?.close()
-                janusMedia?.channelWatch -> {
+            when {
+                watchSession == null -> janusMedia?.close()
+                watchSession == janusMedia?.channelWatch && janusMedia?.isActive == true -> {
                     // Do nothing, media is already started for this watch session
                 }
                 else -> {
@@ -249,9 +252,6 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
-
-        // Start watching that channel!
-        watch(intent)
     }
 
     override fun onStart() {
@@ -436,6 +436,8 @@ class ChannelActivity : AppCompatActivity() {
 
     inner class JanusMedia(val channelWatch: ChannelViewModel.ChannelWatch) {
 
+        val isActive get() = coroutineContext.isActive
+
         private val TAG = "JanusMedia"
 
         private val coroutineContext = SupervisorJob() + Dispatchers.IO
@@ -445,13 +447,17 @@ class ChannelActivity : AppCompatActivity() {
         private var connection: JanusRtcConnection? = null
         private var videoTrack: VideoTrack? = null
 
+        @Volatile
+        private var closed = false
+
         init {
             Log.d(TAG, "Starting, channel:${channelWatch.channel.id}")
             loadVideoPreviewUri(viewModel.thumbnailUri.value)
 
             coroutineScope.launch {
                 val ses = JanusFtlSession.create(channelWatch.edgeRoute.url, channelWatch.channel)
-                if (!coroutineContext.isActive) {
+                assert(closed == !coroutineContext.isActive)
+                if (closed) {
                     ses.destroy()
                     return@launch
                 }
@@ -461,7 +467,8 @@ class ChannelActivity : AppCompatActivity() {
                     coroutineContext
                 ) { stream ->
                     runOnUiThread {
-                        if (coroutineScope.isActive) {
+                        assert(closed == !coroutineContext.isActive)
+                        if (!closed) {
                             videoTrack = stream.videoTracks.single().apply {
                                 addSink(proxyVideoSink)
                             }
@@ -472,7 +479,8 @@ class ChannelActivity : AppCompatActivity() {
                 con.start()
 
                 withContext(Dispatchers.Main) {
-                    if (!coroutineContext.isActive) {
+                    assert(closed == !coroutineContext.isActive)
+                    if (closed) {
                         con.close()
                         ses.destroy()
                     } else {
@@ -484,7 +492,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         fun close() {
-            if (!coroutineScope.isActive) {
+            if (closed) {
                 Log.d(TAG, "Already closed, channel:${channelWatch.channel.id}")
                 return
             }
@@ -494,7 +502,8 @@ class ChannelActivity : AppCompatActivity() {
             // Launch to UI thread TODO
             coroutineScope.launch(Dispatchers.Main) {
                 // Cancel any ongoing work (e.g. session is still being setup)
-                coroutineContext.cancel()
+                closed = true
+                this@JanusMedia.coroutineContext.cancel()
 
                 val ses = session
                 val con = connection

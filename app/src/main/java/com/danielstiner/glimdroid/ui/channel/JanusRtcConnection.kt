@@ -3,50 +3,54 @@ package com.danielstiner.glimdroid.ui.channel
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.webrtc.IceCandidate
-import org.webrtc.MediaConstraints
-import org.webrtc.MediaStream
-import org.webrtc.PeerConnection
+import org.webrtc.*
 import kotlin.coroutines.CoroutineContext
 
 class JanusRtcConnection(
     private val session: JanusFtlSession,
     private val peerConnection: WrappedPeerConnection,
-    private val coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext
 ) {
-    val coroutineScope = CoroutineScope(coroutineContext)
-    val isClosed: Boolean
-        get() = peerConnection.connectionState == PeerConnection.PeerConnectionState.CLOSED
+    private val coroutineScope = CoroutineScope(coroutineContext)
+
+    @Volatile
+    private var isClosed: Boolean = false
 
     fun close() {
-        Log.d(TAG, "Closing connection $peerConnection")
+        Log.d(TAG, "Closing connection $peerConnection for channel:${session.channel}")
+        isClosed = true
         peerConnection.close()
     }
 
+    suspend fun start() {
 
-    fun start() {
-        coroutineScope.launch {
-            startAsync()
-        }
-    }
+        val answer: SessionDescription
 
-    private suspend fun startAsync() {
-        if (isClosed) {
-            return
-        }
-        peerConnection.setRemoteDescription(session.getSdpOffer())
+        try {
+            if (isClosed) {
+                return
+            }
+            peerConnection.setRemoteDescription(session.getSdpOffer())
 
-        if (isClosed) {
-            return
-        }
-        val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
+            if (isClosed) {
+                return
+            }
+            answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
 
-        if (isClosed) {
-            return
-        }
-        peerConnection.setLocalDescription(answer)
+            if (isClosed) {
+                return
+            }
+            peerConnection.setLocalDescription(answer)
 
-        if (isClosed) {
+            if (isClosed) {
+                return
+            }
+        } catch (ex: WrappedPeerConnection.SdpException) {
+            Log.w(
+                TAG,
+                "Failed to set SDP description, connection already closed: ${ex.message}",
+                ex
+            )
             return
         }
 
