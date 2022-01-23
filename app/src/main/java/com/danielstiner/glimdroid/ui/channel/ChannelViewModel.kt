@@ -15,25 +15,23 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.webrtc.VideoTrack
-import java.util.concurrent.atomic.AtomicReference
-
-
-const val TAG = "ChannelViewModel"
 
 class ChannelViewModel(
     private val channels: ChannelRepository,
     private val chats: ChatRepository,
     private val countryCode: String,
 ) : ViewModel() {
+
+    private val TAG = "ChannelViewModel"
+
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
 
     private val _matureContent = MutableLiveData<Boolean>()
     val matureContent: LiveData<Boolean> = _matureContent
 
-    private val _language = MutableLiveData<String?>()
-    val language: LiveData<String?> = _language
+    private val _displayLanguage = MutableLiveData<String?>()
+    val displayLanguage: LiveData<String?> = _displayLanguage
 
     private val _category = MutableLiveData<Category>()
     val category: LiveData<Category> = _category
@@ -44,62 +42,61 @@ class ChannelViewModel(
     private val _tags = MutableLiveData<List<Tag>>()
     val tags: LiveData<List<Tag>> = _tags
 
-    private val _streamerDisplayname = MutableLiveData<String>()
-    val streamerDisplayname: LiveData<String> = _streamerDisplayname
+    private val _displayname = MutableLiveData<String>()
+    val displayname: LiveData<String> = _displayname
 
-    private val _streamerUsername = MutableLiveData<String>()
-    val streamerUsername: LiveData<String> = _streamerUsername
+    private val _username = MutableLiveData<String>()
+    val username: LiveData<String> = _username
 
-    private val _streamerAvatarUri = MutableLiveData<Uri?>()
-    val streamerAvatarUri: LiveData<Uri?> = _streamerAvatarUri
+    private val _avatarUri = MutableLiveData<Uri?>()
+    val avatarUri: LiveData<Uri?> = _avatarUri
 
-    private val _messagesMutable: MutableList<ChatMessage> = mutableListOf()
     private val _messages = MutableLiveData<List<ChatMessage>>().apply {
-        value = _messagesMutable
+        value = listOf()
     }
     val messages: LiveData<List<ChatMessage>> = _messages
 
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
 
-    private val _videoTrack = MutableLiveData<VideoTrack?>()
-    val videoTrack: LiveData<VideoTrack?> = _videoTrack
+    private val _channelWatch = MutableLiveData<ChannelWatch>()
+    val channelWatch: LiveData<ChannelWatch> = _channelWatch
 
-    private val _watchSession = MutableLiveData<WatchSession>()
-    val watchSession: LiveData<WatchSession> = _watchSession
+    private val _thumbnailUri = MutableLiveData<Uri?>()
+    val thumbnailUri: LiveData<Uri?> = _thumbnailUri
 
-    private var current = AtomicReference<ChannelSubscriptions?>(null)
+    private var current: ChannelWatcher? = null
 
-    val isWatching: Boolean get() = current.get() != null
-
-    val currentChannel: ChannelId? get() = current.get()?.channel
+    // TODO, callers of this should instead look at the media connection state
+    val isSubscribed: Boolean
+        @MainThread
+        get() = current != null
 
     @MainThread
-    fun watch(channel: ChannelId) {
-        val currentChannel = current.get()?.channel
-        Log.d(TAG, "Watch $channel, current:${currentChannel}")
+    fun watch(channel: ChannelId, thumbnailUri: Uri?) {
+        Log.d(TAG, "Watch, new:$channel, current:${current?.channel}")
 
-        if (currentChannel == channel) {
+        if (current?.channel == channel) {
             return
         }
 
-        current.getAndSet(ChannelSubscriptions(channel))?.clear()
+        _thumbnailUri.value = thumbnailUri
+
+        current?.close()
+        current = ChannelWatcher(channel)
     }
 
     @MainThread
-    fun stopWatching() {
-        val oldSub = current.getAndSet(null)
-        val currentChannel = oldSub?.channel
-        Log.d(TAG, "Stop watching, channel:$currentChannel")
-        oldSub?.clear()
+    fun stop() {
+        current?.close()
     }
 
     @MainThread
-    fun sendMessage(text: CharSequence?) = current.get()!!.sendMessage(text!!)
+    fun sendMessage(text: CharSequence?) = current!!.sendMessage(text!!)
 
     override fun onCleared() {
         super.onCleared()
-        stopWatching()
+        stop()
     }
 
     /**
@@ -107,20 +104,19 @@ class ChannelViewModel(
      *
      * Having a container makes it easy to cleanly stop subscriptions when the channel is changed.
      */
-    inner class ChannelSubscriptions(val channel: ChannelId) {
+    inner class ChannelWatcher(val channel: ChannelId) {
 
         private var chatSubscription: Subscription<ChatMessage>? = null
 
         @Volatile
         private var closed = false
-
         private val mutex = Mutex()
 
         init {
             viewModelScope.launch(Dispatchers.IO) {
-                // Kick off loading critical in parallel to get user visible content on screen fast
+                // Get edge route in parallel with fetching channel and chat info
                 joinAll(
-                    launch { janus(channel) },
+                    launch { startWatch(channel) },
                     launch {
                         fetchChannelInfo(channel)
                         // Kept separate from fetchChannelInfo because fetching chat messages is slow,
@@ -143,12 +139,12 @@ class ChannelViewModel(
             }
         }
 
-        private suspend fun janus(channel: ChannelId) {
+        private suspend fun startWatch(channel: ChannelId) {
             val edgeRoute = channels.watch(channel, countryCode)
 
             withContext(Dispatchers.Main) {
                 if (!closed) {
-                    _watchSession.value = WatchSession(channel, edgeRoute)
+                    _channelWatch.value = ChannelWatch(channel, edgeRoute)
                 }
             }
         }
@@ -162,14 +158,18 @@ class ChannelViewModel(
                 if (!closed) {
                     _title.value = channel.title
                     _matureContent.value = channel.matureContent
-                    _language.value = channel.language
+                    _displayLanguage.value = channel.displayLanguage()
                     _category.value = channel.category
                     _subcategory.value = channel.subcategory
                     _tags.value = channel.tags
-                    _streamerDisplayname.value = channel.streamer.displayName
-                    _streamerUsername.value = channel.streamer.username
-                    _streamerAvatarUri.value = channel.streamer.avatarUrl?.let { Uri.parse(it) }
+                    _displayname.value = channel.streamer.displayName
+                    _username.value = channel.streamer.username
+                    _avatarUri.value = channel.streamer.avatarUrl?.let { Uri.parse(it) }
                     _viewerCount.value = channel.stream?.viewerCount
+
+                    if (channel.stream?.thumbnailUrl != null) {
+                        _thumbnailUri.value = Uri.parse(channel.stream?.thumbnailUrl)
+                    }
                 }
             }
         }
@@ -228,7 +228,7 @@ class ChannelViewModel(
             }
         }
 
-        fun clear() {
+        fun close() {
             viewModelScope.launch(Dispatchers.IO) {
                 mutex.withLock {
                     chatSubscription?.cancel()
@@ -238,5 +238,5 @@ class ChannelViewModel(
         }
     }
 
-    data class WatchSession(val channel: ChannelId, val edgeRoute: EdgeRoute)
+    data class ChannelWatch(val channel: ChannelId, val edgeRoute: EdgeRoute)
 }

@@ -3,7 +3,7 @@ package com.danielstiner.glimdroid.ui.channel
 import android.content.Context
 import android.telephony.TelephonyManager
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.danielstiner.glimdroid.data.AuthStateDataSource
@@ -36,19 +36,18 @@ class ChannelViewModelFactory(
 
             val auth = AuthStateDataSource(applicationContext)
             val socket = GlimeshSocketDataSource.getInstance(auth = auth)
-            val countryCode = getCountryCode()
 
             return ChannelViewModel(
                 channels = ChannelRepository(socket),
                 chats = ChatRepository(socket),
-                countryCode = countryCode,
+                countryCode = getCountryCode(),
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 
     private fun getCountryCode(): String {
-        val networkCountryIso = getSystemService(
+        val networkCountryIso = ContextCompat.getSystemService(
             applicationContext,
             TelephonyManager::class.java
         )?.networkCountryIso?.uppercase()
@@ -58,4 +57,5 @@ class ChannelViewModelFactory(
         }
         return networkCountryIso ?: "US"
     }
+
 }

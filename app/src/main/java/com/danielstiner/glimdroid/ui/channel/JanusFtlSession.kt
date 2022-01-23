@@ -24,7 +24,7 @@ class JanusFtlSession(
     private var offer: SessionDescription? = null
 
     @Volatile
-    private var cleared = false
+    private var destroyed = false
 
     suspend fun getSdpOffer(): SessionDescription {
 
@@ -73,18 +73,21 @@ class JanusFtlSession(
         )
 
     suspend fun destroy() {
+        destroyed = true
         janus.destroy(session)
     }
 
     private suspend fun loop() {
         // Long poll janus for events while the connection is alive
-        while (!cleared) {
+        while (!destroyed) {
             Log.d(TAG, "Polling Janus; channel:$channel")
             try {
                 janus.longPollSession(session)
                 // TODO do something with events
             } catch (ex: java.io.FileNotFoundException) {
                 Log.w(TAG, "Janus session done, closing connection: $ex")
+                // TODO inform RTC connection the session has closed prematurely
+                destroyed = true
                 break
             }
 
@@ -92,11 +95,11 @@ class JanusFtlSession(
             // needed since this is a long poll request
             delay(1_000)
         }
-
-        // TODO forcibly end stream
     }
 
     companion object {
+        private const val TAG = "JanusFtlSession"
+
         suspend fun create(
             janusBaseUrl: URL,
             channel: ChannelId

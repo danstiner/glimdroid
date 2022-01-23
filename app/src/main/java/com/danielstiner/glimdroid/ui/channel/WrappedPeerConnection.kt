@@ -1,7 +1,5 @@
 package com.danielstiner.glimdroid.ui.channel
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnection
 import org.webrtc.SdpObserver
@@ -11,7 +9,6 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class WrappedPeerConnection(
-    private val coroutineScope: CoroutineScope,
     private val connection: PeerConnection
 ) {
 
@@ -19,7 +16,6 @@ class WrappedPeerConnection(
         get() = connection.connectionState()
 
     fun close() {
-        coroutineScope.cancel()
         connection.close()
     }
 

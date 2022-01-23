@@ -11,6 +11,7 @@ import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.util.Rational
 import android.view.*
@@ -47,12 +48,7 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var proxyVideoSink: ProxyVideoSink
     private lateinit var peerConnectionFactory: WrappedPeerConnectionFactory
 
-    private val ioContext = SupervisorJob() + Dispatchers.IO
-    private val ioScope = CoroutineScope(ioContext)
-
-    private var session: JanusFtlSession? = null
-    private var connection: JanusRtcConnection? = null
-    private var videoPreviewUri: Uri? = null
+    private var janusMedia: JanusMedia? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")
@@ -72,8 +68,6 @@ class ChannelActivity : AppCompatActivity() {
             ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
 
-        proxyVideoSink = ProxyVideoSink(binding.videoView)
-
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         val eglBase = EglBase.create()
@@ -87,55 +81,70 @@ class ChannelActivity : AppCompatActivity() {
             setPictureInPictureParams(pictureInPictureParams(binding.videoView))
         }
 
-        viewModel.title.observe(this, {
-            binding.textviewChannelTitle.text = it
-        })
-        viewModel.matureContent.observe(this, {
-            if (it) {
-                binding.chipMature.visibility = View.VISIBLE
-            } else {
-                binding.chipMature.visibility = View.GONE
+        proxyVideoSink = ProxyVideoSink(binding.videoView)
+
+        // TODO
+        viewModel.channelWatch.observe(this, { watchSession ->
+
+            // TODO remove
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Looper.getMainLooper().isCurrentThread) {
+                    TODO("not main thread")
+                }
+            }
+
+            when (watchSession) {
+                null -> janusMedia?.close()
+                janusMedia?.channelWatch -> {
+                    // Do nothing, media is already started for this watch session
+                }
+                else -> {
+                    // New watch session, restart media connection
+                    janusMedia?.close()
+                    janusMedia = JanusMedia(watchSession)
+                }
             }
         })
-        viewModel.language.observe(this, {
-            if (it != null) {
-                val loc = Locale(it)
-                val name: String = loc.getDisplayLanguage(loc)
-                binding.chipLanguage.text = name
-                binding.chipLanguage.visibility = View.VISIBLE
-            } else {
-                binding.chipLanguage.visibility = View.GONE
+        viewModel.title.observe(this, { title ->
+            binding.textviewChannelTitle.text = title
+        })
+        viewModel.category.observe(this, { category ->
+            with(binding.chipCategory) {
+                text = category.name
             }
         })
-        viewModel.category.observe(this, {
-            if (it != null) {
-                binding.chipCategory.text = it.name
-                binding.chipCategory.visibility = View.VISIBLE
-            } else {
-                binding.chipCategory.visibility = View.GONE
+        viewModel.subcategory.observe(this, { subcategory ->
+            with(binding.chipSubcategory) {
+                text = subcategory?.name
+                visibility = if (subcategory != null) View.VISIBLE else View.GONE
             }
         })
-        viewModel.subcategory.observe(this, {
-            if (it != null) {
-                binding.chipSubcategory.text = it.name
-                binding.chipSubcategory.visibility = View.VISIBLE
-            } else {
-                binding.chipSubcategory.visibility = View.GONE
+        viewModel.matureContent.observe(this, { matureContent ->
+            with(binding.chipMature) {
+                visibility = if (matureContent) View.VISIBLE else View.GONE
             }
         })
-        viewModel.tags.observe(this, {
-            binding.chipGroupTag.removeAllViews()
-            for (tag in it) {
-                val view = LayoutInflater.from(binding.chipGroupTag.context)
-                    .inflate(R.layout.chip_tag, binding.chipGroupTag, false) as Chip
-                view.text = tag.name
-                binding.chipGroupTag.addView(view)
+        viewModel.displayLanguage.observe(this, { displayLanguage ->
+            with(binding.chipLanguage) {
+                text = displayLanguage
+                visibility = if (displayLanguage != null) View.VISIBLE else View.GONE
             }
         })
-        viewModel.streamerDisplayname.observe(this, {
-            binding.textviewStreamerDisplayName.text = it
+        viewModel.tags.observe(this, { tags ->
+            with(binding.chipGroupTag) {
+                removeAllViews()
+                for (tag in tags) {
+                    val view = LayoutInflater.from(context)
+                        .inflate(R.layout.chip_tag, this, false) as Chip
+                    view.text = tag.name
+                    addView(view)
+                }
+            }
         })
-        viewModel.streamerUsername.observe(this, { username ->
+        viewModel.displayname.observe(this, { streamerDisplayname ->
+            binding.textviewStreamerDisplayName.text = streamerDisplayname
+        })
+        viewModel.username.observe(this, { username ->
             binding.textviewStreamerDisplayName.setOnClickListener {
                 openStreamerProfile(username)
             }
@@ -143,11 +152,11 @@ class ChannelActivity : AppCompatActivity() {
                 openStreamerProfile(username)
             }
         })
-        viewModel.streamerAvatarUri.observe(this, {
-            if (it != null) {
+        viewModel.avatarUri.observe(this, { avatarUri ->
+            if (avatarUri != null) {
                 Glide
                     .with(this)
-                    .load(it)
+                    .load(avatarUri)
                     .circleCrop()
                     .into(binding.avatarImage)
             } else {
@@ -159,36 +168,6 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = "$it viewers"
             } else {
                 binding.textviewSubtitle.text = ""
-            }
-        })
-        viewModel.watchSession.observe(this, { watchSession ->
-            ioScope.launch {
-                val ses = JanusFtlSession.create(watchSession.edgeRoute.url, watchSession.channel)
-                if (viewModel.watchSession.value !== watchSession) {
-                    ses.destroy()
-                    return@launch
-                }
-                val con =
-                    JanusRtcConnection.create(ses, peerConnectionFactory, ioContext) { stream ->
-                        runOnUiThread {
-                            stream.videoTracks.single().addSink(proxyVideoSink)
-                        }
-                    }
-
-                con.start()
-
-                withContext(Dispatchers.Main) {
-                    if (viewModel.watchSession.value === watchSession) {
-
-                        session?.destroy()
-                        session = ses
-                        connection?.close()
-                        connection = con
-                    } else {
-                        con.close()
-                        ses.destroy()
-                    }
-                }
             }
         })
 
@@ -212,7 +191,6 @@ class ChannelActivity : AppCompatActivity() {
                 else -> false
             }
         }
-
         binding.chatInputEditText.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
                 sendChatMessage()
@@ -221,8 +199,15 @@ class ChannelActivity : AppCompatActivity() {
             return@setOnKeyListener false
         }
 
+        // Hide the normal UI (controls, etc.) while in picture-in-picture mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
+            binding.group.visibility = View.INVISIBLE
+        }
+
         // Ensure sourceRectHint is updated so exiting PiP animates smoothly to the original view
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        ) {
             binding.videoView.addOnLayoutChangeListener { _, left, top, right, bottom,
                                                           oldLeft, oldTop, oldRight, oldBottom ->
                 if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
@@ -231,8 +216,11 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
-        // Hide stream/streamer info when ime keyboard is visible, to leave more room to see chats
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+        // Listen for IME keyboard being shown and hide non-essential info to leave more room for
+        // the user to see some incoming chat messages while they type
+        if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+        ) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
             ViewCompat.setOnApplyWindowInsetsListener(binding.activityContainer) { view, windowInsets ->
                 val imeVisible =
@@ -262,60 +250,8 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
-            // Hide the normal UI (controls, etc.) while in picture-in-picture mode
-            binding.group.visibility = View.INVISIBLE
-        }
-
+        // Start watching that channel!
         watch(intent)
-    }
-
-    private fun openStreamerProfile(username: String) {
-        enterPictureInPicture()
-        startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                BASE_URI.buildUpon()
-                    .appendPath(username)
-                    .appendPath("profile").build()
-            )
-        )
-    }
-
-    private fun sendChatMessage() {
-        viewModel.sendMessage(binding.chatInputEditText.text.toString().trim())
-        binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
-    }
-
-    private fun loadVideoPreviewUri(uri: Uri?) {
-        if (uri != null) {
-            Glide
-                .with(this)
-                .asBitmap()
-                .load(uri)
-                .into(binding.videoPreview)
-            proxyVideoSink.showPreviewAndProgressBar()
-        } else {
-            Glide.with(this).clear(binding.videoPreview)
-            proxyVideoSink.showProgressBarOnly()
-        }
-
-        videoPreviewUri = uri
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun pictureInPictureParams(sourceView: View): PictureInPictureParams {
-        val sourceRectHint = Rect()
-        sourceView.getGlobalVisibleRect(sourceRectHint)
-        val builder = PictureInPictureParams.Builder()
-            .setSourceRectHint(sourceRectHint)
-            .setAspectRatio(Rational(16, 9))
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(true)
-        }
-
-        return builder.build()
     }
 
     override fun onStart() {
@@ -326,7 +262,7 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "onStop")
-        stopVideo()
+        janusMedia?.close()
     }
 
     override fun onDestroy() {
@@ -342,15 +278,6 @@ class ChannelActivity : AppCompatActivity() {
         // original intent that launched this activity would be kept and used in onCreate if the
         // activity is re-created for some reason(e.g. rotation).
         setIntent(intent)
-
-        var intentChannel = ChannelId(intent.getLongExtra(EXTRA_CHANNEL_ID, 0))
-        val intentThumbnailUri =
-            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-
-        Log.d(
-            TAG,
-            "intents: onNewIntent, channel:${intentChannel.id}, thumbnail:${intentThumbnailUri}, lifecycle:${lifecycle.currentState}"
-        )
 
         if (lifecycle.currentState == Lifecycle.State.STARTED) {
             watch(intent)
@@ -369,7 +296,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (viewModel.isWatching) {
+        if (viewModel.isSubscribed) {
             enterPictureInPicture()
         } else {
             super.onUserLeaveHint()
@@ -377,7 +304,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (viewModel.isWatching) {
+        if (viewModel.isSubscribed) {
             enterPictureInPicture()
         } else {
             super.onBackPressed()
@@ -411,47 +338,48 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
+    private fun openStreamerProfile(username: String) {
+        enterPictureInPicture()
+        startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                BASE_URI.buildUpon()
+                    .appendPath(username)
+                    .appendPath("profile").build()
+            )
+        )
+    }
+
+    private fun sendChatMessage() {
+        viewModel.sendMessage(binding.chatInputEditText.text.toString().trim())
+        binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun pictureInPictureParams(sourceView: View): PictureInPictureParams {
+        val sourceRectHint = Rect()
+        sourceView.getGlobalVisibleRect(sourceRectHint)
+        val builder = PictureInPictureParams.Builder()
+            .setSourceRectHint(sourceRectHint)
+            .setAspectRatio(Rational(16, 9))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+        }
+
+        return builder.build()
+    }
+
     private fun watch(intent: Intent) {
         var channel = ChannelId(intent.getLongExtra(EXTRA_CHANNEL_ID, 0))
         val thumbnailUri = intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
 
         if (channel.id == 0L) {
-            Log.w(TAG, "watch: No channel id to watch in given intent")
+            Log.e(TAG, "watch: No channel id to watch in given intent")
             return
         }
 
-        watch(channel, thumbnailUri)
-    }
-
-    private fun watch(channel: ChannelId, thumbnailUri: Uri?) {
-        Log.d(TAG, "watch: Switching to $channel, current channel:${viewModel.currentChannel}")
-        if (viewModel.currentChannel == channel) {
-            viewModel.videoTrack.value?.addSink(proxyVideoSink)
-        } else {
-            stopWatching()
-            viewModel.watch(channel)
-            loadVideoPreviewUri(thumbnailUri)
-        }
-    }
-
-    private fun stopWatching() {
-        stopVideo()
-        viewModel.stopWatching()
-    }
-
-    private fun stopVideo() {
-        viewModel.videoTrack.value?.let { track ->
-            track.removeSink(proxyVideoSink)
-        }
-
-        val ses = session
-        val con = connection
-
-        ioScope.launch {
-            ses?.destroy()
-            con?.close()
-            ioContext.cancel()
-        }
+        viewModel.watch(channel, thumbnailUri)
     }
 
     private fun enterPictureInPicture() {
@@ -506,10 +434,112 @@ class ChannelActivity : AppCompatActivity() {
             }
     }
 
+    inner class JanusMedia(val channelWatch: ChannelViewModel.ChannelWatch) {
+
+        private val TAG = "JanusMedia"
+
+        private val coroutineContext = SupervisorJob() + Dispatchers.IO
+        private val coroutineScope = CoroutineScope(coroutineContext)
+
+        private var session: JanusFtlSession? = null
+        private var connection: JanusRtcConnection? = null
+        private var videoTrack: VideoTrack? = null
+
+        init {
+            Log.d(TAG, "Starting, channel:${channelWatch.channel.id}")
+            loadVideoPreviewUri(viewModel.thumbnailUri.value)
+
+            coroutineScope.launch {
+                val ses = JanusFtlSession.create(channelWatch.edgeRoute.url, channelWatch.channel)
+                if (!coroutineContext.isActive) {
+                    ses.destroy()
+                    return@launch
+                }
+                val con = JanusRtcConnection.create(
+                    ses,
+                    peerConnectionFactory,
+                    coroutineContext
+                ) { stream ->
+                    runOnUiThread {
+                        if (coroutineScope.isActive) {
+                            videoTrack = stream.videoTracks.single().apply {
+                                addSink(proxyVideoSink)
+                            }
+                        }
+                    }
+                }
+
+                con.start()
+
+                withContext(Dispatchers.Main) {
+                    if (!coroutineContext.isActive) {
+                        con.close()
+                        ses.destroy()
+                    } else {
+                        session = ses
+                        connection = con
+                    }
+                }
+            }
+        }
+
+        fun close() {
+            if (!coroutineScope.isActive) {
+                Log.d(TAG, "Already closed, channel:${channelWatch.channel.id}")
+                return
+            }
+
+            Log.d(TAG, "Closing, channel:${channelWatch.channel.id}")
+
+            // Launch to UI thread TODO
+            coroutineScope.launch(Dispatchers.Main) {
+                // Cancel any ongoing work (e.g. session is still being setup)
+                coroutineContext.cancel()
+
+                val ses = session
+                val con = connection
+                val track = videoTrack
+
+                // Cleanup
+                session?.destroy()
+                connection?.close()
+                videoTrack?.removeSink(proxyVideoSink)
+
+                delay(10_000)
+
+                if (ses !== session) {
+                    TODO()
+                }
+                if (con !== connection) {
+                    TODO()
+                }
+                if (track !== videoTrack) {
+                    TODO()
+                }
+            }
+        }
+
+        private fun loadVideoPreviewUri(uri: Uri?) {
+            if (uri != null) {
+                Glide
+                    .with(this@ChannelActivity)
+                    .asBitmap()
+                    .load(uri)
+                    .into(binding.videoPreview)
+                proxyVideoSink.showPreviewAndProgressBar()
+            } else {
+                Glide.with(this@ChannelActivity).clear(binding.videoPreview)
+                proxyVideoSink.showProgressBarOnly()
+            }
+        }
+    }
+
     inner class ProxyVideoSink(private val sink: VideoSink) : VideoSink {
         var waitingForFirstFrame = AtomicBoolean(true)
         override fun onFrame(frame: VideoFrame) {
             sink.onFrame(frame)
+
+            // This is a form of double-checked locking as a performance optimization
             if (waitingForFirstFrame.get()) {
                 runOnUiThread {
                     if (waitingForFirstFrame.getAndSet(false)) {

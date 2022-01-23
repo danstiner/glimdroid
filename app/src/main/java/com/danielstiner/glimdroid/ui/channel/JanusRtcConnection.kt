@@ -1,7 +1,8 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.MediaStream
@@ -13,7 +14,6 @@ class JanusRtcConnection(
     private val peerConnection: WrappedPeerConnection,
     private val coroutineContext: CoroutineContext
 ) {
-
     val coroutineScope = CoroutineScope(coroutineContext)
     val isClosed: Boolean
         get() = peerConnection.connectionState == PeerConnection.PeerConnectionState.CLOSED
@@ -21,7 +21,6 @@ class JanusRtcConnection(
     fun close() {
         Log.d(TAG, "Closing connection $peerConnection")
         peerConnection.close()
-        coroutineContext.cancel()
     }
 
 
@@ -32,10 +31,24 @@ class JanusRtcConnection(
     }
 
     private suspend fun startAsync() {
+        if (isClosed) {
+            return
+        }
         peerConnection.setRemoteDescription(session.getSdpOffer())
 
+        if (isClosed) {
+            return
+        }
         val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
+
+        if (isClosed) {
+            return
+        }
         peerConnection.setLocalDescription(answer)
+
+        if (isClosed) {
+            return
+        }
 
         if (!session.isStarted) {
             // Tell janus we are ready to start the stream
@@ -44,6 +57,8 @@ class JanusRtcConnection(
     }
 
     companion object {
+        private const val TAG = "JanusRtcConnection"
+
         // This is the list of servers janus.js uses
         private val ICE_SERVERS: List<PeerConnection.IceServer> = listOf(
             PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
@@ -66,14 +81,13 @@ class JanusRtcConnection(
         fun create(
             session: JanusFtlSession,
             peerConnectionFactory: WrappedPeerConnectionFactory,
-            coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.IO,
+            coroutineContext: CoroutineContext,
             onAddStream: (stream: MediaStream) -> Unit
         ): JanusRtcConnection {
             val coroutineScope = CoroutineScope(coroutineContext)
 
             val peerConnection = peerConnectionFactory.createPeerConnection(
                 RTC_CONFIGURATION,
-                coroutineScope,
                 { candidate: IceCandidate ->
                     coroutineScope.launch {
                         // todo check for cleared?
