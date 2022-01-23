@@ -300,6 +300,8 @@ class JanusRestApi(baseUrl: URL) {
         val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
         val request = DestroyRequest()
         val response: DestroyResponse = post(sessionUri, request)
+
+        // TODO handle no such session errors
         assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)

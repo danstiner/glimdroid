@@ -456,7 +456,6 @@ class ChannelActivity : AppCompatActivity() {
 
             coroutineScope.launch {
                 val ses = JanusFtlSession.create(channelWatch.edgeRoute.url, channelWatch.channel)
-                assert(closed == !coroutineContext.isActive)
                 if (closed) {
                     ses.destroy()
                     return@launch
@@ -467,7 +466,6 @@ class ChannelActivity : AppCompatActivity() {
                     coroutineContext
                 ) { stream ->
                     runOnUiThread {
-                        assert(closed == !coroutineContext.isActive)
                         if (!closed) {
                             videoTrack = stream.videoTracks.single().apply {
                                 addSink(proxyVideoSink)
@@ -479,9 +477,9 @@ class ChannelActivity : AppCompatActivity() {
                 con.start()
 
                 withContext(Dispatchers.Main) {
-                    assert(closed == !coroutineContext.isActive)
                     if (closed) {
                         con.close()
+                        videoTrack?.removeSink(proxyVideoSink)
                         ses.destroy()
                     } else {
                         session = ses
@@ -501,30 +499,14 @@ class ChannelActivity : AppCompatActivity() {
 
             // Launch to UI thread TODO
             coroutineScope.launch(Dispatchers.Main) {
-                // Cancel any ongoing work (e.g. session is still being setup)
                 closed = true
-                this@JanusMedia.coroutineContext.cancel()
-
-                val ses = session
-                val con = connection
-                val track = videoTrack
 
                 // Cleanup
-                session?.destroy()
                 connection?.close()
                 videoTrack?.removeSink(proxyVideoSink)
+                session?.destroy()
 
-                delay(10_000)
-
-                if (ses !== session) {
-                    TODO()
-                }
-                if (con !== connection) {
-                    TODO()
-                }
-                if (track !== videoTrack) {
-                    TODO()
-                }
+                this@JanusMedia.coroutineContext.cancel()
             }
         }
 
