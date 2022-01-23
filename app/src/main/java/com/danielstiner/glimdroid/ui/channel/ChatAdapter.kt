@@ -58,7 +58,7 @@ class ChatAdapter :
                             textView.text = buildSpannedString {
                                 appendSpan(
                                     "i",
-                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BASELINE),
+                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_CENTER),
                                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                                 )
                                 append(" ")
@@ -111,7 +111,6 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimangry:" -> R.drawable.ic_emote_glimangry
     ":glimart:" -> R.drawable.ic_emote_glimart
     ":glimbacon:" -> R.drawable.ic_emote_glimbacon
-    ":glimbanhammer:" -> R.drawable.ic_emote_glimbanhammer
     ":glimbday:" -> R.drawable.ic_emote_glimbday
     ":glimbeholder:" -> R.drawable.ic_emote_glimbeholder
     ":glimburrito:" -> R.drawable.ic_emote_glimburrito
@@ -120,6 +119,7 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimchicken:" -> R.drawable.ic_emote_glimchicken
     ":glimchu:" -> R.drawable.ic_emote_glimchu
     ":glimcry:" -> R.drawable.ic_emote_glimcry
+    ":glimfam:" -> R.drawable.ic_emote_glimfam
     ":glimheart:" -> R.drawable.ic_emote_glimheart
     ":glimhype:" -> R.drawable.ic_emote_glimhype
     ":glimlol:" -> R.drawable.ic_emote_glimlol
