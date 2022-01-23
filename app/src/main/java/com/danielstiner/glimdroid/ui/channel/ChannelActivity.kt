@@ -47,7 +47,6 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var proxyVideoSink: ProxyVideoSink
     private lateinit var peerConnectionFactory: WrappedPeerConnectionFactory
 
-
     private val ioContext = SupervisorJob() + Dispatchers.IO
     private val ioScope = CoroutineScope(ioContext)
 
@@ -336,12 +335,12 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "onStop")
+        stopVideo()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-        stopVideo()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
