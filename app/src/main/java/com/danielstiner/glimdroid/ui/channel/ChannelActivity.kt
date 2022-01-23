@@ -267,16 +267,7 @@ class ChannelActivity : AppCompatActivity() {
             binding.group.visibility = View.INVISIBLE
         }
 
-        if (savedInstanceState != null) {
-            with(savedInstanceState) {
-                val channelId = ChannelId(getLong(STATE_CHANNEL_ID))
-                val thumbnailUri = getString(STATE_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
-                Log.d(TAG, "Restoring saved instance state")
-                watch(channelId, thumbnailUri)
-            }
-        } else {
-            watch(intent)
-        }
+        watch(intent)
     }
 
     private fun openStreamerProfile(username: String) {
@@ -343,31 +334,24 @@ class ChannelActivity : AppCompatActivity() {
         Log.d(TAG, "onDestroy")
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.run {
-            val channel = viewModel.currentChannel
-            val thumbnailUri = videoPreviewUri
-            if (channel == null) {
-                assert(getLong(STATE_CHANNEL_ID, 0L) == 0L)
-            } else {
-                putLong(STATE_CHANNEL_ID, channel.id)
-            }
-            if (thumbnailUri == null) {
-                assert(getString(STATE_STREAM_THUMBNAIL_URL) == null)
-            } else {
-                putString(STATE_STREAM_THUMBNAIL_URL, thumbnailUri.toString())
-            }
-        }
-
-        super.onSaveInstanceState(outState)
-    }
-
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
+        // Because we use "launchMode=singleTask" on this activity, clicking into other channels
+        // will invoke onNewIntent without creating a new activity or task. Without this, the
+        // original intent that launched this activity would be kept and used in onCreate if the
+        // activity is re-created for some reason(e.g. rotation).
+        setIntent(intent)
+
+        var intentChannel = ChannelId(intent.getLongExtra(EXTRA_CHANNEL_ID, 0))
+        val intentThumbnailUri =
+            intent.getStringExtra(EXTRA_STREAM_THUMBNAIL_URL)?.let { Uri.parse(it) }
+
         Log.d(
             TAG,
-            "onNewIntent: ${intent.getLongExtra(EXTRA_CHANNEL_ID, 0)} ${lifecycle.currentState}"
+            "intents: onNewIntent, channel:${intentChannel.id}, thumbnail:${intentThumbnailUri}, lifecycle:${lifecycle.currentState}"
         )
+
         if (lifecycle.currentState == Lifecycle.State.STARTED) {
             watch(intent)
         }
@@ -503,8 +487,6 @@ class ChannelActivity : AppCompatActivity() {
     companion object {
         private val TAG = "ChannelActivity"
         private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
-        private const val STATE_CHANNEL_ID = EXTRA_CHANNEL_ID
-        private const val STATE_STREAM_THUMBNAIL_URL = EXTRA_STREAM_THUMBNAIL_URL
 
         fun intent(
             context: Context,
