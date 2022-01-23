@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/danst/.gradle/caches/transforms-3/8e2706a300bbec00002d22cf9bfadad6/transformed/appcompat-1.4.0/res/drawable/abc_edit_text_material.xml" value="0.39179487179487177" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable-v26/ic_launcher.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_1.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_16.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_5.xml" value="0.559375" />
@@ -13,8 +14,27 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.4401041666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimangry.xml" value="0.30547945205479454" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimart.xml" value="0.30547945205479454" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimbacon.xml" value="0.36527777777777776" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimbanhammer.xml" value="0.36527777777777776" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimbday.xml" value="0.36527777777777776" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimbeholder.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimcat.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimchef.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimchicken.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimchu.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimcry.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimfam.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimheart.xml" value="0.30547945205479454" />
-        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimwow.xml" value="0.29269406392694064" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimhype.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimlol.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimlove.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimsad.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimsleepy.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimsmile.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimtongue.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimuwu.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimwink.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimwow.xml" value="0.36527777777777776" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_hand_holding_usd_solid.xml" value="0.6447916666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.5592592592592592" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.29907407407407405" />

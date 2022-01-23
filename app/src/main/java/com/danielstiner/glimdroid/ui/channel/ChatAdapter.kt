@@ -127,7 +127,9 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimsad:" -> R.drawable.ic_emote_glimsad
     ":glimsleepy:" -> R.drawable.ic_emote_glimsleepy
     ":glimsmile:" -> R.drawable.ic_emote_glimsmile
+    ":glimspace:" -> R.drawable.ic_emote_glimspace
     ":glimtongue:" -> R.drawable.ic_emote_glimtongue
+    ":glimthink:" -> R.drawable.ic_emote_glimthink
     ":glimuwu:" -> R.drawable.ic_emote_glimuwu
     ":glimwink:" -> R.drawable.ic_emote_glimwink
     ":glimwow:" -> R.drawable.ic_emote_glimwow
