@@ -249,6 +249,7 @@ class ChannelActivity : AppCompatActivity() {
                     topMargin = insets.top
                 }
 
+                Log.d(TAG, "IME visibility change; imeVisible:$imeVisible")
                 if (imeVisible) {
                     binding.groupInfo.visibility = View.GONE
                 } else {
@@ -329,7 +330,7 @@ class ChannelActivity : AppCompatActivity() {
 
         Log.d(TAG, "Picture-in-picture mode changed to: $isInPictureInPictureMode")
 
-        transitionLayout(isInPictureInPictureMode = isInPictureInPictureMode)
+        //transitionLayout(isInPictureInPictureMode = isInPictureInPictureMode)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -354,19 +355,29 @@ class ChannelActivity : AppCompatActivity() {
             else -> R.id.portrait
         }
 
-        Log.d(
-            TAG,
-            "transitionLayout; motion.currentState:${binding.motion.currentState}, motion.endState:${binding.motion.endState}, newState:${newState}"
-        )
+        when {
+            isInPictureInPictureMode -> Log.d(
+                TAG,
+                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:pip"
+            )
+            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> Log.d(
+                TAG,
+                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:landscape"
+            )
+            else -> Log.d(
+                TAG,
+                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:portrait"
+            )
+        }
 
         if (newState != binding.motion.currentState) {
             binding.motion.transitionToState(newState)
-        }
 
-        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            hideStatusBar()
-        } else {
-            showStatusBar()
+            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                hideStatusBar()
+            } else {
+                showStatusBar()
+            }
         }
     }
 
