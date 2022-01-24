@@ -50,20 +50,24 @@ class JanusRtcConnection(
         private const val TAG = "JanusRtcConnection"
 
         // This is the list of servers janus.js uses
-        private val ICE_SERVERS: List<PeerConnection.IceServer> = listOf()
+        private val ICE_SERVERS = listOf(
+            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
+                .setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+                .createIceServer(),
+        )
 
+        // See https://github.com/meetecho/janus-gateway/blob/master/html/janus.js
         private val RTC_CONFIGURATION = PeerConnection.RTCConfiguration(ICE_SERVERS).apply {
-            tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED
-            continualGatheringPolicy =
-                PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-            enableDtlsSrtp = true
+            // plan-b still works but has been deprecated in favor of unified-plan
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-            rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-            bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
+            // Start gathering ICE candidates immediately to optimize time to connect
+            // See https://chromestatus.com/feature/4973817285836800
+            iceCandidatePoolSize = 1
         }
 
         private val MEDIA_CONSTRAINTS = MediaConstraints().apply {
             optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
+            optional.add(MediaConstraints.KeyValuePair("googIPv6", "true"))
         }
 
         fun create(
