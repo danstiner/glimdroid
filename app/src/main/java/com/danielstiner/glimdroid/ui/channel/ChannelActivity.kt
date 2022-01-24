@@ -262,7 +262,7 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
-        transitionLayout()
+        transitionLayoutState()
     }
 
     override fun onStart() {
@@ -322,29 +322,12 @@ class ChannelActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration
-    ) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-
-        Log.d(TAG, "Picture-in-picture mode changed to: $isInPictureInPictureMode")
-
-        //transitionLayout(isInPictureInPictureMode = isInPictureInPictureMode)
-    }
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-
-        Log.d(
-            TAG,
-            "onConfigurationChanged, orientation:${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"}"
-        )
-
-        transitionLayout(configuration = newConfig)
+        transitionLayoutState(configuration = newConfig)
     }
 
-    private fun transitionLayout(
+    private fun transitionLayoutState(
         isInPictureInPictureMode: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this.isInPictureInPictureMode,
         configuration: Configuration = resources.configuration
     ) {
@@ -355,22 +338,22 @@ class ChannelActivity : AppCompatActivity() {
             else -> R.id.portrait
         }
 
-        when {
-            isInPictureInPictureMode -> Log.d(
-                TAG,
-                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:pip"
-            )
-            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> Log.d(
-                TAG,
-                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:landscape"
-            )
-            else -> Log.d(
-                TAG,
-                "transitionLayout; motion.currentState:${binding.motion.currentState}, newState:${newState}, newState:portrait"
-            )
+        fun stateToString(state: Int) = when (state) {
+            R.id.pip -> "pip"
+            R.id.landscape -> "landscape"
+            R.id.portrait -> "portrait"
+            else -> "unknown"
         }
+        Log.d(
+            TAG,
+            "transitionLayoutState from ${stateToString(binding.motion.currentState)} to ${
+                stateToString(
+                    newState
+                )
+            }"
+        )
 
-        if (newState != binding.motion.currentState) {
+        if (binding.motion.currentState != newState) {
             binding.motion.transitionToState(newState)
 
             if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
