@@ -12,8 +12,8 @@ android {
         applicationId "com.danielstiner.glimdroid"
         minSdk 21
         targetSdk 31
-        versionCode 20
-        versionName "1.20"
+        versionCode 21
+        versionName "1.21"
 
         manifestPlaceholders = [
             'appAuthRedirectScheme': 'com.danielstiner.glimdroid'
