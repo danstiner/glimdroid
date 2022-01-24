@@ -1,18 +1,18 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
 import org.webrtc.*
 
 class WrappedPeerConnectionFactory(private val factory: PeerConnectionFactory) {
+
+    private val TAG = "WPeerConnectionFactory"
+
     fun createPeerConnection(
         configuration: PeerConnection.RTCConfiguration,
-        coroutineScope: CoroutineScope,
         onIceCandidate: (candidate: IceCandidate) -> Unit,
         onAddStream: (stream: MediaStream) -> Unit,
     ): WrappedPeerConnection {
         return WrappedPeerConnection(
-            coroutineScope,
             factory.createPeerConnection(
                 configuration,
                 object : PeerConnection.Observer {

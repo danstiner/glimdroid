@@ -156,7 +156,12 @@ data class FtlStartRequest(
 data class FtlStartRequestBody(@Required val request: String = "start")
 
 @Serializable
-data class FtlStartResponse(val janus: String, val transaction: String, val session_id: Long)
+data class FtlStartResponse(
+    val janus: String,
+    val transaction: String,
+    val session_id: Long,
+    val error: JanusError? = null
+)
 
 @Serializable
 data class TrickleRequest(
@@ -166,7 +171,26 @@ data class TrickleRequest(
 )
 
 @Serializable
-data class TrickleResponse(val janus: String, val transaction: String, val session_id: Long)
+data class TrickleResponse(
+    val janus: String,
+    val transaction: String,
+    val session_id: Long,
+    val error: JanusError? = null,
+)
+
+@Serializable
+data class DestroyRequest(
+    @Required val janus: String = "destroy",
+    val transaction: String = transactionId()
+)
+
+@Serializable
+data class DestroyResponse(
+    val janus: String,
+    val transaction: String,
+    val session_id: Long? = null,
+    val error: JanusError? = null,
+)
 
 class JanusRestApi(baseUrl: URL) {
 
@@ -239,6 +263,7 @@ class JanusRestApi(baseUrl: URL) {
         assert(response.janus == "ack")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)
+        assert(response.error == null)
     }
 
     suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
@@ -269,6 +294,17 @@ class JanusRestApi(baseUrl: URL) {
         val request = MessageRequest(body)
         val response: MessageResponse = post(pluginUri, request)
         assert(response.janus == "ack")
+        assert(response.transaction == request.transaction)
+        assert(response.session_id == session.id)
+    }
+
+    suspend fun destroy(session: SessionId) {
+        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
+        val request = DestroyRequest()
+        val response: DestroyResponse = post(sessionUri, request)
+
+        // TODO handle no such session errors
+        assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         assert(response.session_id == session.id)
     }

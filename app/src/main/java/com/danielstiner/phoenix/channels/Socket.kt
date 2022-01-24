@@ -79,7 +79,7 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
     }
 
     internal fun send(text: String) {
-        Log.d("Socket", "send: $text")
+        Log.v("Socket", "send: $text")
         webSocket.send(text)
     }
 
@@ -107,7 +107,7 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
 
         override fun onMessage(webSocket: WebSocket, text: String) {
             val array: JsonArray = Json.decodeFromString(text)
-            Log.d("Socket", "onMessage: $text")
+            Log.v("Socket", "onMessage: $text")
             scope.launch {
                 _messages.emit(
                     Message(

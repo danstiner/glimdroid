@@ -1,21 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-Wrap the DrawerLayout with FrameLayout to use the same View type for the same view ID
-across the layout configurations
--->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_container"
+    android:id="@+id/motion"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    app:layoutDescription="@xml/channel_motion_scene">
 
     <org.webrtc.SurfaceViewRenderer
         android:id="@+id/video_view"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintDimensionRatio="16:9"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="0dp" />
 
     <ImageView
         android:id="@+id/video_preview"
@@ -38,36 +32,38 @@ across the layout configurations
         app:layout_constraintStart_toStartOf="@id/video_view"
         app:layout_constraintTop_toTopOf="@id/video_view" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <HorizontalScrollView
         android:id="@+id/stream_info_layout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        app:layout_constraintEnd_toStartOf="@id/guideline_right"
-        app:layout_constraintStart_toEndOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@id/video_view">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/textview_channel_title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <HorizontalScrollView
-            android:id="@+id/tag_scroll_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textview_channel_title">
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/textview_channel_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/textview_channel_title">
 
                 <com.google.android.material.chip.ChipGroup
                     android:layout_width="wrap_content"
@@ -85,10 +81,10 @@ across the layout configurations
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_subcategory"
                         style="@style/AppTheme.Chip.Tag"
-                        android:clickable="false"
-                        android:focusable="false"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false"
                         android:visibility="gone" />
 
                     <com.google.android.material.chip.Chip
@@ -116,20 +112,19 @@ across the layout configurations
 
             </LinearLayout>
 
-        </HorizontalScrollView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </HorizontalScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/streamer_info_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
         android:background="@drawable/border_top_bottom"
+        android:paddingTop="4dp"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        app:layout_constraintEnd_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stream_info_layout">
+        android:paddingBottom="4dp">
 
         <ImageView
             android:id="@+id/avatar_image"
@@ -165,9 +160,9 @@ across the layout configurations
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintTop_toBottomOf="@id/textview_streamer_display_name"
             app:layout_constraintEnd_toStartOf="@id/button_follow"
-            app:layout_constraintStart_toEndOf="@id/avatar_image" />
+            app:layout_constraintStart_toEndOf="@id/avatar_image"
+            app:layout_constraintTop_toBottomOf="@id/textview_streamer_display_name" />
 
         <Button
             android:id="@+id/button_follow"
@@ -193,16 +188,14 @@ across the layout configurations
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/chat_layout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/guideline_right"
-        app:layout_constraintStart_toStartOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@id/barrier_chat">
+        android:layout_height="0dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chat_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             app:layoutManager="LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
             app:layout_constraintStart_toStartOf="parent"
@@ -221,8 +214,8 @@ across the layout configurations
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Send a message"
-                android:inputType="textShortMessage"
-                android:imeOptions="actionSend" />
+                android:imeOptions="actionSend"
+                android:inputType="textShortMessage" />
         </com.google.android.material.textfield.TextInputLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -241,24 +234,10 @@ across the layout configurations
         android:orientation="vertical"
         app:layout_constraintGuide_end="8dp" />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier_chat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="streamer_info_layout" />
-
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="group_info,chat_layout" />
-
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="stream_info_layout,streamer_info_layout" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.motion.widget.MotionLayout>

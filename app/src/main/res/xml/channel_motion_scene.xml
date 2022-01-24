@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto"
+    motion:defaultDuration="0">
+
+    <Transition
+        motion:constraintSetStart="@+id/portrait"
+        motion:constraintSetEnd="@+id/landscape" />
+
+    <Transition
+        motion:constraintSetStart="@+id/landscape"
+        motion:constraintSetEnd="@+id/portrait" />
+
+    <Transition
+        motion:constraintSetStart="@+id/pip"
+        motion:constraintSetEnd="@+id/portrait" />
+
+    <Transition
+        motion:constraintSetStart="@+id/pip"
+        motion:constraintSetEnd="@+id/landscape" />
+
+    <ConstraintSet android:id="@+id/portrait">
+
+        <Constraint
+            android:id="@+id/video_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            motion:layout_constraintDimensionRatio="16:9"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/stream_info_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/video_view"></Constraint>
+
+        <Constraint
+            android:id="@+id/streamer_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            motion:layout_constraintEnd_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/stream_info_layout"></Constraint>
+
+        <Constraint
+            android:id="@+id/chat_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="visible"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/streamer_info_layout"></Constraint>
+
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/landscape">
+
+        <Constraint
+            android:id="@+id/video_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            motion:layout_constraintDimensionRatio="16:9"
+            motion:layout_constraintBottom_toTopOf="@+id/stream_info_layout"
+            motion:layout_constraintEnd_toStartOf="@+id/chat_layout"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintVertical_bias="0.0" />
+
+        <Constraint
+            android:id="@+id/stream_info_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toStartOf="@+id/chat_layout"
+            motion:layout_constraintBottom_toTopOf="@+id/streamer_info_layout" />
+
+        <Constraint
+            android:id="@+id/streamer_info_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toStartOf="@+id/chat_layout"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint
+            android:id="@+id/chat_layout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            motion:layout_constraintWidth_min="288dp"
+            motion:layout_constraintWidth_max="480dp"
+            motion:layout_constraintWidth_percent="0.25"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent" />
+
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/pip">
+
+        <Constraint
+            android:id="@+id/video_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent" />
+
+        <Constraint
+            android:id="@+id/stream_info_layout"
+            android:visibility="gone" />
+
+        <Constraint
+            android:id="@+id/streamer_info_layout"
+            android:visibility="gone" />
+
+        <Constraint
+            android:id="@+id/chat_layout"
+            android:visibility="gone" />
+
+    </ConstraintSet>
+
+</MotionScene>
