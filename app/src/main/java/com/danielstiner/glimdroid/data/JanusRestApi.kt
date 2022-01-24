@@ -157,7 +157,9 @@ data class FtlStartRequestBody(@Required val request: String = "start")
 
 @Serializable
 data class FtlStartResponse(
-    val janus: String, val transaction: String, val session_id: Long,
+    val janus: String,
+    val transaction: String,
+    val session_id: Long,
     val error: JanusError? = null
 )
 

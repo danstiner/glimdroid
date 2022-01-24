@@ -40,6 +40,7 @@ class JanusFtlSession(
     suspend fun start(answer: SessionDescription, coroutineScope: CoroutineScope) {
         assert(answer.type == SessionDescription.Type.ANSWER)
         assert(!destroyed)
+        assert(!isStarted)
 
         // Tell janus we are ready to start the stream
         janus.ftlStart(

@@ -11,7 +11,6 @@ import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.util.Rational
 import android.view.*
@@ -70,9 +69,15 @@ class ChannelActivity : AppCompatActivity() {
             ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
 
-        // Start watching that channel!
         watch(intent)
 
+        // Preserving an EGLContext across activity restarts (e.g. orientation change) is tricky,
+        // so for now we create a new context every time. Unfortunately a RTC peer connection is
+        // tied to a specific context, so this means activity restarts necessitate creating a new
+        // connection which interrupts the viewing experience. This could can be mitigated by
+        // handling orientation changes without a restart, but that requires some tricky layout work
+        // See https://developer.android.com/guide/topics/resources/runtime-changes
+        // See https://gamedev.stackexchange.com/a/172003
         val eglBase = EglBase.create()
         val factory = buildPeerConnectionFactory(eglBase.eglBaseContext)
         peerConnectionFactory = WrappedPeerConnectionFactory(factory)
@@ -86,16 +91,23 @@ class ChannelActivity : AppCompatActivity() {
 
         proxyVideoSink = ProxyVideoSink(binding.videoView)
 
-        // TODO
+        // Making the actual RTC connection is a complex multi-step process that must handle being
+        // interrupted at any time by activity lifecycle events. As described above we must recreate
+        // media peer connections if the activity is recreated. Also if the activity is only stopped
+        // we should also stop media from flowing so audio stops and bandwidth is not wasted. (e.g.
+        // if user switches to another app but the system has not killed us yet, we stop playback)
+        //
+        // To accomplish that, we use the ViewModel pattern to hold the state of which channel is
+        // being watched, and to handle all the communication over HTTP to glimesh.tv. Once the
+        // glimesh.tv has told us which Janus edge server to talk to, this LiveData will fire and
+        // we can create a Janus media session that will setup the RTC connection and start piping
+        // media down like we want. If the activity is recreated, the ViewModel have preserved
+        // the info of which Janus edge server to talk to and this will fire immediately.
+        //
+        // This makes for a fairly complicated back-and-forth between this activity initiating
+        // channel switches when it gets a new Intent describing a channel to watch. Then the
+        // viewmodel talks to glimesh.tv and finally fires this observer to start the media session.
         viewModel.channelWatch.observe(this, { watchSession ->
-
-            // TODO remove
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!Looper.getMainLooper().isCurrentThread) {
-                    TODO("not main thread")
-                }
-            }
-
             when {
                 watchSession == null -> janusMedia?.close()
                 watchSession == janusMedia?.channelWatch && janusMedia?.isActive == true -> {
@@ -144,8 +156,8 @@ class ChannelActivity : AppCompatActivity() {
                 }
             }
         })
-        viewModel.displayname.observe(this, { streamerDisplayname ->
-            binding.textviewStreamerDisplayName.text = streamerDisplayname
+        viewModel.displayname.observe(this, { displayname ->
+            binding.textviewStreamerDisplayName.text = displayname
         })
         viewModel.username.observe(this, { username ->
             binding.textviewStreamerDisplayName.setOnClickListener {

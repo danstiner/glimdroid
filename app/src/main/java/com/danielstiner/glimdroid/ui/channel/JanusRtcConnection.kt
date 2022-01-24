@@ -3,7 +3,10 @@ package com.danielstiner.glimdroid.ui.channel
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.webrtc.*
+import org.webrtc.IceCandidate
+import org.webrtc.MediaConstraints
+import org.webrtc.MediaStream
+import org.webrtc.PeerConnection
 import kotlin.coroutines.CoroutineContext
 
 class JanusRtcConnection(
@@ -13,38 +16,26 @@ class JanusRtcConnection(
 ) {
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    @Volatile
-    private var isClosed: Boolean = false
-
     fun close() {
         Log.d(TAG, "Closing connection $peerConnection for channel:${session.channel}")
-        isClosed = true
         peerConnection.close()
     }
 
     suspend fun start() {
-
-        val answer: SessionDescription
-
+        // Negotiate parameters of our media session with Janus
         try {
-            if (isClosed) {
-                return
-            }
+            // First set the session description Janus offered for potential parameters
             peerConnection.setRemoteDescription(session.getSdpOffer())
 
-            if (isClosed) {
-                return
-            }
-            answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
+            // Then create an answer of what we'd actually like to receive
+            val answer = peerConnection.createAnswer(MEDIA_CONSTRAINTS)
 
-            if (isClosed) {
-                return
-            }
+            // Assume Janus will accept our answer and immediate set it locally
             peerConnection.setLocalDescription(answer)
 
-            if (isClosed) {
-                return
-            }
+            // Finally send the answer to Janus so it starts to send media
+            session.start(answer, coroutineScope)
+
         } catch (ex: WrappedPeerConnection.SdpException) {
             Log.w(
                 TAG,
@@ -53,20 +44,13 @@ class JanusRtcConnection(
             )
             return
         }
-
-        if (!session.isStarted) {
-            // Tell janus we are ready to start the stream
-            session.start(answer, coroutineScope)
-        }
     }
 
     companion object {
         private const val TAG = "JanusRtcConnection"
 
         // This is the list of servers janus.js uses
-        private val ICE_SERVERS: List<PeerConnection.IceServer> = listOf(
-            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
-        )
+        private val ICE_SERVERS: List<PeerConnection.IceServer> = listOf()
 
         private val RTC_CONFIGURATION = PeerConnection.RTCConfiguration(ICE_SERVERS).apply {
             tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.DISABLED

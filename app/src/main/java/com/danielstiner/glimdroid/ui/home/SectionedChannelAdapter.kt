@@ -148,16 +148,14 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                 text = channel.displayLanguage()
                 visibility = if (channel.language != null) View.VISIBLE else View.GONE
             }
-
             with(chipGroupTag) {
                 removeAllViews()
                 for (tag in channel.tags) {
-                    val view = LayoutInflater.from(context)
-                        .inflate(R.layout.chip_tag, this, false) as Chip
-                    view.text = tag.name
-                    view.isClickable = false
-                    view.isFocusable = false
-                    addView(view)
+                    addView(inflateChipTag().apply {
+                        text = tag.name
+                        isClickable = false
+                        isFocusable = false
+                    })
                 }
             }
 
@@ -184,6 +182,9 @@ class SectionedChannelAdapter(private val onClick: (Channel) -> Unit) :
                     .into(channelPreviewImageView)
             }
         }
+
+        private fun ChipGroup.inflateChipTag() = LayoutInflater.from(this.context)
+            .inflate(R.layout.chip_tag, this, false) as Chip
 
         companion object {
             fun inflate(parent: ViewGroup, onClick: (Channel) -> Unit) =

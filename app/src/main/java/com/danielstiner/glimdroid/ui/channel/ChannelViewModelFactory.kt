@@ -14,8 +14,8 @@ import org.webrtc.PeerConnectionFactory
 
 
 /**
- * ViewModel provider factory to instantiates StreamViewModel.
- * Required given StreamViewModel has a non-empty constructor
+ * ViewModel provider factory to instantiates ChannelViewModel.
+ * Required given ChannelViewModel has a non-empty constructor
  */
 class ChannelViewModelFactory(
     private val applicationContext: Context
@@ -23,11 +23,10 @@ class ChannelViewModelFactory(
 
     private val TAG = "ChannelViewModelFactory"
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
 
-            Log.d(TAG, "Initialize WebRTC.")
+            Log.v(TAG, "Initialize WebRTC.")
             PeerConnectionFactory.initialize(
                 PeerConnectionFactory.InitializationOptions.builder(applicationContext)
                     .setEnableInternalTracer(true)
