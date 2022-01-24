@@ -11,6 +11,8 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/avatar_6.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_account_circle_24dp.xml" value="0.40625" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_baseline_favorite_24.xml" value="0.40625" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_calendar_month_black_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_camera_black_24dp.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.4401041666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimangry.xml" value="0.30547945205479454" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimart.xml" value="0.30547945205479454" />
@@ -35,9 +37,19 @@
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimuwu.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimwink.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_emote_glimwow.xml" value="0.36527777777777776" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_favorite_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_favorite_border_black_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_gallery_black_24dp.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_hand_holding_usd_solid.xml" value="0.6447916666666667" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.5592592592592592" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_launcher_background.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_local_offer_black_24dp.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.29907407407407405" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_play_arrow_black_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_search_black_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_settings_black_24dp.xml" value="0.4388888888888889" />
+        <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_slideshow_black_24dp.xml" value="0.4388888888888889" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/ic_status_bar.xml" value="0.29907407407407405" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/drawable/side_nav_bar.xml" value="0.559375" />
         <entry key="..\:/Users/danst/AndroidStudioProjects/Glimesh/app/src/main/res/layout-land/activity_channel.xml" value="0.264" />
