@@ -10,7 +10,6 @@ import com.danielstiner.glimdroid.data.AuthStateDataSource
 import com.danielstiner.glimdroid.data.ChannelRepository
 import com.danielstiner.glimdroid.data.ChatRepository
 import com.danielstiner.glimdroid.data.GlimeshSocketDataSource
-import org.webrtc.PeerConnectionFactory
 
 
 /**
@@ -25,13 +24,6 @@ class ChannelViewModelFactory(
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChannelViewModel::class.java)) {
-
-            Log.v(TAG, "Initialize WebRTC.")
-            PeerConnectionFactory.initialize(
-                PeerConnectionFactory.InitializationOptions.builder(applicationContext)
-                    .setEnableInternalTracer(true)
-                    .createInitializationOptions()
-            )
 
             val auth = AuthStateDataSource(applicationContext)
             val socket = GlimeshSocketDataSource.getInstance(auth = auth)

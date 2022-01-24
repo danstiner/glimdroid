@@ -411,6 +411,13 @@ class ChannelActivity : AppCompatActivity() {
             )
             .createAudioDeviceModule()
 
+        Log.v(TAG, "Initialize WebRTC.")
+        PeerConnectionFactory.initialize(
+            PeerConnectionFactory.InitializationOptions.builder(applicationContext)
+                .setEnableInternalTracer(true)
+                .createInitializationOptions()
+        )
+
         val factory = PeerConnectionFactory.builder()
             .setVideoDecoderFactory(videoEncoderFactory)
             .setAudioDeviceModule(audioDeviceModule)
