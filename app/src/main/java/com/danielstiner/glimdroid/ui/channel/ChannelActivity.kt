@@ -183,13 +183,19 @@ class ChannelActivity : AppCompatActivity() {
 
         val chatAdapter = ChatAdapter()
         binding.chatRecyclerView.adapter = chatAdapter
-        val linearLayoutManager = LinearLayoutManager(this)
-        linearLayoutManager.stackFromEnd = true
-        binding.chatRecyclerView.layoutManager = linearLayoutManager
-        viewModel.messages.observe(this, {
-            chatAdapter.submitList(it)
-            // TODO only scroll if we're already at the bottom of the list
-            binding.chatRecyclerView.smoothScrollToPosition(it.size)
+        viewModel.messages.observe(this, { chats ->
+            // Check if we are scrolled to the end of chat (latest chat item is visible)
+            val lastVisibleItemPosition =
+                (binding.chatRecyclerView.layoutManager as LinearLayoutManager)
+                    .findLastVisibleItemPosition()
+            val scrolledToLatestChat = lastVisibleItemPosition == chatAdapter.itemCount - 1
+
+            chatAdapter.submitList(chats)
+
+            // If we were scrolled to the end of chat, autoscroll to new end
+            if (scrolledToLatestChat && chatAdapter.itemCount > 0) {
+                binding.chatRecyclerView.smoothScrollToPosition(chats.size - 1)
+            }
         })
 
         binding.chatInputEditText.setOnEditorActionListener { _, id, _ ->
