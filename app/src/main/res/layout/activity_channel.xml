@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-Wrap the DrawerLayout with FrameLayout to use the same View type for the same view ID
-across the layout configurations
--->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_container"
+    android:id="@+id/motion"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    app:layoutDescription="@xml/channel_motion_scene">
 
     <org.webrtc.SurfaceViewRenderer
         android:id="@+id/video_view"
@@ -203,6 +201,8 @@ across the layout configurations
             android:id="@+id/chat_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             app:layoutManager="LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
             app:layout_constraintStart_toStartOf="parent"
@@ -250,15 +250,9 @@ across the layout configurations
         app:constraint_referenced_ids="streamer_info_layout" />
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="group_info,chat_layout" />
-
-    <androidx.constraintlayout.widget.Group
         android:id="@+id/group_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="stream_info_layout,streamer_info_layout" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.motion.widget.MotionLayout>

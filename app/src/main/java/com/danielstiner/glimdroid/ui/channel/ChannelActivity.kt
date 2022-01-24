@@ -18,6 +18,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintSet.*
 import androidx.core.view.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -52,12 +53,6 @@ class ChannelActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
-
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            hideStatusBar()
-        } else {
-            showStatusBar()
-        }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -214,11 +209,6 @@ class ChannelActivity : AppCompatActivity() {
             return@setOnKeyListener false
         }
 
-        // Hide the normal UI (controls, etc.) while in picture-in-picture mode
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
-            binding.group.visibility = View.INVISIBLE
-        }
-
         // Ensure sourceRectHint is updated so exiting PiP animates smoothly to the original view
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -237,7 +227,7 @@ class ChannelActivity : AppCompatActivity() {
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         ) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
-            ViewCompat.setOnApplyWindowInsetsListener(binding.activityContainer) { view, windowInsets ->
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
                 val imeVisible =
                     view.rootWindowInsets?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
                 val insets =
@@ -264,6 +254,8 @@ class ChannelActivity : AppCompatActivity() {
                 WindowInsetsCompat.CONSUMED
             }
         }
+
+        transitionLayout()
     }
 
     override fun onStart() {
@@ -327,13 +319,48 @@ class ChannelActivity : AppCompatActivity() {
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration
     ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+
         Log.d(TAG, "Picture-in-picture mode changed to: $isInPictureInPictureMode")
-        if (isInPictureInPictureMode) {
-            // Hide the normal UI (controls, etc.) while in picture-in-picture mode
-            binding.group.visibility = View.INVISIBLE
+
+        transitionLayout(isInPictureInPictureMode = isInPictureInPictureMode)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        Log.d(
+            TAG,
+            "onConfigurationChanged, orientation:${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"}"
+        )
+
+        transitionLayout(configuration = newConfig)
+    }
+
+    private fun transitionLayout(
+        isInPictureInPictureMode: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this.isInPictureInPictureMode,
+        configuration: Configuration = resources.configuration
+    ) {
+
+        val newState = when {
+            isInPictureInPictureMode -> R.id.pip
+            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> R.id.landscape
+            else -> R.id.portrait
+        }
+
+        Log.d(
+            TAG,
+            "transitionLayout; motion.currentState:${binding.motion.currentState}, motion.endState:${binding.motion.endState}, newState:${newState}"
+        )
+
+        if (newState != binding.motion.currentState) {
+            binding.motion.transitionToState(newState)
+        }
+
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            hideStatusBar()
         } else {
-            // Restore the normal UI
-            binding.group.visibility = View.VISIBLE
+            showStatusBar()
         }
     }
 
