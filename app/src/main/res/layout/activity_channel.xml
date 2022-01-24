@@ -199,8 +199,7 @@
             app:layoutManager="LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:stackFromEnd="true" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/chat_input_layout"
