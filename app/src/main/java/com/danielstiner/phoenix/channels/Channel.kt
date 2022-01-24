@@ -42,7 +42,7 @@ class Channel(
 
         return when {
             reply.event == Event.CLOSE -> {
-                Result.Err(TODO())
+                TODO() // Result.Err()
             }
             reply.event == Event.REPLY && status == "ok" -> {
                 Result.Ok(reply.payload["response"]!!.jsonObject)
@@ -59,14 +59,15 @@ class Channel(
         payload: JsonObject = buildJsonObject {},
         ref: Ref = refFactory.newRef()
     ): Result<JsonObject> {
-        val ref = send(event, payload, ref)
+        send(event, payload, ref)
+
         val reply = firstReplyOrClose(ref)
         val status = reply.payload["status"]?.jsonPrimitive?.contentOrNull
 
         return when {
             reply.event == Event.CLOSE -> {
                 // Push failed
-                Result.Err(TODO())
+                TODO() // Result.Err()
             }
             reply.event == Event.REPLY && status == "ok" -> {
                 // Push successful
@@ -81,7 +82,7 @@ class Channel(
 
         val ref = sendLeave()
 
-        val reply = firstReplyOrClose(ref)
+        firstReplyOrClose(ref)
         TODO()
     }
 
