@@ -24,8 +24,10 @@ class Connection private constructor(
             is Result.Ok -> {
                 return query.parseJsonResponse(reply.value.jsonObject, customScalarAdapters)
             }
+            is Result.Err -> {
+                TODO("Failed")
+            }
         }
-        TODO("Failed")
     }
 
     // Send ["join_ref", "ref", "__absinthe__:control", "doc", {"query": "subscription($channelId: ID) {chatMessage(channelId: $channelId) { id message}}","variables":{"channelId": "10552"}}]
@@ -65,7 +67,7 @@ class Connection private constructor(
         }
 
     internal suspend fun unsubscribe(subscriptionId: SubscriptionId) {
-        val reply = controlChannel.push(UNSUBSCRIBE, buildJsonObject {
+        controlChannel.push(UNSUBSCRIBE, buildJsonObject {
             put("subscriptionId", subscriptionId.id)
         })
 
@@ -114,13 +116,12 @@ class Connection private constructor(
             customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty
         ): Connection {
             val controlChannel = socket.channel(CONTROL)
-            when (val result = controlChannel.join()) {
+            when (controlChannel.join()) {
                 is Result.Ok -> {
-
+                    return Connection(socket, controlChannel, scope, customScalarAdapters)
                 }
                 else -> TODO("Failed to join")
             }
-            return Connection(socket, controlChannel, scope, customScalarAdapters)
         }
     }
 }

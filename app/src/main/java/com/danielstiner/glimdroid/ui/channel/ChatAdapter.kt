@@ -58,7 +58,7 @@ class ChatAdapter :
                             textView.text = buildSpannedString {
                                 appendSpan(
                                     "i",
-                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BASELINE),
+                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_CENTER),
                                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                                 )
                                 append(" ")
@@ -94,7 +94,7 @@ private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Co
                 if (resId != null) {
                     appendSpan(
                         "e",
-                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_BASELINE),
+                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_CENTER),
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 } else {
@@ -111,7 +111,15 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimangry:" -> R.drawable.ic_emote_glimangry
     ":glimart:" -> R.drawable.ic_emote_glimart
     ":glimbacon:" -> R.drawable.ic_emote_glimbacon
+    ":glimbday:" -> R.drawable.ic_emote_glimbday
+    ":glimbeholder:" -> R.drawable.ic_emote_glimbeholder
     ":glimburrito:" -> R.drawable.ic_emote_glimburrito
+    ":glimcat:" -> R.drawable.ic_emote_glimcat
+    ":glimchef:" -> R.drawable.ic_emote_glimchef
+    ":glimchicken:" -> R.drawable.ic_emote_glimchicken
+    ":glimchu:" -> R.drawable.ic_emote_glimchu
+    ":glimcry:" -> R.drawable.ic_emote_glimcry
+    ":glimfam:" -> R.drawable.ic_emote_glimfam
     ":glimheart:" -> R.drawable.ic_emote_glimheart
     ":glimhype:" -> R.drawable.ic_emote_glimhype
     ":glimlol:" -> R.drawable.ic_emote_glimlol
@@ -119,7 +127,9 @@ fun getEmoteDrawableResId(name: String) = when (name) {
     ":glimsad:" -> R.drawable.ic_emote_glimsad
     ":glimsleepy:" -> R.drawable.ic_emote_glimsleepy
     ":glimsmile:" -> R.drawable.ic_emote_glimsmile
+    ":glimspace:" -> R.drawable.ic_emote_glimspace
     ":glimtongue:" -> R.drawable.ic_emote_glimtongue
+    ":glimthink:" -> R.drawable.ic_emote_glimthink
     ":glimuwu:" -> R.drawable.ic_emote_glimuwu
     ":glimwink:" -> R.drawable.ic_emote_glimwink
     ":glimwow:" -> R.drawable.ic_emote_glimwow
