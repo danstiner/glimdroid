@@ -7,6 +7,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
+import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -87,10 +88,13 @@ private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Co
     bold { append(chat.displayname) }
     append(": ")
     for (token in chat.tokens) {
-        when (token.type) {
-            "text" -> append(token.text)
-            "emote" -> {
+        when (token) {
+            is ChatMessage.Token.Text -> append(token.text)
+            is ChatMessage.Token.Emote -> {
                 val resId = getEmoteDrawableResId(token.text)
+
+                // TODO async load custom emotes based on src attribute
+
                 if (resId != null) {
                     appendSpan(
                         "e",
@@ -101,8 +105,12 @@ private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Co
                     append(token.text)
                 }
             }
+            is ChatMessage.Token.Url -> appendSpan(
+                token.text,
+                URLSpan(token.url),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
-
     }
 }
 

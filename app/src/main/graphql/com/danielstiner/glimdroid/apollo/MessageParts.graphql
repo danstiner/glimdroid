@@ -1,0 +1,25 @@
+fragment MessageParts on ChatMessage {
+    id
+    insertedAt
+    user {
+        username
+        displayname
+        avatarUrl
+    }
+    tokens {
+        ...on EmoteToken {
+            src,
+            text,
+            type,
+        },
+        ...on TextToken {
+            text,
+            type
+        },
+        ...on UrlToken {
+            text,
+            type,
+            url
+        }
+    }
+}
