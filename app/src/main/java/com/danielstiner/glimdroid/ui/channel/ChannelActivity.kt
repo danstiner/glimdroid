@@ -193,7 +193,7 @@ class ChannelActivity : AppCompatActivity() {
             chatAdapter.submitList(chats)
 
             // If we were scrolled to the end of chat, autoscroll to new end
-            if (scrolledToLatestChat && chatAdapter.itemCount > 0) {
+            if (scrolledToLatestChat && chats.isNotEmpty()) {
                 binding.chatRecyclerView.smoothScrollToPosition(chats.size - 1)
             }
         })
