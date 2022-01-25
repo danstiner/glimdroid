@@ -1,0 +1,9 @@
+query Myself {
+    myself {
+        id
+        username
+        displayname
+        avatarUrl
+        countFollowing
+    }
+}

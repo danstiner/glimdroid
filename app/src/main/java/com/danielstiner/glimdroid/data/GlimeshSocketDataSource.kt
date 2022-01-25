@@ -66,13 +66,15 @@ class GlimeshSocketDataSource private constructor(
     suspend fun liveChannelsQuery() =
         connection().query(LiveChannelsQuery()).dataAssertNoErrors
 
-    suspend fun watchChannel(channel: ChannelId, countryCode: String) =
+    suspend fun recentMessagesQuery(channel: ChannelId) =
+        connection().query(RecentMessagesQuery(channel.id.toString())).dataAssertNoErrors
+
+    suspend fun myselfQuery() = connection().query(MyselfQuery()).dataAssertNoErrors.myself!!
+
+    suspend fun watchChannelMutation(channel: ChannelId, countryCode: String) =
         connection().mutation(
             WatchChannelMutation(channel.id.toString(), countryCode)
         ).dataAssertNoErrors.watchChannel!!
-
-    suspend fun recentMessagesQuery(channel: ChannelId) =
-        connection().query(RecentMessagesQuery(channel.id.toString())).dataAssertNoErrors
 
     suspend fun sendMessageMutation(channel: ChannelId, text: CharSequence) =
         authenticatedConnection().mutation(

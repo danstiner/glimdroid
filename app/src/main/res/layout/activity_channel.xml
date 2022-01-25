@@ -6,31 +6,40 @@
     android:layout_height="match_parent"
     app:layoutDescription="@xml/channel_motion_scene">
 
-    <org.webrtc.SurfaceViewRenderer
-        android:id="@+id/video_view"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp" />
-
-    <ImageView
-        android:id="@+id/video_preview"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/video_layout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/video_view"
-        app:layout_constraintEnd_toEndOf="@id/video_view"
-        app:layout_constraintStart_toStartOf="@id/video_view"
-        app:layout_constraintTop_toTopOf="@id/video_view" />
+        android:layout_height="0dp">
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/video_view"
-        app:layout_constraintEnd_toEndOf="@id/video_view"
-        app:layout_constraintStart_toStartOf="@id/video_view"
-        app:layout_constraintTop_toTopOf="@id/video_view" />
+        <org.webrtc.SurfaceViewRenderer
+            android:id="@+id/video_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/video_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintWidth_default="percent"
+            app:layout_constraintWidth_percent=".4"
+            app:layout_constraintHeight_default="percent"
+            app:layout_constraintHeight_percent=".4"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <HorizontalScrollView
         android:id="@+id/stream_info_layout"
@@ -121,10 +130,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/border_top_bottom"
-        android:paddingTop="4dp"
         android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="4dp">
+        android:paddingEnd="8dp">
 
         <ImageView
             android:id="@+id/avatar_image"
@@ -144,7 +151,6 @@
             android:layout_marginStart="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:paddingTop="2dp"
             android:textAppearance="?attr/textAppearanceHeadline6"
             app:layout_constraintEnd_toStartOf="@id/button_follow"
             app:layout_constraintStart_toEndOf="@id/avatar_image"
