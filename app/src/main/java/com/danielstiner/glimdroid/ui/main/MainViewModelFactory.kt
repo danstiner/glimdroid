@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.danielstiner.glimdroid.data.AuthStateDataSource
+import com.danielstiner.glimdroid.data.GlimeshSocketDataSource
+import com.danielstiner.glimdroid.data.UserRepository
 
 /**
  * ViewModel provider factory to instantiate MainViewModel.
@@ -14,7 +16,11 @@ class MainViewModelFactory(private val context: Context) : ViewModelProvider.Fac
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(AuthStateDataSource.getInstance(context)) as T
+            val auth = AuthStateDataSource.getInstance(context)
+            return MainViewModel(
+                auth = auth,
+                users = UserRepository(GlimeshSocketDataSource.getInstance(auth))
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

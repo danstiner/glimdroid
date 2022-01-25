@@ -24,7 +24,7 @@
             android:id="@+id/text_nextgen_livestreaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Next-gen Streaming"
+            android:text="@string/tagline_title"
             android:textAppearance="?attr/textAppearanceHeadline6"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

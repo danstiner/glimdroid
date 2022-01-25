@@ -2,6 +2,7 @@ package com.danielstiner.glimdroid
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -10,17 +11,21 @@ import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.danielstiner.glimdroid.databinding.ActivityMainBinding
 import com.danielstiner.glimdroid.ui.login.LoginActivity
 import com.danielstiner.glimdroid.ui.main.MainViewModel
 import com.danielstiner.glimdroid.ui.main.MainViewModelFactory
 
-
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
-    private lateinit var mainViewModel: MainViewModel
+    private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
     private lateinit var drawerToggle: ActionBarDrawerToggle
 
@@ -31,12 +36,12 @@ class MainActivity : AppCompatActivity() {
 //        supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setTitle(R.string.title_live)
 
-        mainViewModel = ViewModelProvider(
+        viewModel = ViewModelProvider(
             this,
             MainViewModelFactory(this)
         )[MainViewModel::class.java]
 
-        if (!mainViewModel.isAuthorized) {
+        if (!viewModel.isAuthorized) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
@@ -54,6 +59,12 @@ class MainActivity : AppCompatActivity() {
             R.string.navigation_drawer_close
         )
         drawerLayout.addDrawerListener(drawerToggle)
+
+        viewModel.avatarUri.observe(this) {
+            invalidateOptionsMenu()
+        }
+
+        viewModel.fetch()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -68,6 +79,21 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_activity_actions, menu)
+
+        val avatarUri = viewModel.avatarUri.value
+        val userProfileItem = menu?.findItem(R.id.action_user_profile)!!
+
+        if (avatarUri == null) {
+            userProfileItem.setIcon(R.drawable.ic_account_circle_24dp)
+        } else {
+            Glide.with(this)
+                .load(avatarUri)
+                .circleCrop()
+                .placeholder(R.drawable.ic_account_circle_24dp)
+                .priority(Priority.LOW)
+                .into(userProfileItem)
+        }
+
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -101,4 +127,19 @@ class MainActivity : AppCompatActivity() {
                 .appendEncodedPath("users/settings/profile")
                 .build()
     }
+}
+
+private fun RequestBuilder<Drawable>.into(menuItem: MenuItem) {
+    into(object : CustomTarget<Drawable>() {
+        override fun onResourceReady(
+            resource: Drawable,
+            transition: Transition<in Drawable?>?
+        ) {
+            menuItem.icon = resource
+        }
+
+        override fun onLoadCleared(placeholder: Drawable?) {
+            menuItem.icon = placeholder
+        }
+    })
 }
