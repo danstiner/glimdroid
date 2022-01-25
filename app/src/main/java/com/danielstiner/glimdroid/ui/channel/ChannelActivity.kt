@@ -34,7 +34,6 @@ import kotlinx.coroutines.*
 import org.webrtc.*
 import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
@@ -324,7 +323,26 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        Log.d(
+            TAG,
+            "onConfigurationChanged; isInPictureInPictureMode:${Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this.isInPictureInPictureMode} orientation:${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"}"
+        )
         transitionLayoutState(configuration = newConfig)
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        Log.d(
+            TAG,
+            "onPictureInPictureModeChanged; isInPictureInPictureMode:$isInPictureInPictureMode orientation:${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"}"
+        )
+        transitionLayoutState(
+            isInPictureInPictureMode = isInPictureInPictureMode,
+            configuration = newConfig
+        )
     }
 
     private fun transitionLayoutState(
@@ -344,16 +362,17 @@ class ChannelActivity : AppCompatActivity() {
             R.id.portrait -> "portrait"
             else -> "unknown"
         }
-        Log.d(
-            TAG,
-            "transitionLayoutState from ${stateToString(binding.motion.currentState)} to ${
-                stateToString(
-                    newState
-                )
-            }"
-        )
 
         if (binding.motion.currentState != newState) {
+            Log.d(
+                TAG,
+                "transitionLayoutState from ${stateToString(binding.motion.currentState)} to ${
+                    stateToString(
+                        newState
+                    )
+                }"
+            )
+
             binding.motion.transitionToState(newState)
 
             if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -557,6 +576,7 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         private fun loadVideoPreviewUri(uri: Uri?) {
+            Log.d("ChannelActivity", "loadVideoPreviewUri: $uri")
             if (uri != null) {
                 Glide
                     .with(this@ChannelActivity)
@@ -572,14 +592,17 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     inner class ProxyVideoSink(private val sink: VideoSink) : VideoSink {
-        var waitingForFirstFrame = AtomicBoolean(true)
+        @Volatile
+        var waitingForFirstFrame = true
         override fun onFrame(frame: VideoFrame) {
             sink.onFrame(frame)
 
             // This is a form of double-checked locking as a performance optimization
-            if (waitingForFirstFrame.get()) {
+            if (waitingForFirstFrame) {
                 runOnUiThread {
-                    if (waitingForFirstFrame.getAndSet(false)) {
+                    if (waitingForFirstFrame) {
+                        Log.d(TAG, "gotFirstFrame")
+                        waitingForFirstFrame = false
                         binding.videoPreview.visibility = View.GONE
                         binding.progressBar.visibility = View.GONE
                     }
@@ -589,18 +612,20 @@ class ChannelActivity : AppCompatActivity() {
 
         fun showPreviewAndProgressBar() {
             runOnUiThread {
+                Log.d(TAG, "showPreviewAndProgressBar")
                 binding.videoView.clearImage()
                 binding.videoPreview.visibility = View.VISIBLE
                 binding.progressBar.visibility = View.VISIBLE
-                waitingForFirstFrame.set(true)
+                waitingForFirstFrame = true
             }
         }
 
         fun showProgressBarOnly() {
             runOnUiThread {
+                Log.d(TAG, "showProgressBarOnly")
                 binding.videoView.clearImage()
                 binding.progressBar.visibility = View.VISIBLE
-                waitingForFirstFrame.set(true)
+                waitingForFirstFrame = true
             }
         }
     }
