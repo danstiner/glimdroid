@@ -12,6 +12,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -62,6 +63,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.avatarUri.observe(this) {
             invalidateOptionsMenu()
         }
+
+        viewModel.fetch()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -87,6 +90,7 @@ class MainActivity : AppCompatActivity() {
                 .load(avatarUri)
                 .circleCrop()
                 .placeholder(R.drawable.ic_account_circle_24dp)
+                .priority(Priority.LOW)
                 .into(userProfileItem)
         }
 
