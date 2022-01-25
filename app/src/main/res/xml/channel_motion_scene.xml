@@ -95,9 +95,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:visibility="visible"
-            motion:layout_constraintWidth_min="288dp"
+            motion:layout_constraintWidth_min="240dp"
             motion:layout_constraintWidth_max="480dp"
-            motion:layout_constraintWidth_percent="0.25"
+            motion:layout_constraintWidth_percent="0.20"
             motion:layout_constraintTop_toTopOf="parent"
             motion:layout_constraintEnd_toEndOf="parent" />
 
