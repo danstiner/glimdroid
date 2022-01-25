@@ -40,7 +40,7 @@ class ChannelRepository(
         }
 
     suspend fun watch(channel: ChannelId, countryCode: String): EdgeRoute {
-        val data = glimesh.watchChannel(channel, countryCode)
+        val data = glimesh.watchChannelMutation(channel, countryCode)
 
         return EdgeRoute(data.id!!, URL(data.url!!))
     }
