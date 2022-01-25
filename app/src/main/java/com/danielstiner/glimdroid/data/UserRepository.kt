@@ -3,7 +3,7 @@ package com.danielstiner.glimdroid.data
 import com.danielstiner.glimdroid.data.model.User
 
 class UserRepository(
-    val glimesh: GlimeshSocketDataSource,
+    private val glimesh: GlimeshSocketDataSource,
 ) {
     suspend fun me(): User {
         return glimesh.myselfQuery()
