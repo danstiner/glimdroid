@@ -24,13 +24,6 @@
     <string name="menu_reflow">Reflow</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="menu_settings">Settings</string>
-
-    <string name="lorem_ipsum_title">Lorem Ipsum"</string>
-    <string name="lorem_ipsum">Lorem Ipsum is simply placeholder text of the printing and
-        typesetting industry. Lorem Ipsum has been the industry\'s standard placeholder text ever
-        since the 1500s, when an unknown printer took a galley of type and scrambled it to make a
-        type specimen book"
-    </string>
     <string name="support">Support</string>
     <string name="follow">Follow</string>
     <string name="title_settings">Settings</string>
@@ -43,9 +36,11 @@
     <string name="title_events">Events</string>
     <string name="title_home">Home</string>
     <string name="title_live">Live Channels</string>
+    <string name="tagline_title">Next-gen Livestreaming</string>
     <string name="tagline_description">
-        With low latency streams and increased discoverability for streamers,
-        Glimesh.tv is the next generation of streaming platform. Find your new favorite streamer!
+        GlimDroid is an unofficial app for Glimesh.tv, a real time video streaming platform focused on the interaction between content creators and their fans. Find your new favorite streamer today!
+
+        \n\nCreators on Glimesh.tv enjoy real-time interaction with fans, payouts without any viewership requirements, and increased discoverability with featured streams selected at random every hour.
     </string>
     <string name="mature">Mature</string>
 </resources>
