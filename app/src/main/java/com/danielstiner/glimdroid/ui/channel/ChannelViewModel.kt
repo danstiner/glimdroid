@@ -170,7 +170,7 @@ class ChannelViewModel(
                     _viewerCount.value = channel.stream?.viewerCount
 
                     if (channel.stream?.thumbnailUrl != null) {
-                        _thumbnailUri.value = Uri.parse(channel.stream?.thumbnailUrl)
+                        _thumbnailUri.value = Uri.parse(channel.stream.thumbnailUrl)
                     }
                 }
             }
