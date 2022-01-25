@@ -22,7 +22,7 @@
     <ConstraintSet android:id="@+id/portrait">
 
         <Constraint
-            android:id="@+id/video_view"
+            android:id="@+id/video_layout"
             android:layout_width="0dp"
             android:layout_height="0dp"
             motion:layout_constraintDimensionRatio="16:9"
@@ -62,7 +62,7 @@
     <ConstraintSet android:id="@+id/landscape">
 
         <Constraint
-            android:id="@+id/video_view"
+            android:id="@+id/video_layout"
             android:layout_width="0dp"
             android:layout_height="0dp"
             motion:layout_constraintDimensionRatio="16:9"
@@ -106,7 +106,7 @@
     <ConstraintSet android:id="@+id/pip">
 
         <Constraint
-            android:id="@+id/video_view"
+            android:id="@+id/video_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -114,15 +114,15 @@
 
         <Constraint
             android:id="@+id/stream_info_layout"
-            android:visibility="gone" />
+            android:visibility="invisible" />
 
         <Constraint
             android:id="@+id/streamer_info_layout"
-            android:visibility="gone" />
+            android:visibility="invisible" />
 
         <Constraint
             android:id="@+id/chat_layout"
-            android:visibility="gone" />
+            android:visibility="invisible" />
 
     </ConstraintSet>
 
