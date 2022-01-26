@@ -65,7 +65,6 @@ dependencies {
     def glide_version = '4.12.0'
     def work_version = '2.7.1'
 
-    annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
     kapt "com.github.bumptech.glide:compiler:$glide_version"
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -81,6 +80,7 @@ dependencies {
     implementation "com.apollographql.apollo3:apollo-runtime:$apollo_version"
     implementation "com.github.bumptech.glide:annotations:$glide_version"
     implementation "com.github.bumptech.glide:glide:$glide_version"
+    implementation "com.github.bumptech.glide:okhttp3-integration:$glide_version"
     implementation 'com.google.android.material:material:1.5.0-rc01'
     implementation 'net.openid:appauth:0.11.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
