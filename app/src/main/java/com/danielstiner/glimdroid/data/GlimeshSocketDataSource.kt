@@ -19,10 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.OkHttpClient
 import java.lang.ref.WeakReference
 import java.net.URI
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 val WEBSOCKET_V2_URI: Uri =
     Uri.parse(BuildConfig.GLIMESH_WEBSOCKET_URL).buildUpon().appendQueryParameter("vsn", "2.0.0")
@@ -39,6 +42,7 @@ val WEBSOCKET_V2_URI: Uri =
  */
 class GlimeshSocketDataSource private constructor(
     private val auth: AuthStateDataSource,
+    private val client: OkHttpClient = defaultClient()
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var connection = WeakReference<Connection>(null)
@@ -109,7 +113,8 @@ class GlimeshSocketDataSource private constructor(
                     WEBSOCKET_V2_URI.buildUpon()
                         .appendQueryParameter("client_id", CLIENT_ID)
                         .build().toURI(),
-                    scope = scope
+                    client = client,
+                    scope = scope,
                 )
                 con = Connection.create(
                     socket,
@@ -132,6 +137,7 @@ class GlimeshSocketDataSource private constructor(
                     WEBSOCKET_V2_URI.buildUpon()
                         .appendQueryParameter("token", auth.freshAccessToken())
                         .build().toURI(),
+                    client = client,
                     scope = scope
                 )
                 con = Connection.create(
@@ -160,7 +166,7 @@ class GlimeshSocketDataSource private constructor(
         fun getInstance(auth: AuthStateDataSource): GlimeshSocketDataSource {
             var instance: GlimeshSocketDataSource? = INSTANCE_REF.get().get()
             if (instance == null) {
-                Log.d(TAG, "Constructing GlimeshWebsocketDataSource")
+                Log.v(TAG, "Constructing GlimeshWebsocketDataSource")
                 instance = GlimeshSocketDataSource(auth)
                 INSTANCE_REF.set(WeakReference(instance))
             }
@@ -168,6 +174,9 @@ class GlimeshSocketDataSource private constructor(
         }
     }
 }
+
+private fun defaultClient() =
+    OkHttpClient.Builder().pingInterval(30.seconds.toJavaDuration()).build()
 
 
 /**
