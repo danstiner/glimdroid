@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'org.jetbrains.kotlin.kapt'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.10'
     id 'com.apollographql.apollo3' version '3.0.0'
 }
@@ -66,6 +67,7 @@ dependencies {
 
     annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
+    kapt "com.github.bumptech.glide:compiler:$glide_version"
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
