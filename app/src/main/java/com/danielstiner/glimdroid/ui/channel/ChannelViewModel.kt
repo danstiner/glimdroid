@@ -12,7 +12,7 @@ import com.danielstiner.glimdroid.data.ChatRepository
 import com.danielstiner.glimdroid.data.model.*
 import com.danielstiner.phoenix.absinthe.Subscription
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -23,6 +23,9 @@ class ChannelViewModel(
 ) : ViewModel() {
 
     private val TAG = "ChannelViewModel"
+
+    private val _uiState = MutableStateFlow(ChannelUiState())
+    val uiState: StateFlow<ChannelUiState> = _uiState.asStateFlow()
 
     private val _title = MutableLiveData<String>()
     val title: LiveData<String> = _title
@@ -59,46 +62,64 @@ class ChannelViewModel(
     private val _viewerCount = MutableLiveData<Int?>()
     val viewerCount: LiveData<Int?> = _viewerCount
 
-    private val _channelWatch = MutableLiveData<ChannelWatch?>()
-    val channelWatch: LiveData<ChannelWatch?> = _channelWatch
-
     private val _thumbnailUri = MutableLiveData<Uri?>()
     val thumbnailUri: LiveData<Uri?> = _thumbnailUri
 
+    // Always accessed from main thread
     private var current: ChannelWatcher? = null
-
-    // TODO, callers of this should instead look at the media connection state
-    val isSubscribed: Boolean
-        @MainThread
-        get() = current != null
 
     @MainThread
     fun watch(channel: ChannelId, thumbnailUri: Uri?) {
-        Log.d(TAG, "Watch, new:$channel, current:${current?.channel}")
+        Log.d(
+            TAG,
+            "Watch, new:$channel, current:${current?.channel}, isClosed:${current?.isClosed}"
+        )
 
-        if (current?.channel == channel) {
+        if (current?.channel == channel && current?.isClosed == false) {
             return
         }
 
-        current?.close()
-
+        _uiState.update { currentUiState ->
+            currentUiState.copy(isLoading = true, isWatching = false)
+        }
         _thumbnailUri.value = thumbnailUri
-        _channelWatch.value = null
-
+        current?.close()
         current = ChannelWatcher(channel)
     }
 
     @MainThread
-    fun stop() {
-        current?.close()
+    fun start() {
+        current?.apply {
+            viewModelScope.launch(Dispatchers.IO) {
+                start()
+            }
+        }
     }
 
     @MainThread
-    fun sendMessage(text: CharSequence?) = current!!.sendMessage(text!!)
+    fun stop() {
+        current?.apply {
+            viewModelScope.launch(Dispatchers.IO) {
+                stop()
+            }
+        }
+    }
+
+    @MainThread
+    fun sendMessage(text: CharSequence?) {
+        current!!.apply {
+            viewModelScope.launch(Dispatchers.IO) {
+                sendMessage(text!!)
+            }
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
+
         stop()
+
+        current?.close()
     }
 
     /**
@@ -108,10 +129,12 @@ class ChannelViewModel(
      */
     inner class ChannelWatcher(val channel: ChannelId) {
 
-        private var chatSubscription: Subscription<ChatMessage>? = null
+        val isClosed: Boolean get() = closed
 
         @Volatile
         private var closed = false
+        private var chatSubscription: Subscription<ChatMessage>? = null
+        private var edgeRoute: EdgeRoute? = null
         private val mutex = Mutex()
 
         init {
@@ -135,18 +158,35 @@ class ChannelViewModel(
             }
         }
 
-        fun sendMessage(text: CharSequence) {
-            viewModelScope.launch(Dispatchers.IO) {
-                chats.sendMessage(channel, text)
+        suspend fun sendMessage(text: CharSequence) {
+            chats.sendMessage(channel, text)
+        }
+
+        suspend fun start() {
+            _uiState.update { currentUiState ->
+                currentUiState.copy(isStopped = false)
+            }
+        }
+
+        suspend fun stop() {
+            _uiState.update { currentUiState ->
+                currentUiState.copy(isStopped = true)
             }
         }
 
         private suspend fun startWatch(channel: ChannelId) {
-            val edgeRoute = channels.watch(channel, countryCode)
+            edgeRoute = channels.watch(channel, countryCode)
 
-            withContext(Dispatchers.Main) {
-                if (!closed) {
-                    _channelWatch.value = ChannelWatch(channel, edgeRoute)
+            if (!closed) {
+                Log.d(TAG, "Start watch; $channel, $edgeRoute")
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(
+                        isLoading = false,
+                        isStopped = false,
+                        isWatching = true,
+                        channel = channel,
+                        edgeRoute = edgeRoute
+                    )
                 }
             }
         }
@@ -170,7 +210,7 @@ class ChannelViewModel(
                     _viewerCount.value = channel.stream?.viewerCount
 
                     if (channel.stream?.thumbnailUrl != null) {
-                        _thumbnailUri.value = Uri.parse(channel.stream?.thumbnailUrl)
+                        _thumbnailUri.value = Uri.parse(channel.stream.thumbnailUrl)
                     }
                 }
             }
@@ -242,3 +282,11 @@ class ChannelViewModel(
 
     data class ChannelWatch(val channel: ChannelId, val edgeRoute: EdgeRoute)
 }
+
+data class ChannelUiState(
+    val isLoading: Boolean = false,
+    val isWatching: Boolean = false,
+    val isStopped: Boolean = false,
+    val channel: ChannelId? = null,
+    val edgeRoute: EdgeRoute? = null,
+)
