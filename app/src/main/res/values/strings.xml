@@ -38,9 +38,7 @@
     <string name="title_live">Live Channels</string>
     <string name="tagline_title">Next-gen Livestreaming</string>
     <string name="tagline_description">
-        GlimDroid is an unofficial app for Glimesh.tv, a real time video streaming platform focused on the interaction between content creators and their fans. Find your new favorite streamer today!
-
-        \n\nCreators on Glimesh.tv enjoy real-time interaction with fans, payouts without any viewership requirements, and increased discoverability with featured streams selected at random every hour.
+        GlimDroid is an unofficial app for Glimesh.tv, a platform for real-time interaction between content creators and their fans. Find your new favorite streamer today!
     </string>
     <string name="mature">Mature</string>
 </resources>
