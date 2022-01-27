@@ -80,7 +80,7 @@ class ChannelViewModel(
         }
 
         _uiState.update { currentUiState ->
-            currentUiState.copy(channel = channel, edgeRoute = null)
+            currentUiState.copy(isStopped = false, channel = channel, edgeRoute = null)
         }
         _thumbnailUri.value = thumbnailUri
         current?.close()
@@ -181,7 +181,6 @@ class ChannelViewModel(
                 Log.d(TAG, "Start watch; $channel, $edgeRoute")
                 _uiState.update { currentUiState ->
                     currentUiState.copy(
-                        isStopped = false,
                         channel = channel,
                         edgeRoute = edgeRoute
                     )
