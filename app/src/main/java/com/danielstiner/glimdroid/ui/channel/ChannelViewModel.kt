@@ -80,7 +80,7 @@ class ChannelViewModel(
         }
 
         _uiState.update { currentUiState ->
-            currentUiState.copy(isLoading = true, isWatching = false)
+            currentUiState.copy(channel = channel, edgeRoute = null)
         }
         _thumbnailUri.value = thumbnailUri
         current?.close()
@@ -181,9 +181,7 @@ class ChannelViewModel(
                 Log.d(TAG, "Start watch; $channel, $edgeRoute")
                 _uiState.update { currentUiState ->
                     currentUiState.copy(
-                        isLoading = false,
                         isStopped = false,
-                        isWatching = true,
                         channel = channel,
                         edgeRoute = edgeRoute
                     )
@@ -279,13 +277,9 @@ class ChannelViewModel(
             }
         }
     }
-
-    data class ChannelWatch(val channel: ChannelId, val edgeRoute: EdgeRoute)
 }
 
 data class ChannelUiState(
-    val isLoading: Boolean = false,
-    val isWatching: Boolean = false,
     val isStopped: Boolean = false,
     val channel: ChannelId? = null,
     val edgeRoute: EdgeRoute? = null,

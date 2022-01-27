@@ -102,24 +102,19 @@ class ChannelActivity : AppCompatActivity() {
         // channel switches when it gets a new Intent describing a channel to watch. Then the
         // viewmodel talks to glimesh.tv and finally fires this observer to start the media session.
         lifecycleScope.launch {
-            Log.d(
-                TAG,
-                "launchWhenStarted"
-            )
             viewModel.uiState.collect { uiState ->
                 Log.d(
                     TAG,
-                    "UI State; $uiState, previous:${janusMedia?.channel}, previousActive:${janusMedia?.isActive}"
+                    "uiState:$uiState currentChannel:${janusMedia?.channel}, currentlyActive:${janusMedia?.isActive}"
                 )
 
                 when {
-                    uiState.isStopped || !uiState.isWatching || uiState.channel == null || uiState.edgeRoute == null || lifecycle.currentState < Lifecycle.State.STARTED -> janusMedia?.close()
+                    uiState.isStopped || uiState.channel == null || uiState.edgeRoute == null -> janusMedia?.close()
                     uiState.channel == janusMedia?.channel && janusMedia?.isActive == true -> {
                         // Do nothing, media is already started for this watch session
-                        // Ignore edge route changes
                     }
                     else -> {
-                        // New watch session, restart media connection
+                        // Channel changed, restart media connection
                         janusMedia?.close()
                         janusMedia = JanusMedia(uiState.channel, uiState.edgeRoute)
                     }
@@ -325,7 +320,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (viewModel.uiState.value.isWatching) {
+        if (!viewModel.uiState.value.isStopped) {
             enterPictureInPicture()
         } else {
             super.onUserLeaveHint()
@@ -333,7 +328,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (viewModel.uiState.value.isWatching) {
+        if (!viewModel.uiState.value.isStopped) {
             enterPictureInPicture()
         } else {
             super.onBackPressed()
