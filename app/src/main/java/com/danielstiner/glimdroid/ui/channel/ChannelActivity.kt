@@ -22,19 +22,21 @@ import androidx.constraintlayout.widget.ConstraintSet.*
 import androidx.core.view.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChannelId
+import com.danielstiner.glimdroid.data.model.EdgeRoute
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.webrtc.*
 import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
-
 
 const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val EXTRA_STREAM_ID = "tv.glimesh.android.extra.stream.id"
@@ -62,8 +64,6 @@ class ChannelActivity : AppCompatActivity() {
             this,
             ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
-
-        watch(intent)
 
         // Preserving an EGLContext across activity restarts (e.g. orientation change) is tricky,
         // so for now we create a new context every time. Unfortunately a RTC peer connection is
@@ -101,22 +101,30 @@ class ChannelActivity : AppCompatActivity() {
         // This makes for a fairly complicated back-and-forth between this activity initiating
         // channel switches when it gets a new Intent describing a channel to watch. Then the
         // viewmodel talks to glimesh.tv and finally fires this observer to start the media session.
-        viewModel.channelWatch.observe(this, { watchSession ->
-            when {
-                watchSession == null -> janusMedia?.close()
-                watchSession == janusMedia?.channelWatch && janusMedia?.isActive == true -> {
-                    // Do nothing, media is already started for this watch session
-                }
-                else -> {
-                    // New watch session, restart media connection
-                    janusMedia?.close()
-                    janusMedia = JanusMedia(watchSession)
+        lifecycleScope.launch {
+            viewModel.uiState.collect { uiState ->
+                Log.d(
+                    TAG,
+                    "uiState:$uiState currentChannel:${janusMedia?.channel}, currentlyActive:${janusMedia?.isActive}"
+                )
+
+                when {
+                    uiState.isStopped || uiState.channel == null || uiState.edgeRoute == null -> janusMedia?.close()
+                    uiState.channel == janusMedia?.channel && janusMedia?.isActive == true -> {
+                        // Do nothing, media is already started for this watch session
+                    }
+                    else -> {
+                        // Channel changed, restart media connection
+                        janusMedia?.close()
+                        janusMedia = JanusMedia(uiState.channel, uiState.edgeRoute)
+                    }
                 }
             }
-        })
-        viewModel.title.observe(this, { title ->
+        }
+
+        viewModel.title.observe(this) { title ->
             binding.textviewChannelTitle.text = title
-        })
+        }
         viewModel.category.observe(this, { category ->
             with(binding.chipCategory) {
                 text = category.name
@@ -267,11 +275,15 @@ class ChannelActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
+
+        viewModel.start()
     }
 
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "onStop")
+
+        viewModel.stop()
         janusMedia?.close()
     }
 
@@ -297,6 +309,8 @@ class ChannelActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
+
+        watch(intent)
     }
 
     override fun onPause() {
@@ -306,7 +320,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (viewModel.isSubscribed) {
+        if (!viewModel.uiState.value.isStopped) {
             enterPictureInPicture()
         } else {
             super.onUserLeaveHint()
@@ -314,7 +328,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (viewModel.isSubscribed) {
+        if (!viewModel.uiState.value.isStopped) {
             enterPictureInPicture()
         } else {
             super.onBackPressed()
@@ -499,9 +513,9 @@ class ChannelActivity : AppCompatActivity() {
             }
     }
 
-    inner class JanusMedia(val channelWatch: ChannelViewModel.ChannelWatch) {
+    inner class JanusMedia(val channel: ChannelId, val edgeRoute: EdgeRoute) {
 
-        val isActive get() = coroutineContext.isActive
+        val isActive get() = coroutineContext.isActive && !closed
 
         private val TAG = "JanusMedia"
 
@@ -516,11 +530,11 @@ class ChannelActivity : AppCompatActivity() {
         private var closed = false
 
         init {
-            Log.d(TAG, "Starting, channel:${channelWatch.channel.id}")
+            Log.d(TAG, "Starting, channel:${channel.id}")
             loadVideoPreviewUri(viewModel.thumbnailUri.value)
 
             coroutineScope.launch {
-                val ses = JanusFtlSession.create(channelWatch.edgeRoute.url, channelWatch.channel)
+                val ses = JanusFtlSession.create(edgeRoute.url, channel)
                 if (closed) {
                     ses.destroy()
                     return@launch
@@ -555,15 +569,15 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         fun close() {
-            if (closed) {
-                Log.d(TAG, "Already closed, channel:${channelWatch.channel.id}")
-                return
-            }
-
-            Log.d(TAG, "Closing, channel:${channelWatch.channel.id}")
-
             // Launch to UI thread TODO
             coroutineScope.launch(Dispatchers.Main) {
+                if (closed) {
+                    Log.d(TAG, "Already closed, channel:${channel.id}")
+                    return@launch
+                }
+
+                Log.d(TAG, "Closing, channel:${channel.id}")
+
                 closed = true
 
                 // Cleanup
