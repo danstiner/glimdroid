@@ -112,7 +112,6 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
         for (channel in liveChannels) {
             val id = channel.id.id.toString()
             if (id in state.notifications) {
-                val notification = state.notifications[id]
                 // TODO update notification data if needed
             } else {
                 // Show notification
