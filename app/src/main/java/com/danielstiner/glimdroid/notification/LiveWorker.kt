@@ -101,7 +101,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
             val isLive = liveChannels.any { it.id == notification.channel.id }
 
             if (!isLive) {
-                NotificationManagerCompat.from(applicationContext).cancel(null, notification.id);
+                NotificationManagerCompat.from(applicationContext).cancel(null, notification.id)
                 return@removeIf true
             }
 
@@ -239,7 +239,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
                 "liveChannelCheck",
                 ExistingPeriodicWorkPolicy.KEEP,
                 work
-            );
+            )
         }
     }
 }
