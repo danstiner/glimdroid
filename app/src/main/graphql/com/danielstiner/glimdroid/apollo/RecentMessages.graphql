@@ -4,18 +4,7 @@ query RecentMessages($channelId: ID!) {
         chatMessages(last: 50) {
             edges {
                 node {
-                    id
-                    message
-                    insertedAt
-                    user {
-                        username
-                        displayname
-                        avatarUrl
-                    }
-                    tokens {
-                        text
-                        type
-                    }
+                    ...MessageParts
                 }
             }
         }

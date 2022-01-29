@@ -63,6 +63,7 @@ class JanusRtcConnection(
             // Start gathering ICE candidates immediately to optimize time to connect
             // See https://chromestatus.com/feature/4973817285836800
             iceCandidatePoolSize = 1
+            networkPreference = PeerConnection.AdapterType.WIFI
         }
 
         private val MEDIA_CONSTRAINTS = MediaConstraints().apply {

@@ -1,23 +1,25 @@
 package com.danielstiner.glimdroid.ui.channel
 
-import android.content.Context
 import android.graphics.drawable.Drawable
-import android.net.Uri
+import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
+import android.text.style.StyleSpan
+import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.core.text.bold
-import androidx.core.text.buildSpannedString
+import androidx.core.text.inSpans
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.danielstiner.glimdroid.R
@@ -30,43 +32,66 @@ class ChatAdapter :
         RecyclerView.ViewHolder(itemView) {
         private val iconSize = itemView.resources.getDimensionPixelSize(R.dimen.chat_icon_size)
         private val textView: TextView = itemView.findViewById(R.id.text)
+        private val multiTarget = TextViewMultiTarget(textView)
+        private val requestManager = Glide.with(textView)
 
         fun bind(chat: ChatMessage) {
-            textView.text = buildSpannedString {
-                append("   ") // Placeholder for avatar image
-                appendChatBody(chat, itemView.context)
-            }
+            bindMessage(chat)
+        }
 
-            if (chat.avatarUrl != null) {
-                Glide
-                    .with(itemView)
-                    .load(Uri.parse(chat.avatarUrl))
-                    .circleCrop()
-                    .into(object : CustomTarget<Drawable>(iconSize, iconSize) {
-                        override fun onLoadCleared(res: Drawable?) {
-                            textView.text = buildSpannedString {
-                                append("   ") // Placeholder for avatar image
-                                appendChatBody(chat, itemView.context)
-                            }
-                        }
+        private fun bindMessage(chat: ChatMessage) {
+            val replacements = mutableListOf<TextViewMultiTarget.Replacement>()
+            val spannedString = SpannableStringBuilder().apply {
+                if (chat.avatarUri == null) {
+                    append("   ") // No avatar placeholder for alignment
+                } else {
+                    replacements.add(
+                        replace(
+                            requestManager.load(chat.avatarUri).circleCrop(),
+                            iconSize,
+                            iconSize
+                        ) { append("   ") })
+                }
+                append(" ")
+                bold { append(chat.displayname) }
+                append(": ")
 
-                        override fun onResourceReady(
-                            drawable: Drawable,
-                            transition: Transition<in Drawable>?
-                        ) {
-                            drawable.setBounds(0, 0, iconSize, iconSize)
-                            textView.text = buildSpannedString {
+                for (token in chat.tokens) {
+                    when (token) {
+                        is ChatMessage.Token.Text -> append(token.text)
+                        is ChatMessage.Token.Emote -> {
+                            val resId = getEmoteDrawableResId(token.text)
+
+                            if (resId != null) {
                                 appendSpan(
-                                    "i",
-                                    ImageSpan(drawable, DynamicDrawableSpan.ALIGN_CENTER),
+                                    token.text,
+                                    ImageSpan(
+                                        textView.context,
+                                        resId,
+                                        DynamicDrawableSpan.ALIGN_CENTER
+                                    ),
                                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                                 )
-                                append(" ")
-                                appendChatBody(chat, itemView.context)
+                            } else {
+                                replacements.add(
+                                    replace(
+                                        requestManager.load(token.src).fitCenter(),
+                                        iconSize,
+                                        iconSize
+                                    ) { append(token.text) }
+                                )
                             }
                         }
-                    })
+                        is ChatMessage.Token.Url -> appendSpan(
+                            token.text,
+                            URLSpan(token.url),
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                }
             }
+
+            multiTarget.load(spannedString, replacements.toList())
         }
     }
 
@@ -83,26 +108,89 @@ class ChatAdapter :
     }
 }
 
-private fun SpannableStringBuilder.appendChatBody(chat: ChatMessage, context: Context) {
-    bold { append(chat.displayname) }
-    append(": ")
-    for (token in chat.tokens) {
-        when (token.type) {
-            "text" -> append(token.text)
-            "emote" -> {
-                val resId = getEmoteDrawableResId(token.text)
-                if (resId != null) {
-                    appendSpan(
-                        "e",
-                        ImageSpan(context, resId, DynamicDrawableSpan.ALIGN_CENTER),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                } else {
-                    append(token.text)
-                }
-            }
+/**
+ * Wrap appended text in [builderAction] in a bold [StyleSpan].
+ *
+ * @see SpannableStringBuilder.inSpans
+ */
+inline fun SpannableStringBuilder.replace(
+    request: RequestBuilder<Drawable>,
+    height: Int,
+    width: Int,
+    verticalAlignment: Int = DynamicDrawableSpan.ALIGN_BOTTOM,
+    builderAction: SpannableStringBuilder.() -> Unit
+): TextViewMultiTarget.Replacement {
+    val start = length
+    builderAction()
+    val end = length
+    return TextViewMultiTarget.Replacement(
+        request,
+        TextViewMultiTarget.SpanTarget(
+            start,
+            end,
+            width,
+            height,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+            verticalAlignment
+        )
+    )
+}
+
+class TextViewMultiTarget(val view: TextView) {
+    val requestManager = Glide.with(view)
+    val targets: MutableList<Target> = mutableListOf()
+    var spannable: SpannableStringBuilder = SpannableStringBuilder()
+
+    fun load(text: SpannableStringBuilder, requests: List<Replacement>) {
+        clear()
+        spannable = text
+        view.text = spannable
+        for (request in requests) {
+            targets.add(request.request.into(Target(request.where)))
+        }
+    }
+
+    private fun clear() {
+        targets.removeAll {
+            requestManager.clear(it)
+            true
+        }
+    }
+
+    data class Replacement(
+        val request: RequestBuilder<Drawable>,
+        val where: SpanTarget
+    )
+
+    data class SpanTarget(
+        val start: Int,
+        val end: Int,
+        val width: Int,
+        val height: Int,
+        val flags: Int,
+        val verticalAlignment: Int,
+    )
+
+    inner class Target(private val s: SpanTarget) : CustomTarget<Drawable>(s.width, s.height) {
+        private var span: ImageSpan? = null
+
+        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+            resource.setBounds(0, 0, s.width, s.height)
+            spannable.removeSpan(span)
+            span = ImageSpan(resource, s.verticalAlignment)
+            spannable.setSpan(span, s.start, s.end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            view.text = spannable
         }
 
+        override fun onLoadCleared(placeholder: Drawable?) {
+            spannable.removeSpan(span)
+            if (placeholder != null) {
+                placeholder.setBounds(0, 0, s.width, s.height)
+                span = ImageSpan(placeholder, s.verticalAlignment)
+                spannable.setSpan(span, s.start, s.end, s.flags)
+            }
+            view.text = spannable
+        }
     }
 }
 
