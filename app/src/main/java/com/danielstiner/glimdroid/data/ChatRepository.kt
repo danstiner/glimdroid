@@ -1,5 +1,6 @@
 package com.danielstiner.glimdroid.data
 
+import android.net.Uri
 import com.danielstiner.glimdroid.apollo.fragment.MessageParts
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.ChatMessage
@@ -24,7 +25,7 @@ class ChatRepository(
                     id = message.id,
                     displayname = message.user.displayname,
                     username = message.user.username,
-                    avatarUrl = message.user.avatarUrl,
+                    avatarUri = message.user.avatarUrl?.let { Uri.parse(it) },
                     timestamp = message.insertedAt,
                     tokens = message.tokens!!.map(this::tokenize),
                 )
@@ -38,7 +39,7 @@ class ChatRepository(
                 id = message.id,
                 displayname = message.user.displayname,
                 username = message.user.username,
-                avatarUrl = message.user.avatarUrl,
+                avatarUri = message.user.avatarUrl?.let { Uri.parse(it) },
                 timestamp = message.insertedAt,
                 tokens = message.tokens!!.map(this::tokenize),
             )
@@ -53,8 +54,8 @@ class ChatRepository(
         when (token!!.__typename) {
             "TextToken" -> ChatMessage.Token.Text(token.onTextToken!!.text!!)
             "EmoteToken" -> ChatMessage.Token.Emote(
-                token.onEmoteToken!!.text!!,
-                token.onEmoteToken.src!!
+                text = token.onEmoteToken!!.text!!,
+                src = Uri.parse(token.onEmoteToken.src!!)
             )
             "UrlToken" -> ChatMessage.Token.Url(token.onUrlToken!!.text!!, token.onUrlToken.url!!)
             else -> TODO("Unsupported chat message token, __typename:${token.__typename}")

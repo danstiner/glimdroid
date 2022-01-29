@@ -177,7 +177,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
                 .asBitmap()
                 .load(uri)
                 .circleCrop()
-                .into(object : CustomTarget<Bitmap?>() {
+                .into(object : CustomTarget<Bitmap?>(256, 256) {
                     override fun onResourceReady(
                         resource: Bitmap,
                         transition: Transition<in Bitmap?>?
