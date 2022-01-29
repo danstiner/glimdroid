@@ -6,7 +6,6 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
-import android.text.style.StyleSpan
 import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.core.text.bold
-import androidx.core.text.inSpans
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -108,11 +106,6 @@ class ChatAdapter :
     }
 }
 
-/**
- * Wrap appended text in [builderAction] in a bold [StyleSpan].
- *
- * @see SpannableStringBuilder.inSpans
- */
 inline fun SpannableStringBuilder.replace(
     request: RequestBuilder<Drawable>,
     height: Int,
