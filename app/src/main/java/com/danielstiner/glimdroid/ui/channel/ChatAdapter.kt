@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.method.LinkMovementMethod
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
 import android.text.style.URLSpan
@@ -32,6 +33,10 @@ class ChatAdapter :
         private val textView: TextView = itemView.findViewById(R.id.text)
         private val multiTarget = TextViewMultiTarget(textView)
         private val requestManager = Glide.with(textView)
+
+        init {
+            textView.movementMethod = LinkMovementMethod()
+        }
 
         fun bind(chat: ChatMessage) {
             bindMessage(chat)
