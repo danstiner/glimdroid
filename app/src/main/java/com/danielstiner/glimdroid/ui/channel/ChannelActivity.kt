@@ -261,12 +261,10 @@ class ChannelActivity : AppCompatActivity() {
                     topMargin = insets.top
                 }
 
-                Log.d(TAG, "IME visibility change; imeVisible:$imeVisible")
-                if (imeVisible) {
-                    binding.groupInfo.visibility = View.GONE
-                } else {
-                    binding.groupInfo.visibility = View.VISIBLE
-                }
+                val portrait =
+                    resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                Log.d(TAG, "IME visibility change; imeVisible:$imeVisible portrait:$portrait")
+                transitionLayoutState(imeVisible = imeVisible)
 
                 // Return CONSUMED if you don't want want the window insets to keep being
                 // passed down to descendant views.
@@ -389,12 +387,14 @@ class ChannelActivity : AppCompatActivity() {
 
     private fun transitionLayoutState(
         isInPictureInPictureMode: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && this.isInPictureInPictureMode,
-        configuration: Configuration = resources.configuration
+        configuration: Configuration = resources.configuration,
+        imeVisible: Boolean = false
     ) {
 
         val newState = when {
             isInPictureInPictureMode -> R.id.pip
             configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> R.id.landscape
+            imeVisible -> R.id.portrait_ime
             else -> R.id.portrait
         }
 
@@ -402,6 +402,7 @@ class ChannelActivity : AppCompatActivity() {
             R.id.pip -> "pip"
             R.id.landscape -> "landscape"
             R.id.portrait -> "portrait"
+            R.id.portrait_ime -> "portrait_ime"
             else -> "unknown"
         }
 
@@ -417,7 +418,7 @@ class ChannelActivity : AppCompatActivity() {
 
             binding.motion.jumpToState(newState)
 
-            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (newState == R.id.landscape) {
                 hideStatusBar()
             } else {
                 showStatusBar()

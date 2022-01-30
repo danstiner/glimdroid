@@ -12,6 +12,10 @@
         motion:constraintSetEnd="@+id/portrait" />
 
     <Transition
+        motion:constraintSetStart="@+id/portrait"
+        motion:constraintSetEnd="@+id/portrait_ime" />
+
+    <Transition
         motion:constraintSetStart="@+id/pip"
         motion:constraintSetEnd="@+id/portrait" />
 
@@ -56,6 +60,37 @@
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/streamer_info_layout"></Constraint>
+
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/portrait_ime">
+
+        <Constraint
+            android:id="@+id/video_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            motion:layout_constraintDimensionRatio="16:9"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/stream_info_layout"
+            android:visibility="gone" />
+
+        <Constraint
+            android:id="@+id/streamer_info_layout"
+            android:visibility="gone" />
+
+        <Constraint
+            android:id="@+id/chat_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="visible"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/video_layout"></Constraint>
 
     </ConstraintSet>
 
