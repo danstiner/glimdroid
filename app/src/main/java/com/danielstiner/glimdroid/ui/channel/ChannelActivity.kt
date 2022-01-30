@@ -1,5 +1,6 @@
 package com.danielstiner.glimdroid.ui.channel
 
+import android.app.ActivityManager
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
@@ -25,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.danielstiner.glimdroid.MainActivity
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.EdgeRoute
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.collect
 import org.webrtc.*
 import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
+
 
 const val EXTRA_CHANNEL_ID = "tv.glimesh.android.extra.channel.id"
 const val EXTRA_STREAM_ID = "tv.glimesh.android.extra.stream.id"
@@ -197,6 +200,11 @@ class ChannelActivity : AppCompatActivity() {
                     .findLastVisibleItemPosition()
             val scrolledToLatestChat = lastVisibleItemPosition == chatAdapter.itemCount - 1
 
+            Log.v(
+                TAG,
+                "Chats: currentSize:${chatAdapter.itemCount} newSize:${chats.size} lastVisibleItemPosition:$lastVisibleItemPosition scrolledToLatestChat:$scrolledToLatestChat"
+            )
+
             chatAdapter.submitList(chats)
 
             // If we were scrolled to the end of chat, autoscroll to new end
@@ -320,7 +328,7 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (!viewModel.uiState.value.isStopped) {
+        if (shouldEnterPictureInPicture) {
             enterPictureInPicture()
         } else {
             super.onUserLeaveHint()
@@ -328,10 +336,33 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (!viewModel.uiState.value.isStopped) {
+        if (shouldEnterPictureInPicture) {
+            // PiP mode must be entered before navigating to prevent current activity from finishing
             enterPictureInPicture()
+            navigateToMainActivity()
         } else {
-            super.onBackPressed()
+            // Otherwise navigate before finishing so we don't end up creating a new task
+            navigateToMainActivity()
+            finish()
+        }
+    }
+
+    /**
+     * PiP mode can be weird with the backstack, we can end up with the main activity *not* being
+     * the previous activity a normal back press would go to. Together with singleTask set in the
+     * manifest this seems to have the desired behavior (the channel task is *always* a child of
+     * the main activity. This may need more re-work in the future as more activities are added,
+     * or maybe the channel activity should instead be a floating fragment inside main activity.
+     */
+    private fun navigateToMainActivity() {
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val launcherTask = activityManager.appTasks.singleOrNull { task ->
+            task.taskInfo.baseIntent.categories?.contains(Intent.CATEGORY_LAUNCHER) == true
+        }
+        if (launcherTask != null) {
+            launcherTask.moveToFront()
+        } else {
+            startActivity(Intent(this, MainActivity::class.java))
         }
     }
 
@@ -387,7 +418,7 @@ class ChannelActivity : AppCompatActivity() {
                 }"
             )
 
-            binding.motion.transitionToState(newState)
+            binding.motion.jumpToState(newState)
 
             if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 hideStatusBar()
@@ -411,7 +442,9 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun openStreamerProfile(username: String) {
-        enterPictureInPicture()
+        if (shouldEnterPictureInPicture) {
+            enterPictureInPicture()
+        }
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
@@ -452,11 +485,12 @@ class ChannelActivity : AppCompatActivity() {
         viewModel.watch(channel, thumbnailUri)
     }
 
-    private fun enterPictureInPicture() {
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            enterPictureInPictureMode(pictureInPictureParams(binding.videoView))
-        }
-    }
+    private val shouldEnterPictureInPicture
+        get() = !viewModel.uiState.value.isStopped && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun enterPictureInPicture() =
+        enterPictureInPictureMode(pictureInPictureParams(binding.videoView))
 
     private fun buildPeerConnectionFactory(eglBaseContext: EglBase.Context): PeerConnectionFactory {
         val videoEncoderFactory = DefaultVideoDecoderFactory(eglBaseContext)
