@@ -1,9 +1,11 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
@@ -14,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.core.text.bold
+import androidx.core.text.inSpans
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -23,6 +26,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChatMessage
+import com.danielstiner.glimdroid.ui.Urls
 
 class ChatAdapter :
     ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDiffCallback) {
@@ -45,18 +49,20 @@ class ChatAdapter :
         private fun bindMessage(chat: ChatMessage) {
             val replacements = mutableListOf<TextViewMultiTarget.Replacement>()
             val spannedString = SpannableStringBuilder().apply {
-                if (chat.avatarUri == null) {
-                    append("   ") // No avatar placeholder for alignment
-                } else {
-                    replacements.add(
-                        replace(
-                            requestManager.load(chat.avatarUri).circleCrop(),
-                            iconSize,
-                            iconSize
-                        ) { append("   ") })
+                unstyledUri(Urls.userProfile(chat.username)) {
+                    if (chat.avatarUri == null) {
+                        append("   ") // No avatar placeholder for alignment
+                    } else {
+                        replacements.add(
+                            replace(
+                                requestManager.load(chat.avatarUri).circleCrop(),
+                                iconSize,
+                                iconSize
+                            ) { append("   ") })
+                    }
+                    append(" ")
+                    bold { append(chat.displayname) }
                 }
-                append(" ")
-                bold { append(chat.displayname) }
                 append(": ")
 
                 for (token in chat.tokens) {
@@ -71,7 +77,7 @@ class ChatAdapter :
                                     ImageSpan(
                                         textView.context,
                                         resId,
-                                        DynamicDrawableSpan.ALIGN_CENTER
+                                        DynamicDrawableSpan.ALIGN_BOTTOM
                                     ),
                                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                                 )
@@ -111,6 +117,11 @@ class ChatAdapter :
     }
 }
 
+inline fun SpannableStringBuilder.unstyledUri(
+    uri: Uri,
+    builderAction: SpannableStringBuilder.() -> Unit,
+): SpannableStringBuilder = inSpans(UnstyledURLSpan(uri.toString()), builderAction = builderAction)
+
 inline fun SpannableStringBuilder.replace(
     request: RequestBuilder<Drawable>,
     height: Int,
@@ -134,10 +145,16 @@ inline fun SpannableStringBuilder.replace(
     )
 }
 
+class UnstyledURLSpan(url: String) : URLSpan(url) {
+    override fun updateDrawState(ds: TextPaint) {
+        // Do not call super.updateDrawState(ds), it draws an underline and makes the text blue
+    }
+}
+
 class TextViewMultiTarget(val view: TextView) {
-    val requestManager = Glide.with(view)
-    val targets: MutableList<Target> = mutableListOf()
-    var spannable: SpannableStringBuilder = SpannableStringBuilder()
+    private val requestManager = Glide.with(view)
+    private val targets: MutableList<Target> = mutableListOf()
+    private var spannable: SpannableStringBuilder = SpannableStringBuilder()
 
     fun load(text: SpannableStringBuilder, requests: List<Replacement>) {
         clear()

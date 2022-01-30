@@ -25,12 +25,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.danielstiner.glimdroid.BuildConfig
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.EdgeRoute
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
+import com.danielstiner.glimdroid.ui.Urls
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -415,9 +415,7 @@ class ChannelActivity : AppCompatActivity() {
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
-                BASE_URI.buildUpon()
-                    .appendPath(username)
-                    .appendPath("profile").build()
+                Urls.userProfile(username)
             )
         )
     }
@@ -493,7 +491,6 @@ class ChannelActivity : AppCompatActivity() {
 
     companion object {
         private val TAG = "ChannelActivity"
-        private val BASE_URI = Uri.parse(BuildConfig.GLIMESH_BASE_URL)
 
         fun intent(
             context: Context,
