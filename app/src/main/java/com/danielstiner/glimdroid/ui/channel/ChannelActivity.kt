@@ -4,7 +4,6 @@ import android.app.ActivityManager
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
@@ -26,7 +25,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.danielstiner.glimdroid.MainActivity
 import com.danielstiner.glimdroid.R
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.glimdroid.data.model.EdgeRoute
@@ -192,24 +190,25 @@ class ChannelActivity : AppCompatActivity() {
         })
 
         val chatAdapter = ChatAdapter()
+        val layoutManager = binding.chatRecyclerView.layoutManager as LinearLayoutManager
         binding.chatRecyclerView.adapter = chatAdapter
         viewModel.messages.observe(this, { chats ->
             // Check if we are scrolled to the end of chat (latest chat item is visible)
-            val lastVisibleItemPosition =
-                (binding.chatRecyclerView.layoutManager as LinearLayoutManager)
-                    .findLastVisibleItemPosition()
-            val scrolledToLatestChat = lastVisibleItemPosition == chatAdapter.itemCount - 1
+            val wasScrolledToLatestChat = layoutManager.findFirstVisibleItemPosition() == 0
+            val originalItemCount = chatAdapter.itemCount
 
-            Log.v(
-                TAG,
-                "Chats: currentSize:${chatAdapter.itemCount} newSize:${chats.size} lastVisibleItemPosition:$lastVisibleItemPosition scrolledToLatestChat:$scrolledToLatestChat"
-            )
-
-            chatAdapter.submitList(chats)
-
-            // If we were scrolled to the end of chat, autoscroll to new end
-            if (scrolledToLatestChat && chats.isNotEmpty()) {
-                binding.chatRecyclerView.smoothScrollToPosition(chats.size - 1)
+            chatAdapter.submitList(chats.reversed()) {
+                if (originalItemCount == 0 && chatAdapter.itemCount > 0) {
+                    Log.v(TAG, "Chat: Initial load: ${chatAdapter.itemCount}")
+                    binding.chatRecyclerView.post {
+                        layoutManager.scrollToPosition(0)
+                    }
+                } else if (wasScrolledToLatestChat) {
+                    Log.v(TAG, "Chat: Auto-scrolling to new chat message")
+                    binding.chatRecyclerView.post {
+                        layoutManager.scrollToPosition(0)
+                    }
+                }
             }
         })
 
@@ -244,9 +243,7 @@ class ChannelActivity : AppCompatActivity() {
 
         // Listen for IME keyboard being shown and hide non-essential info to leave more room for
         // the user to see some incoming chat messages while they type
-        if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
             ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
                 val imeVisible =
@@ -362,7 +359,7 @@ class ChannelActivity : AppCompatActivity() {
         if (launcherTask != null) {
             launcherTask.moveToFront()
         } else {
-            startActivity(Intent(this, MainActivity::class.java))
+//            startActivity(Intent(this, MainActivity::class.java))
         }
     }
 
@@ -454,8 +451,13 @@ class ChannelActivity : AppCompatActivity() {
     }
 
     private fun sendChatMessage() {
-        viewModel.sendMessage(binding.chatInputEditText.text.toString().trim())
+        val text = binding.chatInputEditText.text.toString().trim()
         binding.chatInputEditText.setText("", TextView.BufferType.NORMAL)
+        if (text.isNotEmpty()) {
+            viewModel.sendMessage(text)
+        } else {
+            Log.w(TAG, "sendChatMessage: text to send was empty")
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

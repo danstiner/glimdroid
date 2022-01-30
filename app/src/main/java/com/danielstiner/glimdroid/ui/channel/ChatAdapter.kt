@@ -242,7 +242,7 @@ fun getEmoteDrawableResId(name: String) = when (name) {
 
 object ChatDiffCallback : DiffUtil.ItemCallback<ChatMessage>() {
     override fun areItemsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem === newItem
     }
 
     override fun areContentsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {

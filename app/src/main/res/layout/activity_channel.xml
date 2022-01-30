@@ -202,7 +202,10 @@
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
+            android:orientation="vertical"
             app:layoutManager="LinearLayoutManager"
+            app:reverseLayout="true"
+            app:stackFromEnd="false"
             app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -219,26 +222,12 @@
                 style="@style/AppTheme.TextInputEditText.Message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Send a message"
+                android:hint="@string/send_a_message"
                 android:imeOptions="actionSend"
                 android:inputType="textShortMessage" />
         </com.google.android.material.textfield.TextInputLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_left"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="8dp" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_right"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_end="8dp" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_info"
