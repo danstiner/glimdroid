@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.time.Duration
 import java.util.*
 
 fun transactionId(): String = UUID.randomUUID().toString()
@@ -189,6 +190,11 @@ class JanusApi(
     private val client: OkHttpClient = OkHttpClient()
 ) {
 
+    // Session events are read by long-polling with a parameter-less GET request to the session
+    // endpoint. This returns as soon as events are available, or after a 30 second timeout. If
+    // there were no events to report, a simple keep-alive event message will be returned instead.
+    private val pollClient = client.newBuilder().readTimeout(Duration.ofSeconds(60)).build()
+
     fun createSession(): SessionId {
         val request = CreateSessionRequest()
         val response: CreateSessionResponse = post(baseUrl, request)
@@ -324,7 +330,7 @@ class JanusApi(
                 .addQueryParameter("maxev", "10")
                 .addQueryParameter("rid", "${System.currentTimeMillis()}")
                 .build()
-            return get(uri)
+            return poll(uri)
         } catch (ex: RequestFailedException) {
             if (ex.code == 404) {
                 throw NoSuchSessionException(ex)
@@ -367,8 +373,8 @@ class JanusApi(
         }
     }
 
-    private inline fun <reified R> get(url: HttpUrl): R {
-        val response = client.newCall(
+    private inline fun <reified R> poll(url: HttpUrl): R {
+        val response = pollClient.newCall(
             Request.Builder().url(url).build()
         ).execute()
 
