@@ -1,14 +1,18 @@
 package com.danielstiner.glimdroid.data
 
-import android.net.Uri
 import android.util.Log
 import com.danielstiner.glimdroid.data.model.ChannelId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import java.net.HttpURLConnection
-import java.net.URL
+import kotlinx.serialization.Required
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.*
 
 private const val TAG = "JanusRestApi"
@@ -28,13 +32,13 @@ data class JanusError(val code: Int, val reason: String)
 data class IceCandidate(val candidate: String, val sdpMid: String, val sdpMLineIndex: Int)
 
 @Serializable
-data class CreateRequest(
+data class CreateSessionRequest(
     @Required val janus: String = "create",
     val transaction: String = transactionId()
 )
 
 @Serializable
-data class CreateResponse(
+data class CreateSessionResponse(
     val data: SessionId,
     val janus: String,
     val transaction: String,
@@ -117,16 +121,6 @@ data class AttachResponse(
 )
 
 @Serializable
-data class MessageRequest(
-    val body: Map<String, String>,
-    @Required val janus: String = "message",
-    val transaction: String = transactionId()
-)
-
-@Serializable
-data class MessageResponse(val janus: String, val transaction: String, val session_id: Long)
-
-@Serializable
 data class FtlWatchRequest(
     val body: FtlWatchRequestBody,
     @Required val janus: String = "message",
@@ -192,44 +186,154 @@ data class DestroyResponse(
     val error: JanusError? = null,
 )
 
-class JanusRestApi(baseUrl: URL) {
+class JanusApi(
+    private val baseUrl: HttpUrl,
+    private val client: OkHttpClient = OkHttpClient()
+) {
 
-    private var baseUri: Uri = Uri.parse(baseUrl.toString())
+    fun createSession(): SessionId {
+        val request = CreateSessionRequest()
+        val response: CreateSessionResponse = post(baseUrl, request)
 
-    suspend fun createSession(): SessionId {
-        val request = CreateRequest()
-        val response: CreateResponse = post(baseUri, request)
+        if (response.error != null) {
+            throw JanusErrorException(response.error.code, response.error.reason)
+        }
+
         assert(response.janus == "success")
         assert(response.transaction == request.transaction)
         return response.data
     }
 
+    fun attachPlugin(session: SessionId, plugin: String): PluginId {
+        try {
+            val sessionUri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .build()
 
-    suspend fun attachPlugin(session: SessionId, plugin: String): PluginId {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
+            val request = AttachRequest(plugin)
+            val response: AttachResponse = post(sessionUri, request)
 
-        val request = AttachRequest(plugin)
-        val response: AttachResponse = post(sessionUri, request)
+            if (response.error != null) {
+                throw JanusErrorException(response.error.code, response.error.reason)
+            }
 
-        assert(response.janus == "success")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
-        return response.data!!
+            assert(response.janus == "success")
+            assert(response.transaction == request.transaction)
+            assert(response.session_id == session.id)
+            return response.data!!
+        } catch (ex: RequestFailedException) {
+            throw NoSuchSessionException(ex)
+        }
     }
 
-    suspend fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
+    fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
+        try {
+            val pluginUri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .addPathSegment("${plugin.id}")
+                .build()
 
-        val request = FtlWatchRequest(FtlWatchRequestBody(channel.id))
-        val response: WatchResponse = post(pluginUri, request)
+            val request = FtlWatchRequest(FtlWatchRequestBody(channel.id))
+            val response: WatchResponse = post(pluginUri, request)
 
-        assert(response.janus == "ack")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
+            if (response.error != null) {
+                throw JanusErrorException(response.error.code, response.error.reason)
+            }
+
+            assert(response.janus == "ack")
+            assert(response.transaction == request.transaction)
+            assert(response.session_id == session.id)
+        } catch (ex: RequestFailedException) {
+            throw NoSuchSessionException(ex)
+        }
     }
 
-    suspend fun waitForSdpOffer(session: SessionId): String {
+    fun ftlStart(
+        session: SessionId,
+        plugin: PluginId,
+        sdpAnswer: String
+    ) {
+        /* TODO
+        // HACK: Workaround for Chromium not enabling stereo audio by default
+        // https://bugs.chromium.org/p/webrtc/issues/detail?id=8133
+        if (jsep.sdp.indexOf("stereo=1") == -1) {
+            jsep.sdp = jsep.sdp.replace("useinbandfec=1", "useinbandfec=1;stereo=1");
+        } */
+
+        try {
+            val pluginUri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .addPathSegment("${plugin.id}")
+                .build()
+
+            val request = FtlStartRequest(Jsep(type = "answer", sdp = sdpAnswer))
+            val response: FtlStartResponse = post(pluginUri, request)
+
+            if (response.error != null) {
+                throw JanusErrorException(response.error.code, response.error.reason)
+            }
+
+            assert(response.janus == "ack")
+            assert(response.transaction == request.transaction)
+            assert(response.session_id == session.id)
+        } catch (ex: RequestFailedException) {
+            throw NoSuchSessionException(ex)
+        }
+    }
+
+    fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
+        try {
+            val pluginUri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .addPathSegment("${plugin.id}")
+                .build()
+
+            val request = TrickleRequest(candidate)
+            val response: TrickleResponse = post(pluginUri, request)
+
+            if (response.error != null) {
+                throw JanusErrorException(response.error.code, response.error.reason)
+            }
+
+            assert(response.janus == "ack")
+            assert(response.transaction == request.transaction)
+            assert(response.session_id == session.id)
+        } catch (ex: RequestFailedException) {
+            throw NoSuchSessionException(ex)
+        }
+    }
+
+    fun longPollSession(session: SessionId): Array<SessionEvent> {
+        val uri = baseUrl.newBuilder()
+            .addPathSegment("${session.id}")
+            .addQueryParameter("maxev", "10")
+            .addQueryParameter("rid", "${System.currentTimeMillis()}")
+            .build()
+        return get(uri)
+    }
+
+    fun destroy(session: SessionId) {
+        try {
+            val sessionUri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .build()
+
+            val request = DestroyRequest()
+            val response: DestroyResponse = post(sessionUri, request)
+
+            if (response.error != null) {
+                throw JanusErrorException(response.error.code, response.error.reason)
+            }
+
+            assert(response.janus == "success")
+            assert(response.transaction == request.transaction)
+            assert(response.session_id == session.id)
+        } catch (ex: RequestFailedException) {
+            throw NoSuchSessionException(ex)
+        }
+    }
+
+    fun waitForSdpOffer(session: SessionId): String {
         while (true) {
             for (event in longPollSession(session)) {
                 Log.d("Janus Event", Json.encodeToString(event))
@@ -241,115 +345,40 @@ class JanusRestApi(baseUrl: URL) {
         }
     }
 
-    suspend fun ftlStart(
-        session: SessionId,
-        plugin: PluginId,
-        sdpAnswer: String
-    ) {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
-        /*
-        // HACK: Workaround for Chromium not enabling stereo audio by default
-        // https://bugs.chromium.org/p/webrtc/issues/detail?id=8133
-        if (jsep.sdp.indexOf("stereo=1") == -1) {
-            jsep.sdp = jsep.sdp.replace("useinbandfec=1", "useinbandfec=1;stereo=1");
+    private inline fun <reified R> get(url: HttpUrl): R {
+        val response = client.newCall(
+            Request.Builder().url(url).build()
+        ).execute()
+
+        if (!response.isSuccessful) {
+            throw RequestFailedException(response.code, response.message)
         }
-         */
-        Log.v(TAG, "ftlStart $sdpAnswer")
 
-        val request = FtlStartRequest(Jsep(type = "answer", sdp = sdpAnswer))
-        val response: FtlStartResponse = post(pluginUri, request)
-
-        assert(response.janus == "ack")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
-        assert(response.error == null)
+        return Json.decodeFromString(response.body!!.string())
     }
 
-    suspend fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
+    private inline fun <reified T, reified R> post(url: HttpUrl, bodyJson: T): R {
+        val response = client.newCall(
+            Request.Builder()
+                .url(url)
+                .post(Json.encodeToString(bodyJson).toRequestBody(JSON))
+                .build()
+        ).execute()
 
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
-
-        Log.v(TAG, "trickleIceCandidate $candidate")
-
-        val request = TrickleRequest(candidate)
-        val response: TrickleResponse = post(pluginUri, request)
-
-        assert(response.janus == "ack")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
-    }
-
-    suspend fun longPollSession(session: SessionId): Array<SessionEvent> {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val uri = sessionUri.buildUpon().appendQueryParameter("maxev", "10")
-            .appendQueryParameter("rid", "${System.currentTimeMillis()}").build()
-        return get(uri)
-    }
-
-    suspend fun messagePlugin(session: SessionId, plugin: PluginId, body: Map<String, String>) {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val pluginUri = sessionUri.buildUpon().appendPath("${plugin.id}").build()
-        val request = MessageRequest(body)
-        val response: MessageResponse = post(pluginUri, request)
-        assert(response.janus == "ack")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
-    }
-
-    suspend fun destroy(session: SessionId) {
-        val sessionUri = baseUri.buildUpon().appendPath("${session.id}").build()
-        val request = DestroyRequest()
-        val response: DestroyResponse = post(sessionUri, request)
-
-        // TODO handle no such session errors
-        assert(response.janus == "success")
-        assert(response.transaction == request.transaction)
-        assert(response.session_id == session.id)
-    }
-
-    private suspend inline fun <reified R> get(uri: Uri): R {
-        return withContext(Dispatchers.IO) {
-            val urlConnection = URL("$uri").openConnection() as HttpURLConnection
-            try {
-                urlConnection.requestMethod = "GET"
-
-                Log.v("Janus GET Request", "$uri")
-
-                val responseBody = urlConnection.inputStream.bufferedReader().use { it.readText() }
-
-                Log.v("Janus GET Response", responseBody)
-
-                return@withContext Json.decodeFromString<R>(responseBody)
-            } finally {
-                Log.v(TAG, "Janus GET Complete: HTTP " + urlConnection.responseCode)
-                urlConnection.disconnect()
-            }
+        if (!response.isSuccessful) {
+            throw RequestFailedException(response.code, response.message)
         }
+
+        return Json.decodeFromString(response.body!!.string())
     }
 
-    private suspend inline fun <reified T, reified R> post(uri: Uri, bodyJson: T): R {
-        return withContext(Dispatchers.IO) {
-            val urlConnection = URL("$uri").openConnection() as HttpURLConnection
-            try {
-                urlConnection.requestMethod = "POST"
-                urlConnection.doOutput = true
-                urlConnection.setChunkedStreamingMode(0)
+    class RequestFailedException(code: Int, message: String) : Throwable("HTTP $code: $message")
 
-                Log.v("Janus POST Request", "$uri: ${Json.encodeToString(bodyJson)}")
+    class JanusErrorException(code: Int, reason: String) : Throwable("Janus error $code: $reason")
 
-                urlConnection.outputStream.use { Json.encodeToStream(bodyJson, it) }
+    class NoSuchSessionException(cause: RequestFailedException) : Throwable(cause)
 
-                val responseBody = urlConnection.inputStream.bufferedReader().use { it.readText() }
-
-                Log.v("Janus POST Response", responseBody)
-
-                return@withContext Json.decodeFromString<R>(responseBody)
-            } finally {
-                Log.v(TAG, "Janus POST Complete: HTTP " + urlConnection.responseCode)
-                urlConnection.disconnect()
-            }
-        }
+    companion object {
+        val JSON = "application/json; charset=utf-8".toMediaType()
     }
 }

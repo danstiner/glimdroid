@@ -1,19 +1,19 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
-import com.danielstiner.glimdroid.data.JanusRestApi
+import com.danielstiner.glimdroid.data.JanusApi
 import com.danielstiner.glimdroid.data.PluginId
 import com.danielstiner.glimdroid.data.SessionId
 import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.HttpUrl
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
-import java.net.URL
 
 class JanusFtlSession(
-    private val janus: JanusRestApi,
+    private val janus: JanusApi,
     private val session: SessionId,
     private val plugin: PluginId,
     internal val channel: ChannelId,
@@ -25,7 +25,7 @@ class JanusFtlSession(
     @Volatile
     private var destroyed = false
 
-    suspend fun getSdpOffer(): SessionDescription {
+    fun getSdpOffer(): SessionDescription {
 
         if (offer == null) {
             // Wait for sdp offer
@@ -56,7 +56,7 @@ class JanusFtlSession(
         }
     }
 
-    suspend fun trickleIceCandidate(candidate: IceCandidate) =
+    fun trickleIceCandidate(candidate: IceCandidate) =
         janus.trickleIceCandidate(
             session,
             plugin,
@@ -67,10 +67,13 @@ class JanusFtlSession(
             )
         )
 
-    suspend fun destroy() {
-        Log.d(TAG, "Destroying janus session; channel:$channel")
+    fun destroy() {
         destroyed = true
-        janus.destroy(session)
+        try {
+            janus.destroy(session)
+        } catch (ex: JanusApi.NoSuchSessionException) {
+            Log.w(TAG, "No such session to destroy; channel:$channel")
+        }
     }
 
     private suspend fun loop() {
@@ -78,11 +81,12 @@ class JanusFtlSession(
         while (!destroyed) {
             Log.d(TAG, "Polling Janus; channel:$channel")
             try {
-                janus.longPollSession(session)
-                // TODO do something with events
-            } catch (ex: java.io.FileNotFoundException) {
-                Log.w(TAG, "Janus session done, closing connection: $ex")
-                // TODO inform RTC connection the session has closed prematurely
+                for (event in janus.longPollSession(session)) {
+                    // TODO do something with events
+                }
+            } catch (ex: JanusApi.NoSuchSessionException) {
+                Log.d(TAG, "Janus session done, closing connection: $ex")
+                TODO("Handle Janus session closed, should try start a new session")
                 destroyed = true
                 break
             }
@@ -98,11 +102,11 @@ class JanusFtlSession(
     companion object {
         private const val TAG = "JanusFtlSession"
 
-        suspend fun create(
-            janusBaseUrl: URL,
+        fun create(
+            janusBaseUrl: HttpUrl,
             channel: ChannelId
         ): JanusFtlSession {
-            val janus = JanusRestApi(janusBaseUrl)
+            val janus = JanusApi(janusBaseUrl)
 
             val session = janus.createSession()
             val plugin = janus.attachPlugin(session, "janus.plugin.ftl")
