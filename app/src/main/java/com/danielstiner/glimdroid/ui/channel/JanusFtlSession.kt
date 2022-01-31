@@ -1,10 +1,10 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
-import com.danielstiner.glimdroid.data.JanusApi
-import com.danielstiner.glimdroid.data.PluginId
-import com.danielstiner.glimdroid.data.SessionId
 import com.danielstiner.glimdroid.data.model.ChannelId
+import com.danielstiner.janus.JanusApi
+import com.danielstiner.janus.PluginId
+import com.danielstiner.janus.SessionId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -60,7 +60,7 @@ class JanusFtlSession(
         janus.trickleIceCandidate(
             session,
             plugin,
-            com.danielstiner.glimdroid.data.IceCandidate(
+            com.danielstiner.janus.IceCandidate(
                 candidate = candidate.sdp,
                 sdpMid = candidate.sdpMid,
                 sdpMLineIndex = candidate.sdpMLineIndex

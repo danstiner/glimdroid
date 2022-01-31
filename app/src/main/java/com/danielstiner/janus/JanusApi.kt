@@ -1,4 +1,4 @@
-package com.danielstiner.glimdroid.data
+package com.danielstiner.janus
 
 import android.util.Log
 import com.danielstiner.glimdroid.data.model.ChannelId
@@ -14,8 +14,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.*
-
-private const val TAG = "JanusRestApi"
 
 fun transactionId(): String = UUID.randomUUID().toString()
 
@@ -222,7 +220,11 @@ class JanusApi(
             assert(response.session_id == session.id)
             return response.data!!
         } catch (ex: RequestFailedException) {
-            throw NoSuchSessionException(ex)
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
         }
     }
 
@@ -244,7 +246,11 @@ class JanusApi(
             assert(response.transaction == request.transaction)
             assert(response.session_id == session.id)
         } catch (ex: RequestFailedException) {
-            throw NoSuchSessionException(ex)
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
         }
     }
 
@@ -277,7 +283,11 @@ class JanusApi(
             assert(response.transaction == request.transaction)
             assert(response.session_id == session.id)
         } catch (ex: RequestFailedException) {
-            throw NoSuchSessionException(ex)
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
         }
     }
 
@@ -299,17 +309,29 @@ class JanusApi(
             assert(response.transaction == request.transaction)
             assert(response.session_id == session.id)
         } catch (ex: RequestFailedException) {
-            throw NoSuchSessionException(ex)
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
         }
     }
 
-    fun longPollSession(session: SessionId): Array<SessionEvent> {
-        val uri = baseUrl.newBuilder()
-            .addPathSegment("${session.id}")
-            .addQueryParameter("maxev", "10")
-            .addQueryParameter("rid", "${System.currentTimeMillis()}")
-            .build()
-        return get(uri)
+    fun longPollSession(session: SessionId): List<SessionEvent> {
+        try {
+            val uri = baseUrl.newBuilder()
+                .addPathSegment("${session.id}")
+                .addQueryParameter("maxev", "10")
+                .addQueryParameter("rid", "${System.currentTimeMillis()}")
+                .build()
+            return get(uri)
+        } catch (ex: RequestFailedException) {
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
+        }
     }
 
     fun destroy(session: SessionId) {
@@ -372,7 +394,7 @@ class JanusApi(
         return Json.decodeFromString(response.body!!.string())
     }
 
-    class RequestFailedException(code: Int, message: String) : Throwable("HTTP $code: $message")
+    class RequestFailedException(val code: Int, message: String) : Throwable("HTTP $code: $message")
 
     class JanusErrorException(code: Int, reason: String) : Throwable("Janus error $code: $reason")
 
