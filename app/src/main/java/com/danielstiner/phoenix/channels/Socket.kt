@@ -46,18 +46,6 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
         return Channel(topic, params, this, refFactory, messages, scope, joinRef)
     }
 
-    companion object {
-        suspend fun open(
-            url: URI,
-            client: OkHttpClient = OkHttpClient(),
-            scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        ): Socket {
-            val socket = Socket(url, scope)
-            socket.connect(client)
-            return socket
-        }
-    }
-
     private suspend fun connect(client: OkHttpClient) {
         this._state = State.CONNECTING
         val request = okhttp3.Request.Builder().url(uri.toString()).build()
@@ -94,7 +82,8 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             this@Socket._state = State.UNKNOWN
-            TODO("onFailure")
+            Log.e(TAG, "onFailure", t)
+            TODO("PhoenixSocket onFailure not handled")
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -107,7 +96,7 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
 
         override fun onMessage(webSocket: WebSocket, text: String) {
             val array: JsonArray = Json.decodeFromString(text)
-            Log.v("Socket", "onMessage: $text")
+            Log.v(TAG, "onMessage: $text")
             scope.launch {
                 _messages.emit(
                     Message(
@@ -122,7 +111,21 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
         }
 
         override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-            TODO()
+            TODO("PhoenixSocket onMessage not handled for binary type messages")
+        }
+    }
+
+    companion object {
+        private const val TAG = "PhoenixSocket"
+
+        suspend fun open(
+            url: URI,
+            client: OkHttpClient = OkHttpClient(),
+            scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        ): Socket {
+            val socket = Socket(url, scope)
+            socket.connect(client)
+            return socket
         }
     }
 }
