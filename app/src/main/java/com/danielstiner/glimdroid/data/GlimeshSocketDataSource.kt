@@ -80,6 +80,27 @@ class GlimeshSocketDataSource private constructor(
             WatchChannelMutation(channel.id.toString(), countryCode)
         ).dataAssertNoErrors.watchChannel!!
 
+
+    suspend fun followMutation(channel: ChannelId) =
+        authenticatedConnection().mutation(
+            FollowMutation(channel.id.toString())
+        ).dataAssertNoErrors.follow
+
+    suspend fun followMutation(channel: ChannelId, liveNotifications: Boolean) =
+        authenticatedConnection().mutation(
+            FollowWithLiveNotificationsMutation(
+                channel.id.toString(),
+                liveNotifications
+            )
+        ).dataAssertNoErrors.follow
+
+    suspend fun unfollowMutation(channel: ChannelId) =
+        authenticatedConnection().mutation(
+            UnfollowMutation(
+                channel.id.toString(),
+            )
+        ).dataAssertNoErrors.unfollow
+
     suspend fun sendMessageMutation(channel: ChannelId, text: CharSequence) =
         authenticatedConnection().mutation(
             SendMessageMutation(

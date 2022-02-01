@@ -1,0 +1,5 @@
+mutation Follow($channelId: ID!) {
+    follow(channelId: $channelId) {
+        id
+    }
+}
