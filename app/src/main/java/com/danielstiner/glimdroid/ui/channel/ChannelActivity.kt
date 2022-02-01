@@ -188,6 +188,38 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = ""
             }
         })
+        viewModel.following.observe(this, { following ->
+            if (following) {
+                binding.buttonFollow.text = "Followed"
+                binding.buttonLiveNotifications.visibility = View.VISIBLE
+            } else {
+                binding.buttonFollow.text = "Follow"
+                binding.buttonLiveNotifications.visibility = View.GONE
+            }
+        })
+        viewModel.liveNotifications.observe(this, { liveNotifications ->
+            if (liveNotifications) {
+                binding.buttonLiveNotifications.setIconResource(R.drawable.ic_notifications_black_24dp)
+            } else {
+                binding.buttonLiveNotifications.setIconResource(R.drawable.ic_notifications_none_black_24dp)
+            }
+        })
+
+        binding.buttonFollow.setOnClickListener {
+            if (viewModel.following.value == true) {
+                viewModel.unfollow()
+            } else {
+                viewModel.follow()
+            }
+        }
+        binding.buttonLiveNotifications.setOnClickListener {
+            if (viewModel.liveNotifications.value == true) {
+                viewModel.followWithoutLiveNotifications()
+            } else {
+                viewModel.followWithLiveNotifications()
+            }
+        }
+
 
         val chatAdapter = ChatAdapter()
         val layoutManager = binding.chatRecyclerView.layoutManager as LinearLayoutManager

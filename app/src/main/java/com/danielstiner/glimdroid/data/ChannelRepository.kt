@@ -200,6 +200,18 @@ class ChannelRepository(
                 )
             }
 
+    suspend fun follow(channel: ChannelId) {
+        glimesh.followMutation(channel)
+    }
+
+    suspend fun follow(channel: ChannelId, liveNotifications: Boolean) {
+        glimesh.followMutation(channel)
+    }
+
+    suspend fun unfollow(channel: ChannelId) {
+        glimesh.unfollowMutation(channel)
+    }
+
     companion object {
         private const val TAG = "ChannelRepository"
     }

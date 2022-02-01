@@ -4,6 +4,19 @@ query Myself {
         username
         displayname
         avatarUrl
-        countFollowing
+        following {
+            edges {
+                node {
+                    id
+                    hasLiveNotifications
+                    streamer {
+                        channel {
+                            id
+                            status
+                        }
+                    }
+                }
+            }
+        }
     }
 }
