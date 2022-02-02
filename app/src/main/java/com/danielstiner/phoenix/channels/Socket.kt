@@ -82,7 +82,7 @@ class Socket private constructor(private val uri: URI, private val scope: Corout
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             this@Socket._state = State.UNKNOWN
-            Log.e(TAG, "onFailure", t)
+            Log.e(TAG, "onFailure: ${t.message}", t)
             TODO("PhoenixSocket onFailure not handled")
         }
 
