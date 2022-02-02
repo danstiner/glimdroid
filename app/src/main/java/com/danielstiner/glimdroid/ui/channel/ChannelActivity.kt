@@ -34,6 +34,7 @@ import com.danielstiner.glimdroid.ui.Urls
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.webrtc.*
 import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
@@ -568,7 +569,7 @@ class ChannelActivity : AppCompatActivity() {
             loadVideoPreviewUri(viewModel.thumbnailUri.value)
 
             coroutineScope.launch {
-                val ses = JanusFtlSession.create(edgeRoute.url, channel)
+                val ses = JanusFtlSession.create(edgeRoute.url.toHttpUrlOrNull()!!, channel)
                 if (closed) {
                     ses.destroy()
                     return@launch
@@ -603,7 +604,6 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         fun close() {
-            // Launch to UI thread TODO
             coroutineScope.launch(Dispatchers.Main) {
                 if (closed) {
                     Log.d(TAG, "Already closed, channel:${channel.id}")
