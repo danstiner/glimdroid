@@ -72,7 +72,9 @@ class JanusFtlSession(
         try {
             janus.destroy(session)
         } catch (ex: JanusApi.NoSuchSessionException) {
-            Log.w(TAG, "No such session to destroy; channel:$channel")
+            Log.w(TAG, "No such session to destroy; channel:$channel", ex)
+        } catch (ex: JanusApi.Exception) {
+            Log.w(TAG, "Ignoring unknown janus exception; channel:$channel", ex)
         }
     }
 

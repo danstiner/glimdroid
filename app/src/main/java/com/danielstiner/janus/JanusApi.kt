@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 import java.time.Duration
 import java.util.*
 
@@ -357,7 +358,11 @@ class JanusApi(
             assert(response.transaction == request.transaction)
             assert(response.session_id == session.id)
         } catch (ex: RequestFailedException) {
-            throw NoSuchSessionException(ex)
+            if (ex.code == 404) {
+                throw NoSuchSessionException(ex)
+            } else {
+                throw ex
+            }
         }
     }
 
@@ -374,37 +379,52 @@ class JanusApi(
     }
 
     private inline fun <reified R> poll(url: HttpUrl): R {
-        val response = pollClient.newCall(
-            Request.Builder().url(url).build()
-        ).execute()
+        try {
+            val response = pollClient.newCall(
+                Request.Builder().url(url).build()
+            ).execute()
 
-        if (!response.isSuccessful) {
-            throw RequestFailedException(response.code, response.message)
+            if (!response.isSuccessful) {
+                throw RequestFailedException(response.code, response.message)
+            }
+
+            return Json.decodeFromStream(response.body!!.byteStream())
+        } catch (ex: IOException) {
+            throw IOExceptionWrapper(ex)
         }
-
-        return Json.decodeFromStream(response.body!!.byteStream())
     }
 
     private inline fun <reified T, reified R> post(url: HttpUrl, bodyJson: T): R {
-        val response = client.newCall(
-            Request.Builder()
-                .url(url)
-                .post(Json.encodeToString(bodyJson).toRequestBody(JSON))
-                .build()
-        ).execute()
+        try {
+            val response = client.newCall(
+                Request.Builder()
+                    .url(url)
+                    .post(Json.encodeToString(bodyJson).toRequestBody(JSON))
+                    .build()
+            ).execute()
 
-        if (!response.isSuccessful) {
-            throw RequestFailedException(response.code, response.message)
+            if (!response.isSuccessful) {
+                throw RequestFailedException(response.code, response.message)
+            }
+
+            return Json.decodeFromStream(response.body!!.byteStream())
+        } catch (ex: IOException) {
+            throw IOExceptionWrapper(ex)
         }
-
-        return Json.decodeFromStream(response.body!!.byteStream())
     }
 
-    class RequestFailedException(val code: Int, message: String) : Throwable("HTTP $code: $message")
+    open class Exception(message: String? = null, cause: Throwable? = null) :
+        Throwable(message, cause)
 
-    class JanusErrorException(code: Int, reason: String) : Throwable("Janus error $code: $reason")
+    class IOExceptionWrapper(cause: IOException) : Exception(cause = cause)
 
-    class NoSuchSessionException(cause: RequestFailedException) : Throwable(cause)
+    class RequestFailedException(val code: Int, message: String) :
+        Exception(message = "HTTP $code: $message")
+
+    class JanusErrorException(code: Int, reason: String) :
+        Exception(message = "Janus error $code: $reason")
+
+    class NoSuchSessionException(cause: RequestFailedException) : Exception(cause = cause)
 
     companion object {
         val JSON = "application/json; charset=utf-8".toMediaType()
