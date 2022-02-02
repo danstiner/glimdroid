@@ -4,10 +4,10 @@ import android.util.Log
 import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromStream
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -382,7 +382,7 @@ class JanusApi(
             throw RequestFailedException(response.code, response.message)
         }
 
-        return Json.decodeFromString(response.body!!.string())
+        return Json.decodeFromStream(response.body!!.byteStream())
     }
 
     private inline fun <reified T, reified R> post(url: HttpUrl, bodyJson: T): R {
@@ -397,7 +397,7 @@ class JanusApi(
             throw RequestFailedException(response.code, response.message)
         }
 
-        return Json.decodeFromString(response.body!!.string())
+        return Json.decodeFromStream(response.body!!.byteStream())
     }
 
     class RequestFailedException(val code: Int, message: String) : Throwable("HTTP $code: $message")
