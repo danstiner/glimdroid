@@ -20,7 +20,7 @@ val SERVICE_CONFIGURATION =
     AuthorizationServiceConfiguration(AUTHORIZATION_ENDPOINT, TOKEN_ENDPOINT)
 
 // Space-delimited set of case-sensitive scope identifiers to request
-private const val SCOPE: String = "public chat follow"
+internal const val SCOPE: String = "public chat follow"
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.

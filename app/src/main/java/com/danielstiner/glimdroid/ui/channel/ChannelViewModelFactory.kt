@@ -26,6 +26,7 @@ class ChannelViewModelFactory(
             val socket = GlimeshSocketDataSource.getInstance(auth = auth)
 
             return ChannelViewModel(
+                auth = auth,
                 channels = ChannelRepository(socket),
                 chats = ChatRepository(socket),
                 users = UserRepository(socket),

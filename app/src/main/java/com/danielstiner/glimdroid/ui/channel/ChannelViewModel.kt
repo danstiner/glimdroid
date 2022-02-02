@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.danielstiner.glimdroid.data.AuthStateDataSource
 import com.danielstiner.glimdroid.data.ChannelRepository
 import com.danielstiner.glimdroid.data.ChatRepository
 import com.danielstiner.glimdroid.data.UserRepository
@@ -18,13 +19,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class ChannelViewModel(
+    private val auth: AuthStateDataSource,
     private val channels: ChannelRepository,
     private val chats: ChatRepository,
     private val users: UserRepository,
     private val countryCode: String,
 ) : ViewModel() {
 
-    private val TAG = "ChannelViewModel"
+    val isAuthorized: Boolean
+        get() = auth.isAuthorized
 
     private val _uiState = MutableStateFlow(ChannelUiState())
     val uiState: StateFlow<ChannelUiState> = _uiState.asStateFlow()
@@ -323,6 +326,10 @@ class ChannelViewModel(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "ChannelViewModel"
     }
 }
 
