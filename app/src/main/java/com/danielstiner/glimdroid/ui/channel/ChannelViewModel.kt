@@ -185,13 +185,13 @@ class ChannelViewModel(
                 // Get edge route in parallel with fetching channel and chat info
                 joinAll(
                     launch { startWatch(channel) },
-                    launch {
-                        fetchChannelInfo(channel)
-                        // Kept separate from fetchChannelInfo because fetching chat messages is slow,
-                        // likely due to inefficient joins on the server
-                        fetchRecentChatHistory(channel)
-                    },
+                    launch { fetchChannelInfo(channel) },
+                    launch { fetchFollowInfo(channel) }
                 )
+
+                // Kept separate from fetchChannelInfo because fetching chat messages is slow,
+                // likely due to inefficient joins on the server
+                fetchRecentChatHistory(channel)
 
                 // After initial fetch is done, start subscriptions and background work
                 joinAll(
@@ -201,13 +201,13 @@ class ChannelViewModel(
             }
         }
 
-        suspend fun start() {
+        fun start() {
             _uiState.update { currentUiState ->
                 currentUiState.copy(isStopped = false)
             }
         }
 
-        suspend fun stop() {
+        fun stop() {
             _uiState.update { currentUiState ->
                 currentUiState.copy(isStopped = true)
             }
@@ -229,7 +229,6 @@ class ChannelViewModel(
 
         private suspend fun fetchChannelInfo(channel: ChannelId) {
             updateChannelLiveData(channels.get(channel))
-            updateFollowingData(channel, users.me())
         }
 
         private suspend fun updateChannelLiveData(channel: Channel) {
@@ -253,7 +252,11 @@ class ChannelViewModel(
             }
         }
 
-        private suspend fun updateFollowingData(channel: ChannelId, me: User) {
+        private suspend fun fetchFollowInfo(channel: ChannelId) {
+            updateFollowingLiveData(channel, users.me())
+        }
+
+        private suspend fun updateFollowingLiveData(channel: ChannelId, me: User) {
             withContext(Dispatchers.Main) {
                 if (!closed) {
                     val follow = me.following.firstOrNull { follow -> follow.channel == channel }
