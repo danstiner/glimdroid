@@ -68,7 +68,7 @@ class JanusApiTest {
             request.requestUrl!!.encodedPath == "/janus" && request.method == "POST" -> {
                 val body = request.body.readByteString().string(Charsets.UTF_8)
                 val json = Json.parseToJsonElement(body)
-                val transactionId = json!!.jsonObject["transaction"]!!.jsonPrimitive.content
+                val transactionId = json.jsonObject["transaction"]!!.jsonPrimitive.content
                 MockResponse().setBody(
                     """
                         {
