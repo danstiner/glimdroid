@@ -1,13 +1,12 @@
 package com.danielstiner.glimdroid.ui.channel
 
 import android.util.Log
+import androidx.annotation.MainThread
 import com.danielstiner.glimdroid.data.model.ChannelId
 import com.danielstiner.janus.JanusApi
 import com.danielstiner.janus.PluginId
 import com.danielstiner.janus.SessionId
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.HttpUrl
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
@@ -67,14 +66,17 @@ class JanusFtlSession(
             )
         )
 
-    fun destroy() {
+    @MainThread
+    suspend fun destroy() {
         destroyed = true
-        try {
-            janus.destroy(session)
-        } catch (ex: JanusApi.NoSuchSessionException) {
-            Log.w(TAG, "No such session to destroy; channel:$channel", ex)
-        } catch (ex: JanusApi.Exception) {
-            Log.w(TAG, "Ignoring unknown janus exception; channel:$channel", ex)
+        withContext(Dispatchers.IO) {
+            try {
+                janus.destroy(session)
+            } catch (ex: JanusApi.NoSuchSessionException) {
+                Log.w(TAG, "No such session to destroy; channel:$channel", ex)
+            } catch (ex: JanusApi.Exception) {
+                Log.w(TAG, "Ignoring unknown janus exception; channel:$channel", ex)
+            }
         }
     }
 
