@@ -28,7 +28,8 @@
         <item name="colorSurfaceInverse">@color/md_theme_dark_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_dark_primaryInverse</item>
 
-        <item name="android:statusBarColor">@color/md_theme_light_tertiary</item>
+        <!-- Custom overrides where we buck Material3 recommended colors -->
+        <item name="android:statusBarColor">@color/md_theme_light_primary</item>
     </style>
 
 </resources>
