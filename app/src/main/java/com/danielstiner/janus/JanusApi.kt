@@ -1,6 +1,7 @@
 package com.danielstiner.janus
 
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
@@ -196,6 +197,7 @@ class JanusApi(
     // there were no events to report, a simple keep-alive event message will be returned instead.
     private val pollClient = client.newBuilder().readTimeout(Duration.ofSeconds(60)).build()
 
+    @WorkerThread
     fun createSession(): SessionId {
         val request = CreateSessionRequest()
         val response: CreateSessionResponse = post(baseUrl, request)
@@ -209,6 +211,7 @@ class JanusApi(
         return response.data
     }
 
+    @WorkerThread
     fun attachPlugin(session: SessionId, plugin: String): PluginId {
         try {
             val sessionUri = baseUrl.newBuilder()
@@ -235,6 +238,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun ftlWatchChannel(session: SessionId, plugin: PluginId, channel: ChannelId) {
         try {
             val pluginUri = baseUrl.newBuilder()
@@ -261,6 +265,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun ftlStart(
         session: SessionId,
         plugin: PluginId,
@@ -298,6 +303,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun trickleIceCandidate(session: SessionId, plugin: PluginId, candidate: IceCandidate) {
         try {
             val pluginUri = baseUrl.newBuilder()
@@ -324,6 +330,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun longPollSession(session: SessionId): List<SessionEvent> {
         try {
             val uri = baseUrl.newBuilder()
@@ -341,6 +348,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun destroy(session: SessionId) {
         try {
             val sessionUri = baseUrl.newBuilder()
@@ -366,6 +374,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     fun waitForSdpOffer(session: SessionId): String {
         while (true) {
             for (event in longPollSession(session)) {
@@ -378,6 +387,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     private inline fun <reified R> poll(url: HttpUrl): R {
         try {
             val response = pollClient.newCall(
@@ -394,6 +404,7 @@ class JanusApi(
         }
     }
 
+    @WorkerThread
     private inline fun <reified T, reified R> post(url: HttpUrl, bodyJson: T): R {
         try {
             val response = client.newCall(
