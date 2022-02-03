@@ -1,0 +1,5 @@
+mutation FollowWithLiveNotifications($channelId: ID!, $liveNotifications: Boolean!) {
+    follow(channelId: $channelId, liveNotifications: $liveNotifications) {
+        id
+    }
+}

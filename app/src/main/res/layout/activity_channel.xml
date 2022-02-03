@@ -172,10 +172,18 @@
         <Button
             android:id="@+id/button_follow"
             style="@style/AppTheme.Button.Follow"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/followed"
-            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/button_live_notifications"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_live_notifications"
+            style="@style/AppTheme.Button.LiveNotifications"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -186,7 +194,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="left"
-            app:constraint_referenced_ids="button_follow" />
+            app:constraint_referenced_ids="button_follow,button_live_notifications" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

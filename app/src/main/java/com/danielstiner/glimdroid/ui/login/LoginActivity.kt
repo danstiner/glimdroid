@@ -9,7 +9,6 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.danielstiner.glimdroid.MainActivity
 import com.danielstiner.glimdroid.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -40,10 +39,7 @@ class LoginActivity : AppCompatActivity() {
         )[LoginViewModel::class.java]
 
         if (loginViewModel.isAuthorized) {
-            Log.i(TAG, "User is already authorized, jumping to main activity")
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-            return
+            Log.w(TAG, "User is already authorized, why are we here")
         }
 
         loginViewModel.loginResult.observe(this@LoginActivity, Observer {

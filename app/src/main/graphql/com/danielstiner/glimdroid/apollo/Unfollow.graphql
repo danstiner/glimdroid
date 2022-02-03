@@ -1,0 +1,5 @@
+mutation Unfollow($channelId: ID!) {
+    unfollow(channelId: $channelId) {
+        id
+    }
+}

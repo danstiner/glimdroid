@@ -31,6 +31,7 @@ import com.danielstiner.glimdroid.data.model.EdgeRoute
 import com.danielstiner.glimdroid.data.model.StreamId
 import com.danielstiner.glimdroid.databinding.ActivityChannelBinding
 import com.danielstiner.glimdroid.ui.Urls
+import com.danielstiner.glimdroid.ui.login.LoginActivity
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -66,6 +67,13 @@ class ChannelActivity : AppCompatActivity() {
             this,
             ChannelViewModelFactory(applicationContext)
         )[ChannelViewModel::class.java]
+
+        if (!viewModel.isAuthorized) {
+            Log.i(TAG, "Not authorized, jumping to login activity")
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
         // Preserving an EGLContext across activity restarts (e.g. orientation change) is tricky,
         // so for now we create a new context every time. Unfortunately a RTC peer connection is
@@ -189,6 +197,38 @@ class ChannelActivity : AppCompatActivity() {
                 binding.textviewSubtitle.text = ""
             }
         })
+        viewModel.following.observe(this, { following ->
+            if (following) {
+                binding.buttonFollow.text = "Followed"
+                binding.buttonLiveNotifications.visibility = View.VISIBLE
+            } else {
+                binding.buttonFollow.text = "Follow"
+                binding.buttonLiveNotifications.visibility = View.GONE
+            }
+        })
+        viewModel.liveNotifications.observe(this, { liveNotifications ->
+            if (liveNotifications) {
+                binding.buttonLiveNotifications.setIconResource(R.drawable.ic_notifications_black_24dp)
+            } else {
+                binding.buttonLiveNotifications.setIconResource(R.drawable.ic_notifications_none_black_24dp)
+            }
+        })
+
+        binding.buttonFollow.setOnClickListener {
+            if (viewModel.following.value == true) {
+                viewModel.unfollow()
+            } else {
+                viewModel.follow()
+            }
+        }
+        binding.buttonLiveNotifications.setOnClickListener {
+            if (viewModel.liveNotifications.value == true) {
+                viewModel.followWithoutLiveNotifications()
+            } else {
+                viewModel.followWithLiveNotifications()
+            }
+        }
+
 
         val chatAdapter = ChatAdapter()
         val layoutManager = binding.chatRecyclerView.layoutManager as LinearLayoutManager

@@ -28,6 +28,8 @@ class AuthStateDataSource(context: Context) {
     private var mPrefsLock: ReentrantLock = ReentrantLock()
     private var mCurrentAuthState: AtomicReference<AuthState> = AtomicReference()
 
+    val isAuthorized get() = getCurrent().run { isAuthorized && scope == SCOPE }
+
     companion object {
         private val INSTANCE_REF: AtomicReference<WeakReference<AuthStateDataSource>> =
             AtomicReference(WeakReference(null))

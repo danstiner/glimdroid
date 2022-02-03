@@ -16,7 +16,7 @@ class MainViewModel(
     private val users: UserRepository
 ) : ViewModel() {
     val isAuthorized: Boolean
-        get() = auth.getCurrent().isAuthorized
+        get() = auth.isAuthorized
 
     private val _avatarUri = MutableLiveData<Uri?>()
     val avatarUri: LiveData<Uri?> = _avatarUri

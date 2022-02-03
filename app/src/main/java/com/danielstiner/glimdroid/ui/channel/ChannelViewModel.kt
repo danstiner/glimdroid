@@ -7,8 +7,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.danielstiner.glimdroid.data.AuthStateDataSource
 import com.danielstiner.glimdroid.data.ChannelRepository
 import com.danielstiner.glimdroid.data.ChatRepository
+import com.danielstiner.glimdroid.data.UserRepository
 import com.danielstiner.glimdroid.data.model.*
 import com.danielstiner.phoenix.absinthe.Subscription
 import kotlinx.coroutines.*
@@ -17,12 +19,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class ChannelViewModel(
+    private val auth: AuthStateDataSource,
     private val channels: ChannelRepository,
     private val chats: ChatRepository,
+    private val users: UserRepository,
     private val countryCode: String,
 ) : ViewModel() {
 
-    private val TAG = "ChannelViewModel"
+    val isAuthorized: Boolean
+        get() = auth.isAuthorized
 
     private val _uiState = MutableStateFlow(ChannelUiState())
     val uiState: StateFlow<ChannelUiState> = _uiState.asStateFlow()
@@ -65,6 +70,12 @@ class ChannelViewModel(
     private val _thumbnailUri = MutableLiveData<Uri?>()
     val thumbnailUri: LiveData<Uri?> = _thumbnailUri
 
+    private val _following = MutableLiveData<Boolean>()
+    val following: LiveData<Boolean> = _following
+
+    private val _liveNotifications = MutableLiveData<Boolean>()
+    val liveNotifications: LiveData<Boolean> = _liveNotifications
+
     // Always accessed from main thread
     private var current: ChannelWatcher? = null
 
@@ -106,11 +117,43 @@ class ChannelViewModel(
     }
 
     @MainThread
+    fun follow() = followWithoutLiveNotifications()
+
+    @MainThread
+    fun followWithoutLiveNotifications() {
+        val channel = current!!.channel
+        viewModelScope.launch(Dispatchers.IO) {
+            channels.follow(channel, liveNotifications = false)
+            _following.postValue(true)
+            _liveNotifications.postValue(false)
+        }
+    }
+
+    @MainThread
+    fun followWithLiveNotifications() {
+        val channel = current!!.channel
+        viewModelScope.launch(Dispatchers.IO) {
+            channels.follow(channel, liveNotifications = true)
+            _following.postValue(true)
+            _liveNotifications.postValue(true)
+        }
+    }
+
+    @MainThread
+    fun unfollow() {
+        val channel = current!!.channel
+        viewModelScope.launch(Dispatchers.IO) {
+            channels.unfollow(channel)
+            _following.postValue(false)
+            _liveNotifications.postValue(false)
+        }
+    }
+
+    @MainThread
     fun sendMessage(text: CharSequence?) {
-        current!!.apply {
-            viewModelScope.launch(Dispatchers.IO) {
-                sendMessage(text!!)
-            }
+        val channel = current!!.channel
+        viewModelScope.launch(Dispatchers.IO) {
+            chats.sendMessage(channel, text!!)
         }
     }
 
@@ -142,13 +185,13 @@ class ChannelViewModel(
                 // Get edge route in parallel with fetching channel and chat info
                 joinAll(
                     launch { startWatch(channel) },
-                    launch {
-                        fetchChannelInfo(channel)
-                        // Kept separate from fetchChannelInfo because fetching chat messages is slow,
-                        // likely due to inefficient joins on the server
-                        fetchRecentChatHistory(channel)
-                    },
+                    launch { fetchChannelInfo(channel) },
+                    launch { fetchFollowInfo(channel) }
                 )
+
+                // Kept separate from fetchChannelInfo because fetching chat messages is slow,
+                // likely due to inefficient joins on the server
+                fetchRecentChatHistory(channel)
 
                 // After initial fetch is done, start subscriptions and background work
                 joinAll(
@@ -158,17 +201,13 @@ class ChannelViewModel(
             }
         }
 
-        suspend fun sendMessage(text: CharSequence) {
-            chats.sendMessage(channel, text)
-        }
-
-        suspend fun start() {
+        fun start() {
             _uiState.update { currentUiState ->
                 currentUiState.copy(isStopped = false)
             }
         }
 
-        suspend fun stop() {
+        fun stop() {
             _uiState.update { currentUiState ->
                 currentUiState.copy(isStopped = true)
             }
@@ -209,6 +248,21 @@ class ChannelViewModel(
                     if (channel.stream?.thumbnailUrl != null) {
                         _thumbnailUri.value = Uri.parse(channel.stream.thumbnailUrl)
                     }
+                }
+            }
+        }
+
+        private suspend fun fetchFollowInfo(channel: ChannelId) {
+            updateFollowingLiveData(channel, users.me())
+        }
+
+        private suspend fun updateFollowingLiveData(channel: ChannelId, me: User) {
+            withContext(Dispatchers.Main) {
+                if (!closed) {
+                    val follow = me.following.firstOrNull { follow -> follow.channel == channel }
+
+                    _following.value = follow != null
+                    _liveNotifications.value = follow?.liveNotifications ?: false
                 }
             }
         }
@@ -275,6 +329,10 @@ class ChannelViewModel(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "ChannelViewModel"
     }
 }
 

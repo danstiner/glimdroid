@@ -6,10 +6,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.danielstiner.glimdroid.data.AuthStateDataSource
-import com.danielstiner.glimdroid.data.ChannelRepository
-import com.danielstiner.glimdroid.data.ChatRepository
-import com.danielstiner.glimdroid.data.GlimeshSocketDataSource
+import com.danielstiner.glimdroid.data.*
 
 
 /**
@@ -29,8 +26,10 @@ class ChannelViewModelFactory(
             val socket = GlimeshSocketDataSource.getInstance(auth = auth)
 
             return ChannelViewModel(
+                auth = auth,
                 channels = ChannelRepository(socket),
                 chats = ChatRepository(socket),
+                users = UserRepository(socket),
                 countryCode = getCountryCode(),
             ) as T
         }
