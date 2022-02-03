@@ -12,7 +12,7 @@ class ChatRepository(
     val glimesh: GlimeshSocketDataSource
 ) {
     suspend fun recentMessages(channel: ChannelId): List<ChatMessage> {
-        val oneHourAgo = Instant.now().minus(ONE_HOUR)
+        val recentCutoff = Instant.now().minus(RECENT_MESSAGE_CUTOFF)
 
         return glimesh.recentMessagesQuery(channel)
             .channel!!
@@ -29,7 +29,7 @@ class ChatRepository(
                     timestamp = message.insertedAt,
                     tokens = message.tokens!!.map(this::tokenize),
                 )
-            }.filter { it.timestamp.isAfter(oneHourAgo) }
+            }.filter { it.timestamp.isAfter(recentCutoff) }
     }
 
     suspend fun subscribe(channel: ChannelId): Subscription<ChatMessage> {
@@ -63,6 +63,6 @@ class ChatRepository(
 
     companion object {
         private const val TAG = "ChatRepository"
-        private val ONE_HOUR = Duration.ofHours(1)
+        private val RECENT_MESSAGE_CUTOFF = Duration.ofMinutes(15)
     }
 }
