@@ -69,6 +69,7 @@ class ChannelActivity : AppCompatActivity() {
         )[ChannelViewModel::class.java]
 
         if (!viewModel.isAuthorized) {
+            Log.i(TAG, "Not authorized, jumping to login activity")
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
