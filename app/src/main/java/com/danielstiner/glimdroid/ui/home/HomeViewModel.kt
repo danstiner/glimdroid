@@ -1,5 +1,6 @@
 package com.danielstiner.glimdroid.ui.home
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,7 @@ import com.danielstiner.glimdroid.data.model.Channel
 import com.danielstiner.glimdroid.data.model.ChannelId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.openid.appauth.AuthorizationException
 import okhttp3.internal.toImmutableList
 
 class HomeViewModel(
@@ -25,8 +27,12 @@ class HomeViewModel(
 
     suspend fun fetchAsync() {
         withContext(Dispatchers.IO) {
-            fetchHomeLiveChannels()
-            fetchAllLiveChannels()
+            try {
+                fetchHomeLiveChannels()
+                fetchAllLiveChannels()
+            } catch (ex: AuthorizationException) {
+                Log.e(TAG, "Fetch failed", ex)
+            }
         }
     }
 
@@ -95,4 +101,7 @@ class HomeViewModel(
         return items.toImmutableList()
     }
 
+    companion object {
+        private const val TAG = "HomeViewModel"
+    }
 }

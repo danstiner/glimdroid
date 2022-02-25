@@ -11,7 +11,7 @@ class LoginRepository(
 ) {
 
     val isLoggedIn: Boolean
-        get() = authStateDataSource.getCurrent().isAuthorized
+        get() = authStateDataSource.isAuthorized
 
     fun logout() {
         dataSource.logout()

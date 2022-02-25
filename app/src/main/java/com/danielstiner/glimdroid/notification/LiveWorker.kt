@@ -85,7 +85,7 @@ class LiveWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result {
-        if (!auth.getCurrent().isAuthorized) {
+        if (!auth.isAuthorized) {
             Log.d(TAG, "Not authorized, skipping work")
             return Result.success()
         }

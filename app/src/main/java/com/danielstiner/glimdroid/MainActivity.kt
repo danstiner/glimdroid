@@ -41,10 +41,11 @@ class MainActivity : AppCompatActivity() {
             MainViewModelFactory(this)
         )[MainViewModel::class.java]
 
-        if (!viewModel.isAuthorized) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
+        viewModel.isAuthorized.observe(this) { isAuthorized ->
+            if (!isAuthorized) {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
         }
 
         binding = ActivityMainBinding.inflate(layoutInflater)

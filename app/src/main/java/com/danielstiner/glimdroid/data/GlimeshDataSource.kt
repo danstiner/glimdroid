@@ -50,7 +50,7 @@ class GlimeshDataSource(
             )
         }
 
-    suspend fun myFollowingLiveQuery(): MyFollowingLiveQuery.Data =
+    private suspend fun myFollowingLiveQuery(): MyFollowingLiveQuery.Data =
         apolloClient.query(MyFollowingLiveQuery())
             .addHttpHeader("Authorization", "Bearer ${auth.freshAccessToken()}")
             .execute()
